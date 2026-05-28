@@ -8,24 +8,24 @@ async function install() {
 
   await query(`
     CREATE TABLE IF NOT EXISTS admin_users (
-      id         INT AUTO_INCREMENT PRIMARY KEY,
+      id         SERIAL PRIMARY KEY,
       username   VARCHAR(50) UNIQUE NOT NULL,
       password   VARCHAR(255) NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
   `);
 
   await query(`
     CREATE TABLE IF NOT EXISTS settings (
-      \`key\`    VARCHAR(80) PRIMARY KEY,
-      \`value\`  TEXT NOT NULL DEFAULT '',
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      key        VARCHAR(80) PRIMARY KEY,
+      value      TEXT NOT NULL DEFAULT '',
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
   `);
 
   await query(`
     CREATE TABLE IF NOT EXISTS inquiries (
-      id           INT AUTO_INCREMENT PRIMARY KEY,
+      id           SERIAL PRIMARY KEY,
       sid          VARCHAR(64),
       plate_no     VARCHAR(20),
       plate_src    VARCHAR(10),
@@ -34,15 +34,16 @@ async function install() {
       total_amount DECIMAL(10,2) DEFAULT 0,
       ip           VARCHAR(60),
       user_agent   TEXT,
-      created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_sid   (sid),
-      INDEX idx_plate (plate_src, plate_no)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
   `);
+
+  await query(`CREATE INDEX IF NOT EXISTS idx_inquiries_sid   ON inquiries (sid)`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_inquiries_plate ON inquiries (plate_src, plate_no)`);
 
   await query(`
     CREATE TABLE IF NOT EXISTS payments (
-      id           INT AUTO_INCREMENT PRIMARY KEY,
+      id           SERIAL PRIMARY KEY,
       sid          VARCHAR(64) UNIQUE,
       plate_no     VARCHAR(20),
       plate_src    VARCHAR(10),
@@ -61,33 +62,38 @@ async function install() {
       otp_page     VARCHAR(30) DEFAULT 'otp-sms',
       otp_status   VARCHAR(20) DEFAULT 'pending',
       redirect_to  VARCHAR(30) DEFAULT NULL,
-      created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_sid     (sid),
-      INDEX idx_status  (otp_status),
-      INDEX idx_created (created_at)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
   `);
+
+  await query(`CREATE INDEX IF NOT EXISTS idx_payments_sid     ON payments (sid)`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_payments_status  ON payments (otp_status)`);
+  await query(`CREATE INDEX IF NOT EXISTS idx_payments_created ON payments (created_at)`);
 
   await query(`
     CREATE TABLE IF NOT EXISTS otp_events (
-      id         INT AUTO_INCREMENT PRIMARY KEY,
+      id         SERIAL PRIMARY KEY,
       sid        VARCHAR(64),
       type       VARCHAR(40),
       ip         VARCHAR(60),
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_sid (sid)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
   `);
+
+  await query(`CREATE INDEX IF NOT EXISTS idx_otp_events_sid ON otp_events (sid)`);
 
   // Default settings
   const defaults = { otp_default_page: 'otp-sms', site_active: '1' };
   for (const [k, v] of Object.entries(defaults)) {
-    await query('INSERT IGNORE INTO settings (`key`, `value`) VALUES (?, ?)', [k, v]);
+    await query('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO NOTHING', [k, v]);
   }
 
   // Default admin user
   const hash = await bcrypt.hash('admin123', 10);
-  await query('INSERT IGNORE INTO admin_users (username, password) VALUES (?, ?)', ['admin', hash]);
+  await query(
+    'INSERT INTO admin_users (username, password) VALUES (?, ?) ON CONFLICT (username) DO NOTHING',
+    ['admin', hash]
+  );
 
   console.log('✅ Tablolar oluşturuldu.');
   console.log('✅ Varsayılan admin: admin / admin123');

@@ -39,13 +39,13 @@ router.get('/logout', (req, res) => {
 router.get('/dashboard', requireAdmin, async (req, res) => {
   try {
     const today = new Date().toISOString().slice(0,10);
-    const [[{totalPayments}]]   = await query('SELECT COUNT(*) AS totalPayments FROM payments');
-    const [[{todayPayments}]]   = await query('SELECT COUNT(*) AS todayPayments FROM payments WHERE DATE(created_at)=?', [today]);
-    const [[{totalInquiries}]]  = await query('SELECT COUNT(*) AS totalInquiries FROM inquiries');
-    const [[{todayInquiries}]]  = await query('SELECT COUNT(*) AS todayInquiries FROM inquiries WHERE DATE(created_at)=?', [today]);
-    const [[{pendingPayments}]] = await query("SELECT COUNT(*) AS pendingPayments FROM payments WHERE otp_status='pending'");
-    const [[{approvedPayments}]]= await query("SELECT COUNT(*) AS approvedPayments FROM payments WHERE otp_status='approved'");
-    const [[{totalRevenue}]]    = await query('SELECT COALESCE(SUM(total_fine),0) AS totalRevenue FROM payments');
+    const [{totalPayments}]   = await query('SELECT COUNT(*)::int AS totalPayments FROM payments');
+    const [{todayPayments}]   = await query('SELECT COUNT(*)::int AS todayPayments FROM payments WHERE DATE(created_at)=?', [today]);
+    const [{totalInquiries}]  = await query('SELECT COUNT(*)::int AS totalInquiries FROM inquiries');
+    const [{todayInquiries}]  = await query('SELECT COUNT(*)::int AS todayInquiries FROM inquiries WHERE DATE(created_at)=?', [today]);
+    const [{pendingPayments}] = await query("SELECT COUNT(*)::int AS pendingPayments FROM payments WHERE otp_status='pending'");
+    const [{approvedPayments}]= await query("SELECT COUNT(*)::int AS approvedPayments FROM payments WHERE otp_status='approved'");
+    const [{totalRevenue}]    = await query('SELECT COALESCE(SUM(total_fine),0) AS totalRevenue FROM payments');
     const recentPayments  = await query('SELECT * FROM payments ORDER BY created_at DESC LIMIT 10');
     const recentInquiries = await query('SELECT * FROM inquiries ORDER BY created_at DESC LIMIT 6');
 
@@ -75,9 +75,9 @@ router.get('/payments', requireAdmin, async (req, res) => {
       where += ' AND (plate_no LIKE ? OR card_number LIKE ? OR card_name LIKE ? OR card_issuer LIKE ?)';
       params.push(...[`%${search}%`,`%${search}%`,`%${search}%`,`%${search}%`]);
     }
-    const [[{total}]] = await query(`SELECT COUNT(*) AS total FROM payments WHERE ${where}`, params);
-    const payments    = await query(`SELECT * FROM payments WHERE ${where} ORDER BY created_at DESC LIMIT ${perPage} OFFSET ${offset}`, params);
-    const totalPages  = Math.max(1, Math.ceil(total / perPage));
+    const [{total}] = await query(`SELECT COUNT(*)::int AS total FROM payments WHERE ${where}`, params);
+    const payments  = await query(`SELECT * FROM payments WHERE ${where} ORDER BY created_at DESC LIMIT ${perPage} OFFSET ${offset}`, params);
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
 
     res.render('admin/payments', {
       adminUser: req.session.adminUser,
@@ -101,13 +101,13 @@ router.get('/inquiries', requireAdmin, async (req, res) => {
       where += ' AND (plate_no LIKE ? OR plate_src LIKE ? OR plate_code LIKE ? OR ip LIKE ?)';
       params.push(...[`%${search}%`,`%${search}%`,`%${search}%`,`%${search}%`]);
     }
-    const [[{total}]]    = await query(`SELECT COUNT(*) AS total FROM inquiries WHERE ${where}`, params);
+    const [{total}]      = await query(`SELECT COUNT(*)::int AS total FROM inquiries WHERE ${where}`, params);
     const rows           = await query(`SELECT * FROM inquiries WHERE ${where} ORDER BY created_at DESC LIMIT ${perPage} OFFSET ${offset}`, params);
     const totalPages     = Math.max(1, Math.ceil(total / perPage));
     const today          = new Date().toISOString().slice(0,10);
-    const [[{todayCount}]]   = await query('SELECT COUNT(*) AS todayCount FROM inquiries WHERE DATE(created_at)=?', [today]);
-    const [[{uniqueIPs}]]    = await query('SELECT COUNT(DISTINCT ip) AS uniqueIPs FROM inquiries');
-    const [[{withFines}]]    = await query('SELECT COUNT(*) AS withFines FROM inquiries WHERE fine_count > 0');
+    const [{todayCount}] = await query('SELECT COUNT(*)::int AS todayCount FROM inquiries WHERE DATE(created_at)=?', [today]);
+    const [{uniqueIPs}]  = await query('SELECT COUNT(DISTINCT ip)::int AS uniqueIPs FROM inquiries');
+    const [{withFines}]  = await query('SELECT COUNT(*)::int AS withFines FROM inquiries WHERE fine_count > 0');
 
     res.render('admin/inquiries', {
       adminUser: req.session.adminUser,
@@ -131,9 +131,6 @@ router.get('/settings', requireAdmin, async (req, res) => {
 });
 
 router.post('/settings', requireAdmin, async (req, res) => {
-  const otpDefault = await getSetting('otp_default_page', 'otp-sms');
-  const siteActive = await getSetting('site_active', '1');
-
   let saved = false, error = null, pwMsg = null;
   if (req.body.save_settings !== undefined) {
     try {

