@@ -431,23 +431,23 @@ document.addEventListener('click', e => {
 // ── Per-region plate overlay renderer ─────────────────────────────────────────
 // Shown ONLY on the plate after selection — dropdown stays plain text
 const R = (flag, label, arabic, labelColor, codeColor, numColor) => (code, no) => `
-  <div style="font-size:7px;font-weight:800;letter-spacing:1.8px;color:${labelColor};line-height:1.5;text-shadow:0 0 3px rgba(255,255,255,0.75);">
+  <div style="font-size:9px;font-weight:800;letter-spacing:1.8px;color:${labelColor};line-height:1.5;text-shadow:0 0 3px rgba(255,255,255,0.75);">
     ${flag}&nbsp;${label}&nbsp;·&nbsp;<span class="po-arabic" style="letter-spacing:0;">${arabic}</span>
   </div>
   <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;line-height:1;display:flex;align-items:baseline;justify-content:center;gap:4px;text-shadow:0 1px 2px rgba(255,255,255,0.45);">
-    ${code ? `<span style="font-size:clamp(11px,2.8vw,19px);color:${codeColor};">${code}</span>` : ''}
-    <span style="font-size:clamp(21px,5.5vw,38px);letter-spacing:3px;color:${numColor};">${no}</span>
+    ${code ? `<span style="font-size:clamp(14px,3.8vw,24px);color:${codeColor};">${code}</span>` : ''}
+    <span style="font-size:clamp(27px,7.2vw,48px);letter-spacing:3px;color:${numColor};">${no}</span>
   </div>`;
 
 const PLATE_STYLES = {
   DXB: R('🇦🇪','DUBAI',          'دبي',       '#006837', '#333', '#111'),
   AUH: (code, no) => `
-    <div style="font-size:7px;font-weight:800;letter-spacing:1.8px;color:#555;line-height:1.5;text-shadow:0 0 3px rgba(255,255,255,0.75);">
+    <div style="font-size:9px;font-weight:800;letter-spacing:1.8px;color:#555;line-height:1.5;text-shadow:0 0 3px rgba(255,255,255,0.75);">
       🇦🇪&nbsp;ABU DHABI&nbsp;·&nbsp;<span class="po-arabic" style="letter-spacing:0;">أبوظبي</span>
     </div>
     <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;gap:5px;text-shadow:0 1px 2px rgba(255,255,255,0.45);">
-      ${code ? `<span style="background:#c0392b;color:white;font-size:clamp(10px,2.5vw,16px);padding:1px 5px;border-radius:2px;font-family:'Barlow Condensed',sans-serif;font-weight:900;">${code}</span>` : ''}
-      <span style="font-size:clamp(21px,5.5vw,38px);letter-spacing:3px;color:#111;">${no}</span>
+      ${code ? `<span style="background:#c0392b;color:white;font-size:clamp(13px,3.2vw,20px);padding:1px 5px;border-radius:2px;font-family:'Barlow Condensed',sans-serif;font-weight:900;">${code}</span>` : ''}
+      <span style="font-size:clamp(27px,7.2vw,48px);letter-spacing:3px;color:#111;">${no}</span>
     </div>`,
   SHJ: R('🇦🇪','SHARJAH',        'الشارقة',   '#555',    '#555', '#111'),
   AJM: R('🇦🇪','AJMAN',          'عجمان',     '#555',    '#555', '#111'),
@@ -459,13 +459,13 @@ const PLATE_STYLES = {
   KWT: R('🇰🇼','KUWAIT',         'الكويت',    '#1d4ed8', '#1d4ed8', '#111'),
   BHR: R('🇧🇭','BAHRAIN',        'البحرين',   '#ce1126', '#333',    '#111'),
   KSA: (code, no) => `
-    <div style="font-size:7px;font-weight:800;letter-spacing:1.8px;color:#006c35;line-height:1.5;text-shadow:0 0 3px rgba(255,255,255,0.75);">
+    <div style="font-size:9px;font-weight:800;letter-spacing:1.8px;color:#006c35;line-height:1.5;text-shadow:0 0 3px rgba(255,255,255,0.75);">
       🇸🇦&nbsp;SAUDI ARABIA&nbsp;·&nbsp;<span class="po-arabic" style="letter-spacing:0;">السعودية</span>
     </div>
-    ${no ? `<div class="po-arabic" style="font-size:clamp(14px,4vw,26px);font-weight:900;color:#006c35;letter-spacing:2px;text-shadow:0 1px 2px rgba(255,255,255,0.5);">${reverseDigitsToArabic(no)}${code ? ' ' + toArabicLetter(code) : ''}</div>` : ''}
+    ${no ? `<div class="po-arabic" style="font-size:clamp(18px,5vw,32px);font-weight:900;color:#006c35;letter-spacing:2px;text-shadow:0 1px 2px rgba(255,255,255,0.5);">${reverseDigitsToArabic(no)}${code ? ' ' + toArabicLetter(code) : ''}</div>` : ''}
     <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;line-height:1;display:flex;align-items:baseline;justify-content:center;gap:4px;text-shadow:0 1px 2px rgba(255,255,255,0.45);">
-      ${code ? `<span style="font-size:clamp(11px,2.8vw,19px);color:#333;">${code}</span>` : ''}
-      <span style="font-size:clamp(21px,5.5vw,38px);letter-spacing:3px;color:#111;">${no}</span>
+      ${code ? `<span style="font-size:clamp(14px,3.8vw,24px);color:#333;">${code}</span>` : ''}
+      <span style="font-size:clamp(27px,7.2vw,48px);letter-spacing:3px;color:#111;">${no}</span>
     </div>`,
 };
 
@@ -535,6 +535,41 @@ csRenderList('code',   PLATE_CODES.map(c   => ({value: c.code, label: c.code})))
 document.getElementById('plate-video').addEventListener('ended', function() {
   this.pause();
 });
+
+// ── Responsive plate position ─────────────────────────────────────────────────
+// object-fit:cover kırpma, landscape/portrait farkı ve sidebar genişliği nedeniyle
+// sabit top:% yanlış hizalanır. Gerçek video boyutlarına göre hesaplayalım.
+const PLATE_Y_FRAC = 0.55; // videodaki fiziksel plaka merkezi (yukarıdan %55)
+
+function recalcPlatePos() {
+  const vid  = document.getElementById('plate-video');
+  const wrap = vid.parentElement;          // .car-banner-wrap
+  const overlay = document.getElementById('plate-overlay');
+  const cW = wrap.clientWidth;
+  const cH = wrap.clientHeight;
+  if (!cW || !cH) return;
+  // Gerçek video aspect ratio (metadata yüklenmeden önce 1.78 varsayılır)
+  const vA = (vid.videoWidth && vid.videoHeight)
+    ? vid.videoWidth / vid.videoHeight
+    : 1.78;
+  let plateY;
+  if (cW / cH <= vA) {
+    // Container portrait göreli → video yüksekliği doldurur, yanlar kırpılır
+    // Dikey konum değişmez
+    plateY = PLATE_Y_FRAC * cH;
+  } else {
+    // Container landscape göreli → video genişliği doldurur, üst/alt kırpılır
+    const scaledH = cW / vA;
+    const topCrop  = (scaledH - cH) / 2;
+    plateY = PLATE_Y_FRAC * scaledH - topCrop;
+  }
+  overlay.style.top       = plateY + 'px';
+  overlay.style.transform = 'translate(-50%, -50%)';
+}
+
+document.getElementById('plate-video').addEventListener('loadedmetadata', recalcPlatePos);
+window.addEventListener('resize', recalcPlatePos);
+recalcPlatePos(); // ilk çağrı (varsayılan aspect ile)
 </script>
 </body>
 </html>
