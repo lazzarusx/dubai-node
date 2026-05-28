@@ -9,40 +9,33 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --green:     #006837;
-  --green-lt:  #e8f5ee;
-  --border:    #e5e7eb;
-  --bg:        #f5f7fa;
-  --text:      #1a1a1a;
-  --muted:     #6b7280;
+  --green:    #006837;
+  --green-lt: #e8f5ee;
+  --border:   #e5e7eb;
+  --bg:       #f5f7fa;
+  --text:     #1a1a1a;
+  --muted:    #6b7280;
   --sidebar-w: 60px;
 }
 html, body { height: 100%; }
-body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100%; display: flex; flex-direction: column; overflow-x: hidden; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Top header ── */
+/* ── Topbar ── */
 .topbar {
   height: 52px; background: white; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 12px;
-  padding: 0 14px; position: sticky; top: 0; z-index: 50;
-  flex-shrink: 0;
+  padding: 0 14px; flex-shrink: 0; z-index: 50;
 }
 .topbar-back { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 .topbar-back svg { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; }
 .breadcrumb { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--muted); flex: 1; }
-.breadcrumb span { color: var(--muted); }
+.breadcrumb span { color: var(--muted); white-space: nowrap; }
 .breadcrumb .current { color: var(--text); font-weight: 600; }
 .breadcrumb-sep { font-size: 10px; color: #cbd5e1; }
-.topbar-icons { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.topbar-icon { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-.topbar-icon svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 2; }
-.lang-btn { padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--text); background: white; cursor: pointer; }
-.sos-btn { padding: 4px 12px; background: #dc2626; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
-.login-btn { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); cursor: pointer; background: none; border: none; }
 
 /* ── Layout ── */
-.app-layout { display: flex; flex: 1; min-height: 0; }
+.app-layout { display: flex; flex: 1; overflow: hidden; }
 
 /* ── Sidebar ── */
 .sidebar {
@@ -53,7 +46,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .sidebar-logo { width: 44px; height: 44px; margin-bottom: 6px; }
 .sidebar-logo img { width: 100%; height: 100%; object-fit: contain; }
 .sb-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.12s; }
-.sb-icon:hover { background: var(--green-lt); }
+.sb-icon:hover  { background: var(--green-lt); }
 .sb-icon.active { background: var(--green-lt); }
 .sb-icon svg { width: 19px; height: 19px; stroke: var(--muted); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .sb-icon.active svg { stroke: var(--green); }
@@ -63,89 +56,108 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .main-area { flex: 1; display: flex; flex-direction: column; overflow-y: auto; min-width: 0; }
 
 /* ── Car banner ── */
-.car-banner-wrap {
-  position: relative; width: 100%; background: #dde6dc;
-  overflow: hidden; max-height: 280px; flex-shrink: 0;
-}
-.car-banner-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.car-banner-wrap { position: relative; width: 100%; background: #c8d6c6; overflow: hidden; flex-shrink: 0; }
+.car-banner-vid  { width: 100%; height: auto; max-height: 360px; display: block; object-fit: cover; }
 .plate-overlay {
-  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-  background: white; border: 2px solid rgba(0,0,0,0.15);
-  border-radius: 6px; padding: 8px 18px 6px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.28);
-  min-width: 200px; text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  position: absolute; bottom: 18%; left: 50%; transform: translateX(-50%);
+  background: white; border: 2.5px solid rgba(0,0,0,0.18);
+  border-radius: 7px; padding: 8px 20px 6px;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.32);
+  min-width: 190px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
 }
 .plate-top { display: flex; align-items: center; gap: 8px; }
-.plate-src-txt { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; }
-.plate-uae { font-size: 11px; font-weight: 800; color: #333; letter-spacing: 2px; }
-.plate-num { font-size: 22px; font-weight: 900; color: var(--text); letter-spacing: 3px; line-height: 1; }
-.plate-code-txt { font-size: 13px; font-weight: 700; color: #444; margin-left: 6px; }
-.plate-empty { font-size: 13px; color: #aaa; letter-spacing: 1px; }
+.plate-src-txt  { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; }
+.plate-uae      { font-size: 10px; font-weight: 800; color: #333; letter-spacing: 2px; }
+.plate-code-txt { font-size: 13px; font-weight: 800; color: #333; margin-left: 4px; }
+.plate-num      { font-size: 24px; font-weight: 900; color: var(--text); letter-spacing: 3px; line-height: 1; }
+.plate-empty    { font-size: 14px; color: #aaa; letter-spacing: 2px; }
 
-/* ── Tab nav ── */
-.tab-nav {
-  background: white; border-bottom: 1px solid var(--border);
-  padding: 0 16px; display: flex; gap: 0; overflow-x: auto;
-  scrollbar-width: none; flex-shrink: 0;
-}
-.tab-nav::-webkit-scrollbar { display: none; }
-.tab-btn {
-  padding: 11px 14px; border: none; background: none; font-size: 13px;
-  cursor: pointer; white-space: nowrap; margin-bottom: -1px;
-  font-weight: 500; color: var(--muted); border-bottom: 2.5px solid transparent;
-  display: flex; align-items: center; gap: 7px; transition: all 0.12s;
-}
-.tab-btn.active { font-weight: 700; color: var(--green); border-bottom-color: var(--green); }
-.tab-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
-
-/* ── Form section ── */
-.form-area { flex: 1; padding: 20px 16px; background: white; margin: 12px; border-radius: 14px; border: 1px solid var(--border); }
+/* ── Form ── */
+.form-section { padding: 18px 16px 0; }
+.form-area { background: white; border-radius: 14px; border: 1px solid var(--border); padding: 18px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
 @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
 .field-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; display: block; }
-.field-wrap { position: relative; }
-.form-input, .form-select {
+.form-input {
   width: 100%; padding: 11px 14px; border: 1.5px solid var(--border);
   border-radius: 10px; font-size: 14px; color: var(--text);
-  background: white; outline: none; appearance: none;
-  font-family: inherit; transition: border-color 0.15s;
+  background: white; outline: none; font-family: inherit; transition: border-color 0.15s;
 }
-.form-input:focus, .form-select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,104,55,0.1); }
-.form-select { padding-right: 36px; }
-.select-arrow {
-  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-  pointer-events: none;
-}
-.select-arrow svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 2; }
+.form-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,104,55,0.1); }
 .form-error { display: none; margin-top: 12px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; font-size: 13px; color: #dc2626; }
+
+/* ── Custom Select ── */
+.cs-wrap { position: relative; }
+
+.cs-trigger {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px;
+  background: white; cursor: pointer; user-select: none;
+  transition: border-color 0.15s, box-shadow 0.15s; gap: 8px;
+}
+.cs-trigger.open {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(0,104,55,0.1);
+}
+.cs-val-txt { flex: 1; font-size: 14px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cs-val-txt.empty { color: #9ca3af; font-weight: 400; }
+.cs-trigger-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.cs-clear {
+  width: 18px; height: 18px; border-radius: 50%; border: none; background: #e5e7eb;
+  color: #6b7280; font-size: 13px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; padding: 0;
+  transition: background 0.1s;
+}
+.cs-clear:hover { background: #d1d5db; }
+.cs-chevron { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 2.5; stroke-linecap: round; transition: transform 0.15s; flex-shrink: 0; }
+.cs-chevron.open { transform: rotate(180deg); }
+
+.cs-panel {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  background: white; border: 1.5px solid var(--border); border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+  z-index: 200; overflow: hidden;
+}
+.cs-list { max-height: 210px; overflow-y: auto; }
+.cs-list::-webkit-scrollbar { width: 4px; }
+.cs-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+.cs-option {
+  padding: 10px 16px; font-size: 14px; color: var(--text);
+  cursor: pointer; transition: background 0.08s;
+}
+.cs-option:hover    { background: var(--green-lt); }
+.cs-option.selected { background: var(--green-lt); color: var(--green); font-weight: 600; }
 
 /* ── Bottom actions ── */
 .bottom-actions {
   background: white; border-top: 1px solid var(--border);
   padding: 14px 16px; display: flex; gap: 10px; flex-shrink: 0;
-  position: sticky; bottom: 0;
+  margin-top: auto;
 }
 .btn-back {
   flex: 1; padding: 14px; border: 1.5px solid var(--border); background: white;
   border-radius: 50px; font-size: 14px; font-weight: 600; color: var(--muted);
-  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: inherit;
 }
 .btn-check {
   flex: 2; padding: 14px; background: var(--green); color: white;
   border: none; border-radius: 50px; font-size: 14px; font-weight: 700;
   cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-  box-shadow: 0 4px 16px rgba(0,104,55,0.35); transition: background 0.15s;
+  box-shadow: 0 4px 16px rgba(0,104,55,0.35); transition: background 0.15s; font-family: inherit;
 }
-.btn-check:hover { background: #005229; }
-.btn-check:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; }
+.btn-check:hover     { background: #005229; }
+.btn-check:disabled  { background: #9ca3af; box-shadow: none; cursor: not-allowed; }
 .btn-icon { width: 22px; height: 22px; background: rgba(255,255,255,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .btn-icon svg { width: 12px; height: 12px; stroke: white; fill: none; stroke-width: 2.5; }
+
+/* spacer below form */
+.form-spacer { height: 16px; flex-shrink: 0; }
 </style>
 </head>
 <body>
 
-<!-- Top header -->
+<!-- ── Topbar ── -->
 <div class="topbar">
   <div class="topbar-back" onclick="history.back()">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -157,25 +169,11 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
     <span class="breadcrumb-sep">›</span>
     <span class="current">Inquire &amp; Pay</span>
   </div>
-  <div class="topbar-icons">
-    <div class="topbar-icon">
-      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-    </div>
-    <div class="topbar-icon">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    </div>
-    <span class="lang-btn">English</span>
-    <span class="sos-btn">SOS</span>
-    <button class="login-btn">
-      Login
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    </button>
-  </div>
 </div>
 
 <div class="app-layout">
 
-  <!-- Left sidebar -->
+  <!-- ── Sidebar ── -->
   <div class="sidebar">
     <div class="sidebar-logo"><img src="/dp-logo.png" alt="Dubai Police"></div>
     <div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
@@ -186,72 +184,49 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
     <div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
     <div class="sb-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
     <div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M19 17H5c-1.1 0-2-.9-2-2V7c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2z"/><path d="M16 17v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2"/></svg></div>
-    <div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
     <div class="sb-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg></div>
     <div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-    <div class="sb-icon" style="margin-top:auto;margin-bottom:4px;">
-      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.42a2 2 0 0 1 1.95-2.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/></svg>
-    </div>
+    <div class="sb-icon" style="margin-top:auto;margin-bottom:4px;"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.42a2 2 0 0 1 1.95-2.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/></svg></div>
   </div>
 
-  <!-- Main content -->
+  <!-- ── Main content ── -->
   <div class="main-area">
 
-    <!-- Car banner with plate preview -->
+    <!-- Video banner -->
     <div class="car-banner-wrap">
-      <video autoplay muted loop playsinline class="car-banner-img" style="width:100%;max-height:260px;object-fit:cover;object-position:center 40%;">
+      <video autoplay muted playsinline class="car-banner-vid" id="plate-video">
         <source src="/plate.mp4" type="video/mp4">
       </video>
       <div class="plate-overlay" id="plate-overlay">
         <div class="plate-top">
-          <span class="plate-src-txt" id="plate-src-display" style="display:none;"></span>
-          <span class="plate-uae" id="plate-uae-text" style="display:none;">U A E</span>
-          <span class="plate-code-txt" id="plate-code-display" style="display:none;"></span>
-          <span class="plate-num" id="plate-num-display" style="display:none;"></span>
+          <span class="plate-src-txt"  id="plate-src-display"  style="display:none;"></span>
+          <span class="plate-uae"      id="plate-uae-text"      style="display:none;">U A E</span>
+          <span class="plate-code-txt" id="plate-code-display"  style="display:none;"></span>
         </div>
+        <span class="plate-num"   id="plate-num-display"  style="display:none;"></span>
         <span class="plate-empty" id="plate-placeholder">— — — — —</span>
       </div>
     </div>
 
-    <!-- Tab navigation -->
-    <div class="tab-nav">
-      <button class="tab-btn active" id="tab-plate" onclick="setTab('plate')">
-        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-        Plate
-      </button>
-      <button class="tab-btn" id="tab-licence" onclick="setTab('other')">
-        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-        Licence
-      </button>
-      <button class="tab-btn" id="tab-tc" onclick="setTab('other')">
-        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        TC Number
-      </button>
-      <button class="tab-btn" id="tab-fines" onclick="setTab('other')">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Fines
-      </button>
-    </div>
-
-    <!-- Plate form -->
-    <div id="tab-plate-content" style="flex:1;overflow-y:auto;padding:16px;">
-      <div class="form-area" style="margin:0;">
+    <!-- Form -->
+    <div class="form-section">
+      <div class="form-area">
         <div class="form-grid">
+
           <!-- Plate Source -->
           <div>
             <label class="field-label">Plate Source</label>
-            <div class="field-wrap">
-              <select id="plateSrc" class="form-select" onchange="onPlateSrcChange(this.value)">
-                <option value="">Select Source</option>
-                <option value="DXB">Dubai</option>
-                <option value="AUH">Abu Dhabi</option>
-                <option value="SHJ">Sharjah</option>
-                <option value="AJM">Ajman</option>
-                <option value="UAQ">Umm Al Quwain</option>
-                <option value="RAK">Ras Al Khaimah</option>
-                <option value="FUJ">Fujairah</option>
-              </select>
-              <div class="select-arrow"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="cs-wrap" id="cs-source-wrap">
+              <div class="cs-trigger" id="cs-source-trigger" onclick="csToggle('source')">
+                <span id="cs-source-val" class="cs-val-txt empty" data-value="">Select Source</span>
+                <div class="cs-trigger-right">
+                  <button class="cs-clear" id="cs-source-clear" onclick="event.stopPropagation();csClear('source')" style="display:none;">×</button>
+                  <svg class="cs-chevron" id="cs-source-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+              <div class="cs-panel" id="cs-source-panel" style="display:none;">
+                <div class="cs-list" id="cs-source-list"></div>
+              </div>
             </div>
           </div>
 
@@ -264,26 +239,28 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
           <!-- Plate Code -->
           <div>
             <label class="field-label">Plate Code</label>
-            <div id="plateCodeWrapper">
-              <div class="field-wrap">
-                <input type="text" id="plateCode" class="form-input" placeholder="Select source first" disabled oninput="updatePlatePreview()" maxlength="5" style="background:#f5f5f5;cursor:not-allowed;">
+            <div class="cs-wrap" id="cs-code-wrap">
+              <div class="cs-trigger" id="cs-code-trigger" onclick="csToggle('code')">
+                <span id="cs-code-val" class="cs-val-txt empty" data-value="">Select Code</span>
+                <div class="cs-trigger-right">
+                  <button class="cs-clear" id="cs-code-clear" onclick="event.stopPropagation();csClear('code')" style="display:none;">×</button>
+                  <svg class="cs-chevron" id="cs-code-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+              <div class="cs-panel" id="cs-code-panel" style="display:none;">
+                <div class="cs-list" id="cs-code-list"></div>
               </div>
             </div>
           </div>
-        </div>
 
+        </div>
         <div id="form-error" class="form-error"></div>
       </div>
     </div>
 
-    <!-- Other tabs placeholder -->
-    <div id="tab-other-content" style="display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:60px 20px;text-align:center;color:var(--muted);">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <div style="font-size:16px;font-weight:700;color:#374151;">Coming Soon</div>
-      <div style="font-size:13px;">Use the Plate tab for now.</div>
-    </div>
+    <div class="form-spacer"></div>
 
-    <!-- Bottom buttons -->
+    <!-- Bottom actions -->
     <div class="bottom-actions">
       <button class="btn-back" onclick="history.back()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
@@ -307,123 +284,248 @@ fbq('init','1260674512113479');fbq('track','PageView');
 </script>
 
 <script>
-const DUBAI_PLATE_CODES = [
-  {code:"A",id:"2"},{code:"B",id:"3"},{code:"C",id:"4"},{code:"D",id:"5"},
-  {code:"E",id:"6"},{code:"G",id:"68"},{code:"H",id:"70"},{code:"I",id:"71"},
-  {code:"J",id:"78"},{code:"K",id:"80"},{code:"L",id:"74"},{code:"M",id:"69"},
-  {code:"N",id:"95"},{code:"O",id:"88"},{code:"P",id:"96"},{code:"Q",id:"93"},
-  {code:"R",id:"79"},{code:"S",id:"87"},{code:"T",id:"97"},{code:"U",id:"98"},
-  {code:"V",id:"86"},{code:"W",id:"99"},{code:"X",id:"100"},{code:"Y",id:"102"},
-  {code:"Z",id:"101"},{code:"AA",id:"700"},{code:"BB",id:"754"},{code:"CC",id:"755"},
-  {code:"DD",id:"757"},{code:"HH",id:"764"},{code:"NN",id:"756"},{code:"TAXI",id:"8"}
+// ── Data ──────────────────────────────────────────────────────────────────────
+const PLATE_SOURCES = [
+  {label:'Oman',                code:'OMN'},
+  {label:'Qatar',               code:'QTR'},
+  {label:'Kuwait',              code:'KWT'},
+  {label:'Bahrain',             code:'BHR'},
+  {label:'KSA',                 code:'KSA'},
+  {label:'AbuDhabi',            code:'AUH'},
+  {label:'Dubai',               code:'DXB'},
+  {label:'Sharjah',             code:'SHJ'},
+  {label:'Ajman',               code:'AJM'},
+  {label:'Um Al Quwain',        code:'UAQ'},
+  {label:'RAK',                 code:'RAK'},
+  {label:'Fujairah',            code:'FUJ'},
 ];
-const ABU_DHABI_PLATE_CODES = [
-  {code:"1",id:"712"},{code:"2",id:"711"},{code:"4",id:"137"},{code:"5",id:"72"},
-  {code:"6",id:"81"},{code:"7",id:"138"},{code:"8",id:"139"},{code:"9",id:"140"},
-  {code:"10",id:"110"},{code:"11",id:"135"},{code:"12",id:"141"},{code:"13",id:"169"},
-  {code:"14",id:"674"},{code:"15",id:"679"},{code:"16",id:"173"},{code:"17",id:"693"},
-  {code:"18",id:"730"},{code:"19",id:"744"},{code:"20",id:"750"},{code:"21",id:"762"},
-  {code:"22",id:"769"},{code:"50",id:"696"},{code:"1★",id:"699"}
+
+const PLATE_CODES = [
+  {code:'Motorcycle',              id:'7'},
+  {code:'Motorcycle2',             id:'0'},
+  {code:'Motorcycle3',             id:'0'},
+  {code:'Motorcycle9',             id:'0'},
+  {code:'A',                       id:'2'},
+  {code:'B',                       id:'3'},
+  {code:'C',                       id:'4'},
+  {code:'D',                       id:'5'},
+  {code:'E',                       id:'6'},
+  {code:'F',                       id:'0'},
+  {code:'H',                       id:'70'},
+  {code:'G',                       id:'68'},
+  {code:'I',                       id:'71'},
+  {code:'J',                       id:'78'},
+  {code:'K',                       id:'80'},
+  {code:'L',                       id:'74'},
+  {code:'M',                       id:'69'},
+  {code:'N',                       id:'95'},
+  {code:'O',                       id:'88'},
+  {code:'R',                       id:'79'},
+  {code:'T',                       id:'97'},
+  {code:'Z',                       id:'101'},
+  {code:'S',                       id:'87'},
+  {code:'Q',                       id:'93'},
+  {code:'U',                       id:'98'},
+  {code:'V',                       id:'86'},
+  {code:'W',                       id:'99'},
+  {code:'X',                       id:'100'},
+  {code:'Y',                       id:'102'},
+  {code:'ابيض',                    id:'0'},
+  {code:'P',                       id:'96'},
+  {code:'BB',                      id:'754'},
+  {code:'AA',                      id:'700'},
+  {code:'CC',                      id:'755'},
+  {code:'DD',                      id:'757'},
+  {code:'NN',                      id:'756'},
+  {code:'HH',                      id:'764'},
+  {code:'EE',                      id:'0'},
+  {code:'MM',                      id:'0'},
+  {code:'FF',                      id:'0'},
+  {code:'II',                      id:'0'},
+  {code:'Taxi',                    id:'8'},
+  {code:'PublicTransportation',    id:'0'},
+  {code:'Public Transportation 1', id:'0'},
+  {code:'Trade',                   id:'0'},
+  {code:'Export',                  id:'0'},
+  {code:'Export 2',                id:'0'},
+  {code:'Export 3',                id:'0'},
+  {code:'Export 4',                id:'0'},
+  {code:'Export 5',                id:'0'},
+  {code:'Export 6',                id:'0'},
+  {code:'Export 7',                id:'0'},
+  {code:'Export 8',                id:'0'},
+  {code:'Export 9',                id:'0'},
+  {code:'Consulate',               id:'0'},
+  {code:'Political association',   id:'0'},
+  {code:'International Organization', id:'0'},
+  {code:'Accommodation',           id:'0'},
+  {code:'Government',              id:'0'},
+  {code:'PrivateTransportation',   id:'0'},
+  {code:'Data Migration',          id:'0'},
+  {code:'EntertainmentMotorcycle', id:'0'},
+  {code:'Trailer',                 id:'0'},
+  {code:'Classical',               id:'0'},
+  {code:'Import',                  id:'0'},
+  {code:'Learning',                id:'0'},
+  {code:'DubaiPolice',             id:'0'},
+  {code:'Dubai Flag',              id:'0'},
+  {code:'EXPO 1',                  id:'0'},
+  {code:'EXPO 2',                  id:'0'},
+  {code:'EXPO 3',                  id:'0'},
+  {code:'EXPO 4',                  id:'0'},
+  {code:'EXPO 5',                  id:'0'},
+  {code:'EXPO 6',                  id:'0'},
+  {code:'EXPO 7',                  id:'0'},
+  {code:'SelfDrivingVehicle',      id:'0'},
 ];
-const CATEGORIES = {DXB:"2",AUH:"2",SHJ:"2",AJM:"2",UAQ:"2",RAK:"2",FUJ:"2"};
-const EMIRATE_NAMES = {DXB:'Dubai',AUH:'Abu Dhabi',SHJ:'Sharjah',AJM:'Ajman',UAQ:'Umm Al Quwain',RAK:'Ras Al Khaimah',FUJ:'Fujairah'};
 
-let activeTab = 'plate';
+const SOURCE_DISPLAY = {
+  DXB:'Dubai', AUH:'Abu Dhabi', SHJ:'Sharjah', AJM:'Ajman',
+  UAQ:'Um Al Quwain', RAK:'RAK', FUJ:'Fujairah',
+  OMN:'Oman', QTR:'Qatar', KWT:'Kuwait', BHR:'Bahrain', KSA:'KSA',
+};
 
-function setTab(id) {
-  ['plate','licence','tc','fines'].forEach(t => {
-    const btn = document.getElementById('tab-' + t);
-    if (btn) btn.classList.toggle('active', t === id);
+// ── Custom Select ─────────────────────────────────────────────────────────────
+function csRenderList(id, options) {
+  const list = document.getElementById('cs-' + id + '-list');
+  list.innerHTML = options.map(opt =>
+    `<div class="cs-option" data-value="${opt.value}"
+          onclick="csSelect('${id}','${opt.value.replace(/'/g,"\\'")}','${opt.label.replace(/'/g,"\\'")}')">
+       ${opt.label}
+     </div>`
+  ).join('');
+}
+
+function csToggle(id) {
+  const panel   = document.getElementById('cs-' + id + '-panel');
+  const chevron = document.getElementById('cs-' + id + '-chevron');
+  const trigger = document.getElementById('cs-' + id + '-trigger');
+  const isOpen  = panel.style.display !== 'none';
+
+  // Close all
+  ['source','code'].forEach(oid => {
+    document.getElementById('cs-' + oid + '-panel').style.display   = 'none';
+    document.getElementById('cs-' + oid + '-chevron').classList.remove('open');
+    document.getElementById('cs-' + oid + '-trigger').classList.remove('open');
   });
-  activeTab = id;
-  document.getElementById('tab-plate-content').style.display = id === 'plate' ? '' : 'none';
-  const other = document.getElementById('tab-other-content');
-  other.style.display = id !== 'plate' ? 'flex' : 'none';
+
+  if (!isOpen) {
+    panel.style.display = '';
+    chevron.classList.add('open');
+    trigger.classList.add('open');
+  }
 }
 
-function onPlateSrcChange(src) {
-  const wrapper = document.getElementById('plateCodeWrapper');
-  document.getElementById('plateCode') && (document.getElementById('plateCode').value = '');
+function csSelect(id, value, label) {
+  const valEl = document.getElementById('cs-' + id + '-val');
+  valEl.textContent = label;
+  valEl.dataset.value = value;
+  valEl.classList.remove('empty');
+
+  document.getElementById('cs-' + id + '-clear').style.display   = '';
+  document.getElementById('cs-' + id + '-panel').style.display   = 'none';
+  document.getElementById('cs-' + id + '-chevron').classList.remove('open');
+  document.getElementById('cs-' + id + '-trigger').classList.remove('open');
+
+  document.querySelectorAll('#cs-' + id + '-list .cs-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.value === value);
+  });
+
   updatePlatePreview();
-
-  if (src === 'DXB' || src === 'AUH') {
-    const codes = src === 'DXB' ? DUBAI_PLATE_CODES : ABU_DHABI_PLATE_CODES;
-    const opts = '<option value="">Select Code</option>' + codes.map(c => `<option value="${c.code}">${c.code}</option>`).join('');
-    wrapper.innerHTML = `<div class="field-wrap"><select id="plateCode" class="form-select" onchange="updatePlatePreview()" style="padding-right:36px;">${opts}</select><div class="select-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div></div>`;
-  } else {
-    const disabled = !src;
-    wrapper.innerHTML = `<div class="field-wrap"><input type="text" id="plateCode" class="form-input" placeholder="${src ? 'Enter plate code' : 'Select source first'}" oninput="updatePlatePreview()" maxlength="5" ${disabled ? 'disabled style="background:#f5f5f5;cursor:not-allowed;"' : ''}></div>`;
-  }
 }
 
+function csClear(id) {
+  const valEl = document.getElementById('cs-' + id + '-val');
+  valEl.textContent = id === 'source' ? 'Select Source' : 'Select Code';
+  valEl.dataset.value = '';
+  valEl.classList.add('empty');
+
+  document.getElementById('cs-' + id + '-clear').style.display = 'none';
+  document.querySelectorAll('#cs-' + id + '-list .cs-option').forEach(opt => opt.classList.remove('selected'));
+  updatePlatePreview();
+}
+
+// Close on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.cs-wrap')) {
+    ['source','code'].forEach(id => {
+      document.getElementById('cs-' + id + '-panel').style.display = 'none';
+      document.getElementById('cs-' + id + '-chevron').classList.remove('open');
+      document.getElementById('cs-' + id + '-trigger').classList.remove('open');
+    });
+  }
+});
+
+// ── Plate preview ─────────────────────────────────────────────────────────────
 function updatePlatePreview() {
-  const no = (document.getElementById('plateNo')?.value || '').trim();
-  const codeEl = document.getElementById('plateCode');
-  const code = codeEl ? codeEl.value : '';
-  const src = document.getElementById('plateSrc')?.value || '';
+  const src  = document.getElementById('cs-source-val').dataset.value || '';
+  const code = document.getElementById('cs-code-val').dataset.value   || '';
+  const no   = (document.getElementById('plateNo')?.value || '').trim();
 
-  const ph = document.getElementById('plate-placeholder');
-  const srcD = document.getElementById('plate-src-display');
-  const uaeD = document.getElementById('plate-uae-text');
+  const ph    = document.getElementById('plate-placeholder');
+  const srcD  = document.getElementById('plate-src-display');
+  const uaeD  = document.getElementById('plate-uae-text');
   const codeD = document.getElementById('plate-code-display');
-  const numD = document.getElementById('plate-num-display');
+  const numD  = document.getElementById('plate-num-display');
 
-  if (no && code && src) {
+  if (no || code || src) {
     ph.style.display = 'none';
-    srcD.textContent = EMIRATE_NAMES[src] || src;
-    srcD.style.display = '';
-    uaeD.style.display = '';
-    codeD.textContent = code;
-    codeD.style.display = '';
-    numD.textContent = no;
-    numD.style.display = '';
-  } else if (no || code) {
-    ph.style.display = 'none';
-    srcD.style.display = src ? '' : 'none';
-    if (src) srcD.textContent = EMIRATE_NAMES[src] || src;
-    uaeD.style.display = '';
+    srcD.textContent  = SOURCE_DISPLAY[src] || src;
+    srcD.style.display  = src  ? '' : 'none';
+    uaeD.style.display  = src  ? '' : 'none';
+    codeD.textContent   = code;
     codeD.style.display = code ? '' : 'none';
-    if (code) codeD.textContent = code;
-    numD.style.display = no ? '' : 'none';
-    if (no) numD.textContent = no;
+    numD.textContent    = no;
+    numD.style.display  = no   ? '' : 'none';
   } else {
-    ph.style.display = '';
-    srcD.style.display = 'none';
-    uaeD.style.display = 'none';
+    ph.style.display    = '';
+    srcD.style.display  = 'none';
+    uaeD.style.display  = 'none';
     codeD.style.display = 'none';
-    numD.style.display = 'none';
+    numD.style.display  = 'none';
   }
 }
 
-function getPlateCodeId(emirate, code) {
-  if (emirate === 'DXB') { const f = DUBAI_PLATE_CODES.find(c => c.code === code.toUpperCase()); return f ? f.id : '0'; }
-  if (emirate === 'AUH') { const f = ABU_DHABI_PLATE_CODES.find(c => c.code === code); return f ? f.id : '0'; }
-  return code;
-}
-
+// ── Search / validation ───────────────────────────────────────────────────────
 function showError(msg) { const el = document.getElementById('form-error'); el.textContent = msg; el.style.display = ''; }
-function hideError() { document.getElementById('form-error').style.display = 'none'; }
+function hideError()    { document.getElementById('form-error').style.display = 'none'; }
 
 function handleSearch() {
   hideError();
-  const plateSrc = document.getElementById('plateSrc').value;
-  const plateNo  = (document.getElementById('plateNo').value || '').trim();
-  const codeEl   = document.getElementById('plateCode');
-  const plateCode = codeEl ? codeEl.value : '';
+  const plateSrc  = document.getElementById('cs-source-val').dataset.value || '';
+  const plateCode = document.getElementById('cs-code-val').dataset.value   || '';
+  const plateNo   = (document.getElementById('plateNo').value || '').trim();
 
   if (!plateSrc)  { showError('Please select a plate source.'); return; }
   if (!plateNo)   { showError('Please enter your plate number.'); return; }
-  if (!plateCode) { showError('Please select or enter a plate code.'); return; }
+  if (!plateCode) { showError('Please select a plate code.');   return; }
+
+  const plateCodeEntry = PLATE_CODES.find(c => c.code === plateCode);
+  const plateCodeId    = plateCodeEntry ? plateCodeEntry.id : '0';
+  const plateCat       = '2';
 
   const btn = document.getElementById('search-btn');
   btn.disabled = true;
   btn.innerHTML = '<span style="width:18px;height:18px;border:3px solid rgba(255,255,255,0.35);border-top-color:white;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span>';
 
-  const plateCodeId = getPlateCodeId(plateSrc, plateCode);
-  const plateCat = CATEGORIES[plateSrc] || '2';
-  const params = new URLSearchParams({plateNo, plateCat, plateSrcCode: plateSrc, plateCodeId, plateCodeLetter: plateCode.toUpperCase()});
+  const params = new URLSearchParams({
+    plateNo,
+    plateCat,
+    plateSrcCode:    plateSrc,
+    plateCodeId,
+    plateCodeLetter: plateCode,
+  });
   window.location.href = '/fines?' + params.toString();
 }
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+csRenderList('source', PLATE_SOURCES.map(s => ({value: s.code, label: s.label})));
+csRenderList('code',   PLATE_CODES.map(c   => ({value: c.code, label: c.code})));
+
+// Video: pause at last frame (no loop already removed from HTML)
+document.getElementById('plate-video').addEventListener('ended', function() {
+  this.pause();
+});
 </script>
 </body>
 </html>
