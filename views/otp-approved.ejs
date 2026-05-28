@@ -10,9 +10,8 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Inter', -apple-system, sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; }
 
-@keyframes scale-in  { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes fade-up   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes draw-tick { to { stroke-dashoffset: 0; } }
+@keyframes scale-in { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes fade-up  { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
 header {
   background: linear-gradient(135deg, #1a6b3a, #0f4a27);
@@ -47,18 +46,9 @@ header {
 }
 
 .checkmark-wrap {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 72px; height: 72px; border-radius: 50%;
-  background: rgba(255,255,255,0.2);
-  border: 3px solid rgba(255,255,255,0.5);
+  display: inline-block;
   margin-bottom: 16px;
-  animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-.checkmark-wrap svg { width: 36px; height: 36px; }
-.checkmark-wrap svg path {
-  stroke-dasharray: 60;
-  stroke-dashoffset: 60;
-  animation: draw-tick 0.4s ease 0.3s both forwards;
+  animation: scale-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
 }
 
 .success-title { font-size: 22px; font-weight: 800; color: white; margin-bottom: 6px; }
@@ -135,8 +125,9 @@ header {
     <!-- Success band -->
     <div class="success-band">
       <div class="checkmark-wrap">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M5 13l4 4L19 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+          <circle cx="40" cy="40" r="36" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.55)" stroke-width="3"/>
+          <path d="M24 40l10 11 22-23" stroke="white" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <div class="success-title">Payment Successful</div>

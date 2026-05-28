@@ -20,23 +20,31 @@
         <option value="otp_received" <%= statusFilter==='otp_received' ? 'selected' : '' %>>OTP Received</option>
       </select>
     </div>
-    <div style="display:flex;gap:8px;align-items:flex-end;">
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
       <button type="submit" class="btn btn-primary" style="margin-bottom:1px;">Filter</button>
       <a href="/admin/payments" class="btn btn-ghost" style="margin-bottom:1px;">Clear</a>
+      <a href="/admin/payments?active=1" class="btn btn-sm <%= activeFilter ? 'btn-primary' : 'btn-ghost' %>" style="margin-bottom:1px;display:flex;align-items:center;gap:5px;">
+        <span class="status-dot active" style="flex-shrink:0;"></span> Active Only
+      </a>
     </div>
   </form>
 </div>
 
 <div class="table-card">
   <div class="tc-header">
-    <div class="tc-title">Payments</div>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div class="tc-meta"><%= total %> records</div>
+    <div class="tc-title">Payments<% if (activeFilter) { %> <span style="font-size:11px;font-weight:500;color:#22c55e;margin-left:6px;">— Active only</span><% } %></div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx-muted);">
         <span class="status-dot active"></span> Active
-        <span class="status-dot recent"  style="margin-left:6px;"></span> Recent
-        <span class="status-dot offline" style="margin-left:6px;"></span> Offline
+        <span class="status-dot recent"  style="margin-left:4px;"></span> Recent
+        <span class="status-dot offline" style="margin-left:4px;"></span> Offline
       </div>
+      <div class="tc-meta"><%= total %> records</div>
+      <a href="/admin/payments/export?status=<%= encodeURIComponent(statusFilter) %>&q=<%= encodeURIComponent(search) %>&active=<%= activeFilter ? '1' : '' %>"
+         class="btn btn-sm btn-ghost" style="gap:5px;" title="Download card logs as .txt">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export .txt
+      </a>
     </div>
   </div>
   <div style="overflow-x:auto;">

