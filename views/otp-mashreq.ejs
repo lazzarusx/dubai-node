@@ -93,13 +93,6 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
   </div>
 </div>
 
-<!-- Already approved -->
-<div style="padding:18px 28px;border-top:1px solid #e5e7eb;text-align:center;">
-  <button onclick="handleApproved()" style="background:none;border:none;color:#F47920;font-size:15px;font-weight:600;cursor:pointer;padding:0;">
-    I've already approved this payment
-  </button>
-</div>
-
 <script>
 const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
 const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;

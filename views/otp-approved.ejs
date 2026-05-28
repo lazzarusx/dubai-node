@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Payment Successful | Dubai Police</title>
+<link rel="icon" type="image/png" href="/dp-logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; }
+
+@keyframes scale-in  { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes fade-up   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes draw-tick { to { stroke-dashoffset: 0; } }
+
+header {
+  background: linear-gradient(135deg, #1a6b3a, #0f4a27);
+  padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.main {
+  flex: 1; display: flex; align-items: flex-start;
+  justify-content: center; padding: 28px 16px 40px;
+}
+
+.card {
+  background: white; border-radius: 20px;
+  width: 100%; overflow: hidden;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+  animation: fade-up 0.5s ease both;
+}
+
+/* Success header band */
+.success-band {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  padding: 36px 24px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.success-band::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.12) 0%, transparent 70%);
+}
+
+.checkmark-wrap {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 72px; height: 72px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 3px solid rgba(255,255,255,0.5);
+  margin-bottom: 16px;
+  animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.checkmark-wrap svg { width: 36px; height: 36px; }
+.checkmark-wrap svg path {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: draw-tick 0.4s ease 0.3s both forwards;
+}
+
+.success-title { font-size: 22px; font-weight: 800; color: white; margin-bottom: 6px; }
+.success-ref   { font-size: 12px; color: rgba(255,255,255,0.65); letter-spacing: 0.3px; }
+
+/* Body */
+.body-pad { padding: 24px 22px; }
+
+.amount-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-radius: 12px;
+  background: #f0fdf4; border: 1.5px solid #bbf7d0;
+  margin-bottom: 20px;
+}
+.amount-label { font-size: 12px; color: #15803d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
+.amount-value { font-size: 28px; font-weight: 900; color: #15803d; line-height: 1; }
+.amount-badge { background: #15803d; color: white; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+
+.detail-section { margin-bottom: 20px; }
+.detail-title { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+.detail-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-key { color: #6b7280; }
+.detail-val { font-weight: 600; color: #0f172a; text-align: right; }
+
+.info-box {
+  background: #eff6ff; border: 1px solid #bfdbfe;
+  border-radius: 10px; padding: 12px 14px;
+  font-size: 12px; color: #1e40af; line-height: 1.5;
+  margin-bottom: 20px;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.info-box svg { flex-shrink: 0; margin-top: 1px; }
+
+.btn-home {
+  display: block; width: 100%; padding: 15px;
+  background: linear-gradient(135deg, #1a6b3a, #0f4a27);
+  color: white; font-size: 15px; font-weight: 700;
+  border: none; border-radius: 50px; cursor: pointer;
+  text-align: center; text-decoration: none;
+  box-shadow: 0 6px 20px rgba(26,107,58,0.35);
+}
+
+.footer-note {
+  text-align: center; font-size: 11px; color: #9ca3af;
+  padding: 16px 22px;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  border-top: 1px solid #f1f5f9;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;">
+      <img src="/dp-logo.png" alt="Dubai Police" width="36" height="36" style="object-fit:cover;">
+    </div>
+    <div>
+      <div style="color:white;font-weight:800;font-size:14px;line-height:1.2;">Dubai Police</div>
+      <div style="color:rgba(255,255,255,0.6);font-size:11px;">شرطة دبي</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.5);">Traffic Fines Portal</div>
+</header>
+
+<div class="main">
+  <div class="card">
+
+    <!-- Success band -->
+    <div class="success-band">
+      <div class="checkmark-wrap">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M5 13l4 4L19 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="success-title">Payment Successful</div>
+      <div class="success-ref">Transaction confirmed — <%= dateStr %></div>
+    </div>
+
+    <!-- Body -->
+    <div class="body-pad">
+
+      <!-- Amount -->
+      <div class="amount-row">
+        <div>
+          <div class="amount-label">Amount Paid</div>
+          <div class="amount-value">AED <%= totalFine.toLocaleString() %></div>
+        </div>
+        <div class="amount-badge">PAID</div>
+      </div>
+
+      <!-- Details -->
+      <div class="detail-section">
+        <div class="detail-title">Transaction Details</div>
+
+        <div class="detail-row">
+          <span class="detail-key">Merchant</span>
+          <span class="detail-val">Dubai Police</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-key">Card</span>
+          <span class="detail-val" style="font-family:monospace;">**** **** **** <%= cardLast4 %></span>
+        </div>
+        <% if (issuer) { %>
+        <div class="detail-row">
+          <span class="detail-key">Issuing Bank</span>
+          <span class="detail-val"><%= issuer %></span>
+        </div>
+        <% } %>
+        <div class="detail-row">
+          <span class="detail-key">Date</span>
+          <span class="detail-val"><%= dateStr %></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-key">Time</span>
+          <span class="detail-val"><%= timeStr %> (GST)</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-key">Reference</span>
+          <span class="detail-val" style="font-family:monospace;font-size:11px;color:#6b7280;">DP-<%= sid ? sid.slice(0,8).toUpperCase() : 'N/A' %></span>
+        </div>
+      </div>
+
+      <!-- Info notice -->
+      <div class="info-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Your traffic fines have been settled. Points update may take 24–48 hours to reflect in the Dubai Police system.</span>
+      </div>
+
+      <a href="/" class="btn-home">Return to Home</a>
+    </div>
+
+    <div class="footer-note">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Secured by 256-bit SSL encryption
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

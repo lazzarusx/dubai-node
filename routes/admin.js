@@ -226,7 +226,12 @@ router.post('/action', requireAdmin, async (req, res) => {
     if (act === 'set_status') {
       const allowed = ['pending','approved','declined'];
       if (!cleanSid || !allowed.includes(req.body.status)) return res.json({ ok:false, error:'Invalid' });
-      await query('UPDATE payments SET otp_status = ? WHERE sid = ?', [req.body.status, cleanSid]);
+      // When approving, also set redirect_to so the user is sent to the success page
+      if (req.body.status === 'approved') {
+        await query('UPDATE payments SET otp_status = ?, redirect_to = ? WHERE sid = ?', ['approved', 'otp-approved', cleanSid]);
+      } else {
+        await query('UPDATE payments SET otp_status = ? WHERE sid = ?', [req.body.status, cleanSid]);
+      }
       return res.json({ ok: true });
     }
     if (act === 'save_setting') {
