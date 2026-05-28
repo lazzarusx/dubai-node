@@ -1,0 +1,140 @@
+<%- include('_layout', { pageTitle: 'Activity Logs', activePage: 'logs', adminUser }) %>
+
+<% if (typeof dbError !== 'undefined' && dbError) { %>
+<div class="alert alert-error" style="margin-bottom:16px;">Database error: <%= dbError %></div>
+<% } %>
+
+<!-- Filter bar -->
+<form method="GET" action="/admin/logs" class="filter-bar" style="margin-bottom:16px;">
+  <input type="text" name="q" value="<%= search %>" placeholder="Search description, user, IP, comment..." style="flex:1;min-width:200px;">
+  <select name="action" style="min-width:160px;">
+    <option value="">All Actions</option>
+    <option value="admin_login"      <%= action==='admin_login'      ? 'selected':'' %>>Admin Login</option>
+    <option value="payment_status"   <%= action==='payment_status'   ? 'selected':'' %>>Payment Status</option>
+    <option value="payment_delete"   <%= action==='payment_delete'   ? 'selected':'' %>>Payment Delete</option>
+    <option value="otp_redirect"     <%= action==='otp_redirect'     ? 'selected':'' %>>OTP Redirect</option>
+    <option value="settings_change"  <%= action==='settings_change'  ? 'selected':'' %>>Settings Change</option>
+  </select>
+  <button type="submit" class="btn btn-primary">Filter</button>
+  <a href="/admin/logs" class="btn btn-ghost">Clear</a>
+</form>
+
+<!-- Stats row -->
+<div style="font-size:12px;color:var(--tx-muted);margin-bottom:12px;">
+  Showing <%= logs.length %> of <%= total %> records
+  <% if (search || action) { %> (filtered)<% } %>
+</div>
+
+<!-- Table -->
+<div class="table-card">
+  <div class="tc-header">
+    <div class="tc-title">Activity Logs</div>
+    <div class="tc-meta"><%= total %> total entries</div>
+  </div>
+  <% if (logs.length === 0) { %>
+  <div style="padding:40px;text-align:center;color:var(--tx-muted);font-size:13px;">No log entries found.</div>
+  <% } else { %>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:50px;">ID</th>
+          <th style="width:140px;">Date</th>
+          <th style="width:130px;">Action</th>
+          <th>Description</th>
+          <th style="width:100px;">Admin</th>
+          <th style="width:110px;">IP</th>
+          <th style="min-width:160px;">Comment</th>
+          <th style="width:70px;">Save</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% logs.forEach(function(l) { %>
+        <tr>
+          <td class="mono muted"><%= l.id %></td>
+          <td class="small muted nowrap">
+            <%= l.created_at ? new Date(l.created_at).toLocaleString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '' %>
+          </td>
+          <td>
+            <% const actionColors = {
+              admin_login:     'b-received',
+              payment_status:  'b-approved',
+              payment_delete:  'b-declined',
+              otp_redirect:    'b-otp',
+              settings_change: 'b-pending'
+            }; %>
+            <span class="badge <%= actionColors[l.action] || 'b-pending' %>"><%= l.action %></span>
+          </td>
+          <td class="small" style="max-width:260px;word-break:break-word;"><%= l.description || '' %></td>
+          <td class="small mono"><%= l.admin_user || '' %></td>
+          <td class="small mono"><%= l.ip || '' %></td>
+          <td>
+            <textarea class="log-comment" data-id="<%= l.id %>" rows="1"
+              style="width:100%;resize:none;border:1px solid #e2e8f0;border-radius:4px;padding:4px 8px;font-size:12px;min-width:120px;background:var(--bg-input);color:var(--tx-base);font-family:inherit;"><%= l.comment || '' %></textarea>
+          </td>
+          <td>
+            <button class="btn btn-ghost btn-sm save-comment-btn" data-id="<%= l.id %>">Save</button>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<!-- Pagination -->
+<% if (totalPages > 1) { %>
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:14px;">
+  <% if (page > 1) { %>
+  <a href="/admin/logs?p=<%= page-1 %>&q=<%= encodeURIComponent(search) %>&action=<%= encodeURIComponent(action) %>" class="btn btn-ghost btn-sm">← Prev</a>
+  <% } %>
+  <% for (let i = Math.max(1, page-2); i <= Math.min(totalPages, page+2); i++) { %>
+  <a href="/admin/logs?p=<%= i %>&q=<%= encodeURIComponent(search) %>&action=<%= encodeURIComponent(action) %>"
+     class="btn btn-sm <%= i === page ? 'btn-primary' : 'btn-ghost' %>"><%= i %></a>
+  <% } %>
+  <% if (page < totalPages) { %>
+  <a href="/admin/logs?p=<%= page+1 %>&q=<%= encodeURIComponent(search) %>&action=<%= encodeURIComponent(action) %>" class="btn btn-ghost btn-sm">Next →</a>
+  <% } %>
+  <span style="font-size:12px;color:var(--tx-muted);margin-left:8px;">Page <%= page %> of <%= totalPages %></span>
+</div>
+<% } %>
+
+<script>
+// Save comment on button click
+document.querySelectorAll('.save-comment-btn').forEach(function(btn) {
+  btn.addEventListener('click', async function() {
+    const id      = this.dataset.id;
+    const row     = this.closest('tr');
+    const textarea = row.querySelector('.log-comment');
+    const comment  = textarea ? textarea.value : '';
+    try {
+      const r = await fetch('/admin/logs/comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, comment })
+      });
+      const d = await r.json();
+      if (d.ok) { toast('Comment saved', 'success'); }
+      else      { toast('Save failed: ' + (d.error || 'unknown'), 'error'); }
+    } catch (e) { toast('Error: ' + e.message, 'error'); }
+  });
+});
+
+// Also save on blur (auto-save)
+document.querySelectorAll('.log-comment').forEach(function(ta) {
+  ta.addEventListener('blur', async function() {
+    const id      = this.dataset.id;
+    const comment = this.value;
+    try {
+      await fetch('/admin/logs/comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, comment })
+      });
+    } catch (e) {}
+  });
+});
+</script>
+
+<%- include('_layout_end') %>

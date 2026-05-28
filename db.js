@@ -46,4 +46,32 @@ function clientIp(req) {
   );
 }
 
-module.exports = { pool, query, queryOne, getSetting, setSetting, clientIp };
+async function ensureActivityLogsTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS activity_logs (
+      id SERIAL PRIMARY KEY,
+      action VARCHAR(80) NOT NULL,
+      description TEXT,
+      admin_user VARCHAR(100),
+      ip VARCHAR(50),
+      user_agent TEXT,
+      comment TEXT DEFAULT '',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+}
+
+async function logActivity(action, description, adminUser, ip, userAgent) {
+  try {
+    const result = await query(
+      'INSERT INTO activity_logs (action, description, admin_user, ip, user_agent) VALUES (?, ?, ?, ?, ?) RETURNING *',
+      [action, description, adminUser, ip, userAgent]
+    );
+    return result[0] || null;
+  } catch (e) {
+    console.error('logActivity error:', e.message);
+    return null;
+  }
+}
+
+module.exports = { pool, query, queryOne, getSetting, setSetting, clientIp, ensureActivityLogsTable, logActivity };

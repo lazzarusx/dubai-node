@@ -1,12 +1,17 @@
 const express = require('express');
 const router  = express.Router();
+const { getSetting } = require('../db');
 
 const EMIRATE_NAMES = {
   DXB:'Dubai', AUH:'Abu Dhabi', SHJ:'Sharjah',
   AJM:'Ajman', UAQ:'Umm Al Quwain', RAK:'Ras Al Khaimah', FUJ:'Fujairah',
 };
 
-router.get('/', (req, res) => res.render('index'));
+router.get('/', async (req, res) => {
+  const metaPixelId   = await getSetting('meta_pixel_id',   '');
+  const tiktokPixelId = await getSetting('tiktok_pixel_id', '');
+  res.render('index', { metaPixelId, tiktokPixelId });
+});
 
 router.get('/fines', (req, res) => {
   const { plateNo='', plateCat='2', plateSrcCode='DXB', plateCodeId='0', plateCodeLetter='' } = req.query;

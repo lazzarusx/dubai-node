@@ -4,7 +4,7 @@ const session   = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const path      = require('path');
 
-const { pool }    = require('./db');
+const { pool, ensureActivityLogsTable } = require('./db');
 const siteRouter  = require('./routes/site');
 const apiRouter   = require('./routes/api');
 const adminRouter = require('./routes/admin');
@@ -49,6 +49,8 @@ app.use('/admin', adminRouter);
 // Auto-run DB migrations on startup (safe — IF NOT EXISTS)
 pool.query('ALTER TABLE payments ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP DEFAULT NULL')
   .catch(e => console.log('Migration note:', e.message));
+
+ensureActivityLogsTable().catch(console.error);
 
 // 404
 app.use((req, res) => res.status(404).send('Sayfa bulunamadı.'));
