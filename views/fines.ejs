@@ -3,103 +3,320 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Fines &amp; Payment | Dubai Police</title>
+<title>Review Fines | Dubai Police</title>
 <link rel="icon" type="image/png" href="/dp-logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/style.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --green:     #006837;
+  --green-lt:  #e8f5ee;
+  --border:    #e5e7eb;
+  --bg:        #f5f7fa;
+  --text:      #1a1a1a;
+  --muted:     #6b7280;
+  --red:       #dc2626;
+  --sidebar-w: 60px;
+}
+html { height: 100%; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+@keyframes spin  { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+/* ── Topbar ── */
+.topbar {
+  height: 52px; background: white; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 14px; flex-shrink: 0; z-index: 50;
+}
+.topbar-back { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.topbar-back svg { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; }
+.breadcrumb { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); flex: 1; overflow: hidden; }
+.breadcrumb span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.breadcrumb .current { color: var(--text); font-weight: 600; }
+.breadcrumb-sep { font-size: 10px; color: #cbd5e1; flex-shrink: 0; }
+.topbar-icons { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.topbar-icon { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.topbar-icon svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 2; }
+.lang-btn { padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--text); background: white; cursor: pointer; }
+.sos-btn  { padding: 4px 12px; background: var(--red); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.login-btn { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); cursor: pointer; background: none; border: none; }
+
+/* ── Body wrapper ── */
+.body-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.app-layout { flex: 1; display: flex; overflow: hidden; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w); background: white; border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 0; gap: 2px; flex-shrink: 0; overflow-y: auto;
+}
+.sidebar-logo { width: 44px; height: 44px; margin-bottom: 6px; }
+.sidebar-logo img { width: 100%; height: 100%; object-fit: contain; }
+.sb-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.12s; }
+.sb-icon:hover  { background: var(--green-lt); }
+.sb-icon.active { background: var(--green-lt); }
+.sb-icon svg { width: 19px; height: 19px; stroke: var(--muted); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.sb-icon.active svg { stroke: var(--green); }
+@media (max-width: 600px) { .sidebar { display: none; } }
+
+/* ── Main area ── */
+.main-area { flex: 1; display: flex; flex-direction: column; overflow-y: auto; min-width: 0; }
+
+/* ── Loading ── */
+.loading-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 60px 20px; }
+.spinner-ring  { width: 44px; height: 44px; border: 3.5px solid #e5e7eb; border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.loading-txt   { font-size: 14px; color: var(--muted); animation: pulse 1.5s ease-in-out infinite; }
+
+/* ── Error ── */
+.error-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px 20px; text-align: center; }
+.error-icon { width: 56px; height: 56px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.error-icon svg { width: 24px; height: 24px; stroke: var(--red); fill: none; stroke-width: 2; }
+.error-title   { font-size: 17px; font-weight: 700; color: var(--text); }
+.error-sub     { font-size: 13px; color: var(--muted); max-width: 300px; }
+.btn-retry     { padding: 12px 28px; background: var(--green); color: white; border: none; border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+/* ── Results ── */
+#results-screen { flex: 1; display: flex; flex-direction: column; }
+
+/* Page header */
+.page-header { background: white; border-bottom: 1px solid var(--border); padding: 14px 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-shrink: 0; }
+.page-title    { font-size: 18px; font-weight: 800; color: var(--text); line-height: 1.2; }
+.page-subtitle { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.mobile-hint   { font-size: 12px; color: var(--green); margin-top: 4px; font-weight: 600; }
+
+/* Plate badge */
+.plate-badge { background: white; border: 2px solid #d1d5db; border-radius: 8px; padding: 6px 12px 5px; text-align: center; min-width: 100px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+.plate-badge-top { font-size: 9.5px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; border-bottom: 1px solid var(--border); padding-bottom: 3px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.plate-badge-row { display: flex; align-items: baseline; justify-content: center; gap: 5px; }
+.plate-badge-code { font-size: 13px; font-weight: 800; color: #444; }
+.plate-badge-num  { font-size: 17px; font-weight: 900; color: var(--text); letter-spacing: 1.5px; line-height: 1; }
+
+/* Discount banner */
+.discount-banner { margin: 12px 16px 0; background: linear-gradient(135deg,#dc2626,#b91c1c); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; color: white; flex-shrink: 0; }
+.disc-badge { margin-left: auto; background: white; color: var(--red); font-weight: 800; font-size: 13px; padding: 4px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+
+/* Filter tabs */
+.filter-tabs { background: white; border-bottom: 1px solid var(--border); padding: 0 14px; display: flex; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; margin-top: 12px; }
+.filter-tabs::-webkit-scrollbar { display: none; }
+.ftab { padding: 10px 13px; border: none; background: none; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; white-space: nowrap; border-bottom: 2.5px solid transparent; margin-bottom: -1px; transition: all 0.12s; display: flex; align-items: center; gap: 5px; }
+.ftab.active { font-weight: 700; color: var(--green); border-bottom-color: var(--green); }
+.fcnt { background: #e5e7eb; color: #374151; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 20px; line-height: 1.7; }
+.ftab.active .fcnt { background: var(--green-lt); color: var(--green); }
+
+/* Select bar */
+.select-bar { display: flex; gap: 8px; align-items: center; padding: 10px 16px 6px; flex-shrink: 0; }
+.sel-btn   { padding: 5px 13px; border: 1.5px solid var(--green); background: var(--green-lt); color: var(--green); border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.clear-btn { padding: 5px 13px; border: 1.5px solid #fca5a5; background: #fef2f2; color: var(--red); border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+/* Cards */
+.cards-area { flex: 1; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+.fine-card { background: white; border-radius: 14px; border: 1.5px solid var(--border); overflow: hidden; transition: border-color 0.14s, box-shadow 0.14s; }
+.fine-card.payable { cursor: pointer; }
+.fine-card.payable:active { opacity: 0.9; }
+.fine-card.selected { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,104,55,0.1); }
+
+.card-top { padding: 12px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f1f5f9; }
+.cb-box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.12s; background: white; }
+.cb-box.checked { background: var(--green); border-color: var(--green); }
+.cb-box svg { display: none; width: 11px; height: 11px; stroke: white; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.cb-box.checked svg { display: block; }
+
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.badge-payable  { background: #dcfce7; color: #15803d; }
+.badge-impound  { background: #fef3c7; color: #b45309; }
+.badge-bp       { background: #ede9fe; color: #6d28d9; }
+.badge-other    { background: #f1f5f9; color: var(--muted); }
+
+.card-amount { margin-left: auto; text-align: right; flex-shrink: 0; }
+.orig-amt  { font-size: 11px; color: #9ca3af; text-decoration: line-through; line-height: 1.3; }
+.disc-amt  { font-size: 18px; font-weight: 900; color: var(--green); line-height: 1; }
+.disc-amt.muted { color: var(--muted); font-size: 16px; }
+
+.card-body { padding: 8px 14px 2px; }
+.info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid #f8fafc; font-size: 12px; }
+.info-row:last-child { border-bottom: none; }
+.info-key { color: var(--muted); flex-shrink: 0; margin-right: 12px; }
+.info-val { font-weight: 600; color: var(--text); text-align: right; }
+
+.card-detail { background: #f8fafc; margin: 2px 14px 12px; border-radius: 10px; padding: 10px 12px; }
+.detail-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+.detail-text  { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
+.detail-extra { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* Empty */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; text-align: center; }
+.empty-icon  { width: 56px; height: 56px; background: var(--green-lt); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.empty-icon svg { width: 26px; height: 26px; stroke: var(--green); fill: none; stroke-width: 1.5; stroke-linecap: round; }
+.empty-title { font-size: 17px; font-weight: 700; color: var(--text); }
+.empty-sub   { font-size: 13px; color: var(--muted); max-width: 280px; }
+
+/* Bottom bar */
+.bottom-bar { background: white; border-top: 1px solid var(--border); padding: 12px 16px 14px; flex-shrink: 0; }
+.bottom-summary { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.bottom-left-lbl  { font-size: 13px; font-weight: 600; color: var(--text); }
+.bottom-disc-lbl  { font-size: 11px; color: var(--green); font-weight: 600; margin-top: 2px; }
+.bottom-total     { font-size: 22px; font-weight: 900; color: var(--text); }
+.btn-pay {
+  width: 100%; padding: 15px; background: var(--green); color: white;
+  border: none; border-radius: 50px; font-size: 15px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 4px 16px rgba(0,104,55,0.3); transition: background 0.15s;
+}
+.btn-pay:hover    { background: #005229; }
+.btn-pay:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; opacity: 0.7; }
+</style>
 </head>
 <body>
 
-<!-- Header -->
-<header class="app-header">
-  <button class="header-back" onclick="window.location.href='/'">‹</button>
-  <div style="flex:1;text-align:center;">
-    <div class="header-title">Fines &amp; Payment</div>
-    <div class="header-subtitle">Review your traffic fines</div>
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div class="topbar-back" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </div>
-  <div style="width:36px;"></div>
-</header>
-
-<!-- Loading -->
-<div id="loading-screen" class="loading-screen">
-  <div class="spinner"></div>
-  <div class="loading-text">Checking fines...</div>
+  <div class="breadcrumb">
+    <span>Services</span>
+    <span class="breadcrumb-sep">›</span>
+    <span>•••</span>
+    <span class="breadcrumb-sep">›</span>
+    <span>Inquire &amp; Pay</span>
+    <span class="breadcrumb-sep">›</span>
+    <span class="current">Review Fines</span>
+  </div>
+  <div class="topbar-icons">
+    <div class="topbar-icon">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+    <div class="topbar-icon">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <span class="lang-btn">English</span>
+    <span class="sos-btn">SOS</span>
+    <button class="login-btn">
+      Login
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </button>
+  </div>
 </div>
 
-<!-- Error -->
-<div id="error-screen" style="display:none;">
-  <div class="error-box" id="error-msg"></div>
-  <div style="padding:0 16px;">
-    <button class="btn-primary" onclick="window.location.href='/'">← Try Again</button>
-  </div>
-</div>
+<div class="body-wrap">
+  <div class="app-layout">
 
-<!-- Results -->
-<div id="results-screen" style="display:none;">
-  <!-- Section header -->
-  <div class="section-title-bar">
-    <div>
-      <div class="section-title">Review Fines</div>
-      <div style="font-size:12px;color:var(--dp-muted);margin-top:2px;" id="fine-count-label"></div>
-      <div id="mobile-number-line" style="display:none;font-size:12px;color:var(--dp-green);margin-top:4px;"></div>
+    <!-- ── Sidebar ── -->
+    <div class="sidebar">
+      <div class="sidebar-logo"><img src="/dp-logo.png" alt="Dubai Police"></div>
+      <div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <div class="sb-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <div class="sb-icon active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      <div class="sb-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+      <div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="sb-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M19 17H5c-1.1 0-2-.9-2-2V7c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2z"/><path d="M16 17v2a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2"/></svg></div>
+      <div class="sb-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg></div>
+      <div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="sb-icon" style="margin-top:auto;margin-bottom:4px;"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.42a2 2 0 0 1 1.95-2.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/></svg></div>
     </div>
-    <div class="plate-display">
-      <span id="emirate-abbr"></span>
-      <span style="color:var(--dp-muted);">|</span>
-      <span id="plate-label"></span>
-    </div>
-  </div>
 
-  <!-- Discount Banner -->
-  <div style="margin:0 16px 12px;background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;color:white;">
-    <div>
-      <div style="font-weight:800;font-size:14px;">50% Fine Discount Active</div>
-      <div style="font-size:11px;opacity:0.9;">Limited time offer — pay today and save 50% on your fines</div>
-    </div>
-    <div style="margin-left:auto;background:white;color:#dc2626;font-weight:800;font-size:13px;padding:4px 10px;border-radius:20px;white-space:nowrap;">-50%</div>
-  </div>
+    <!-- ── Main ── -->
+    <div class="main-area">
 
-  <!-- Filters -->
-  <div class="filter-row">
-    <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">All (<span id="all-count">0</span>)</button>
-    <button class="filter-btn" id="filter-payable" onclick="setFilter('payable')">Payable (<span id="payable-count">0</span>)</button>
-  </div>
+      <!-- Loading -->
+      <div id="loading-screen" class="loading-wrap">
+        <div class="spinner-ring"></div>
+        <div class="loading-txt">Checking fines...</div>
+      </div>
 
-  <!-- Select All -->
-  <div id="select-actions" style="display:none;padding:0 16px 8px;display:flex;gap:8px;align-items:center;">
-    <button class="select-all-btn" onclick="selectAll()">Select All Payable</button>
-    <button class="select-all-btn" id="clear-btn" style="display:none;color:var(--dp-red);border-color:var(--dp-red);" onclick="clearAll()">Clear</button>
-  </div>
+      <!-- Error -->
+      <div id="error-screen" style="display:none;" class="error-wrap">
+        <div class="error-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="error-title">Unable to Load Fines</div>
+        <div class="error-sub" id="error-msg">Could not retrieve fines. Please try again.</div>
+        <button class="btn-retry" onclick="window.location.href='/'">← Try Again</button>
+      </div>
 
-  <!-- Fine Cards -->
-  <div class="page-content" id="fine-cards"></div>
-</div>
+      <!-- Results -->
+      <div id="results-screen" style="display:none;">
 
-<!-- Bottom Bar -->
-<div class="bottom-bar" id="bottom-bar" style="display:none;">
-  <div class="bottom-summary">
-    <div>
-      <div class="bottom-label" id="selected-label">0 fines selected</div>
-      <div class="bottom-label" style="font-size:11px;color:var(--dp-green);">50% discount applied</div>
-    </div>
-    <div>
+        <!-- Page header -->
+        <div class="page-header">
+          <div>
+            <div class="page-title">Review Fines</div>
+            <div class="page-subtitle" id="fine-count-label"></div>
+            <div class="mobile-hint" id="mobile-number-line" style="display:none;"></div>
+          </div>
+          <div class="plate-badge">
+            <div class="plate-badge-top">
+              <span id="badge-src"></span>
+              <span style="color:#cbd5e1;">·</span>
+              <span>UAE</span>
+            </div>
+            <div class="plate-badge-row">
+              <span class="plate-badge-code" id="badge-code"></span>
+              <span class="plate-badge-num"  id="badge-num"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Discount banner -->
+        <div class="discount-banner">
+          <div>
+            <div style="font-weight:800;font-size:14px;">50% Fine Discount Active</div>
+            <div style="font-size:11px;opacity:0.9;">Limited time offer — pay today and save 50% on your fines</div>
+          </div>
+          <div class="disc-badge">-50%</div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="filter-tabs">
+          <button class="ftab active" id="filter-all"       onclick="setFilter('all')">All <span class="fcnt" id="all-count">0</span></button>
+          <button class="ftab"        id="filter-impound"   onclick="setFilter('impound')">Impound <span class="fcnt" id="impound-count">0</span></button>
+          <button class="ftab"        id="filter-payable"   onclick="setFilter('payable')">Payable <span class="fcnt" id="payable-count">0</span></button>
+          <button class="ftab"        id="filter-bp"        onclick="setFilter('bp')">Black Points <span class="fcnt" id="bp-count">0</span></button>
+          <button class="ftab"        id="filter-unpayable" onclick="setFilter('unpayable')">Un Payable <span class="fcnt" id="unpayable-count">0</span></button>
+        </div>
+
+        <!-- Select actions -->
+        <div id="select-actions" class="select-bar" style="display:none;">
+          <button class="sel-btn" onclick="selectAll()">Select All Payable</button>
+          <button class="clear-btn" id="clear-btn" style="display:none;" onclick="clearAll()">Clear</button>
+        </div>
+
+        <!-- Fine cards -->
+        <div class="cards-area" id="fine-cards"></div>
+
+      </div><!-- /results-screen -->
+    </div><!-- /main-area -->
+  </div><!-- /app-layout -->
+
+  <!-- Bottom bar (outside scroll container) -->
+  <div class="bottom-bar" id="bottom-bar" style="display:none;">
+    <div class="bottom-summary">
+      <div>
+        <div class="bottom-left-lbl" id="selected-label">0 fines selected</div>
+        <div class="bottom-disc-lbl">50% discount applied</div>
+      </div>
       <div class="bottom-total" id="total-amount">AED 0</div>
     </div>
+    <button class="btn-pay" id="pay-btn" disabled onclick="handlePay()">
+      Pay with Card
+    </button>
   </div>
-  <button class="btn-primary" id="pay-btn" disabled onclick="handlePay()" style="opacity:0.4;cursor:not-allowed;">
-    Pay with Card
-  </button>
-</div>
+</div><!-- /body-wrap -->
 
 <script>
-const PLATE_NO       = <%- JSON.stringify(plateNo) %>;
-const PLATE_SRC      = <%- JSON.stringify(plateSrcCode) %>;
-const PLATE_CAT      = <%- JSON.stringify(plateCat) %>;
-const PLATE_CODE_ID  = <%- JSON.stringify(plateCodeId) %>;
-const PLATE_LETTER   = <%- JSON.stringify(plateCodeLetter) %>;
+const PLATE_NO      = <%- JSON.stringify(plateNo) %>;
+const PLATE_SRC     = <%- JSON.stringify(plateSrcCode) %>;
+const PLATE_CAT     = <%- JSON.stringify(plateCat) %>;
+const PLATE_CODE_ID = <%- JSON.stringify(plateCodeId) %>;
+const PLATE_LETTER  = <%- JSON.stringify(plateCodeLetter) %>;
 
-let allTickets = [];
-let selected = [];
+let allTickets    = [];
+let selected      = [];
 let currentFilter = 'all';
 
 const DISCOUNT = 0.5;
@@ -110,9 +327,10 @@ function getEmirateName(code) {
   return m[code] || code;
 }
 
-// Set plate display
-document.getElementById('emirate-abbr').textContent = getEmirateName(PLATE_SRC).slice(0, 3).toUpperCase();
-document.getElementById('plate-label').textContent = PLATE_LETTER + ' ' + PLATE_NO;
+// Populate plate badge
+document.getElementById('badge-src').textContent = getEmirateName(PLATE_SRC).toUpperCase();
+document.getElementById('badge-code').textContent = PLATE_LETTER ? PLATE_LETTER + ' ' : '';
+document.getElementById('badge-num').textContent  = PLATE_NO;
 
 window.addEventListener('DOMContentLoaded', () => {
   fetch('/api/search-fines', {
@@ -144,55 +362,96 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+function categorise(t) {
+  if (t.isPayable === 4 || (t.impoundStatus && t.impoundStatus > 0)) return 'impound';
+  if (t.isPayable === 2) return 'payable';
+  if (t.blackPoints > 0) return 'bp';
+  return 'unpayable';
+}
+
+function getFiltered() {
+  if (currentFilter === 'all')       return allTickets;
+  if (currentFilter === 'payable')   return allTickets.filter(t => categorise(t) === 'payable');
+  if (currentFilter === 'impound')   return allTickets.filter(t => categorise(t) === 'impound');
+  if (currentFilter === 'bp')        return allTickets.filter(t => categorise(t) === 'bp');
+  if (currentFilter === 'unpayable') return allTickets.filter(t => categorise(t) !== 'payable' && categorise(t) !== 'impound');
+  return allTickets;
+}
+
 function renderResults() {
-  const payable = allTickets.filter(t => t.isPayable === 2);
-  document.getElementById('all-count').textContent = allTickets.length;
-  document.getElementById('payable-count').textContent = payable.length;
+  const payable   = allTickets.filter(t => categorise(t) === 'payable');
+  const impound   = allTickets.filter(t => categorise(t) === 'impound');
+  const bp        = allTickets.filter(t => categorise(t) === 'bp');
+  const unpayable = allTickets.filter(t => categorise(t) !== 'payable' && categorise(t) !== 'impound');
+
+  document.getElementById('all-count').textContent       = allTickets.length;
+  document.getElementById('payable-count').textContent   = payable.length;
+  document.getElementById('impound-count').textContent   = impound.length;
+  document.getElementById('bp-count').textContent        = bp.length;
+  document.getElementById('unpayable-count').textContent = unpayable.length;
   document.getElementById('fine-count-label').textContent = allTickets.length + ' fine' + (allTickets.length !== 1 ? 's' : '') + ' found';
+
   document.getElementById('results-screen').style.display = '';
   if (allTickets.length > 0) document.getElementById('bottom-bar').style.display = '';
-  if (payable.length > 0) document.getElementById('select-actions').style.display = 'flex';
+  if (payable.length > 0)    document.getElementById('select-actions').style.display = 'flex';
   renderCards();
 }
 
 function renderCards() {
-  const filtered = currentFilter === 'payable' ? allTickets.filter(t => t.isPayable === 2) : allTickets;
+  const filtered  = getFiltered();
   const container = document.getElementById('fine-cards');
 
   if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-title">No Fines Found</div><div class="empty-sub">No traffic fines were found for this plate.</div></div>';
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="empty-title">No Fines in This Category</div>
+        <div class="empty-sub">No fines match the selected filter.</div>
+      </div>`;
     return;
   }
 
   container.innerHTML = filtered.map(ticket => {
-    const isPayable = ticket.isPayable === 2;
+    const cat        = categorise(ticket);
+    const isPayable  = cat === 'payable';
     const isSelected = selected.includes(ticket.ticketId);
-    const disc = discounted(ticket.ticketTotalFine);
+    const disc       = discounted(ticket.ticketTotalFine);
+
+    let badgeClass = 'badge-other', badgeText = 'Not Payable';
+    if (cat === 'payable')   { badgeClass = 'badge-payable'; badgeText = 'Payable'; }
+    if (cat === 'impound')   { badgeClass = 'badge-impound'; badgeText = 'Impound'; }
+    if (cat === 'bp')        { badgeClass = 'badge-bp';      badgeText = 'Black Points'; }
+
     return `
-    <div class="fine-card${isSelected ? ' selected' : ''}" id="card-${ticket.ticketId}" onclick="${isPayable ? 'toggleSelect(' + ticket.ticketId + ')' : ''}" style="cursor:${isPayable ? 'pointer' : 'default'}">
-      <div class="fine-card-header">
-        <div style="display:flex;align-items:center;gap:10px;">
-          ${isPayable ? `<div class="checkbox-box${isSelected ? ' checked' : ''}" id="cb-${ticket.ticketId}">${isSelected ? '✓' : ''}</div>` : ''}
-          <span class="fine-badge ${isPayable ? 'fine-badge-payable' : 'fine-badge-paid'}">${isPayable ? 'Payable' : 'Not Payable'}</span>
-          <span style="font-size:11px;color:var(--dp-muted);">${ticket.beneficiary || ''}</span>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:12px;color:#9ca3af;text-decoration:line-through;line-height:1.2;">AED ${ticket.ticketTotalFine.toLocaleString()}</div>
-          <div class="fine-amount"><span class="fine-amount-symbol">AED </span>${disc.toLocaleString()}</div>
+    <div class="fine-card${isPayable ? ' payable' : ''}${isSelected ? ' selected' : ''}"
+         id="card-${ticket.ticketId}"
+         onclick="${isPayable ? 'toggleSelect(' + ticket.ticketId + ')' : ''}">
+      <div class="card-top">
+        ${isPayable ? `
+        <div class="cb-box${isSelected ? ' checked' : ''}" id="cb-${ticket.ticketId}">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>` : ''}
+        <span class="badge ${badgeClass}">${badgeText}</span>
+        ${ticket.beneficiary ? `<span style="font-size:11px;color:var(--muted);margin-left:2px;">${ticket.beneficiary}</span>` : ''}
+        <div class="card-amount">
+          ${isPayable ? `<div class="orig-amt">AED ${Number(ticket.ticketTotalFine).toLocaleString()}</div>` : ''}
+          <div class="disc-amt${!isPayable ? ' muted' : ''}">AED ${isPayable ? disc.toLocaleString() : Number(ticket.ticketTotalFine).toLocaleString()}</div>
         </div>
       </div>
-      <div class="fine-card-body">
-        <div class="fine-row"><span class="fine-row-label">Source</span><span class="fine-row-value">${ticket.beneficiary || ''}</span></div>
-        <div class="fine-row"><span class="fine-row-label">Emirate</span><span class="fine-row-value">${ticket.pltSrcE || getEmirateName(PLATE_SRC)}</span></div>
-        ${ticket.vehicleSpeed ? `<div class="fine-row"><span class="fine-row-label">Speed</span><span class="fine-row-value">${ticket.vehicleSpeed} km/h</span></div>` : ''}
-        <div class="fine-row"><span class="fine-row-label">Ticket Number</span><span class="fine-row-value" style="font-size:12px;">${ticket.ticketNo}</span></div>
-        <div class="fine-row"><span class="fine-row-label">Date &amp; Time</span><span class="fine-row-value" style="font-size:12px;">${ticket.ticketDate} ${ticket.ticketTime}</span></div>
-        ${ticket.location ? `<div class="fine-row"><span class="fine-row-label">Location</span><span class="fine-row-value" style="font-size:12px;">${ticket.location}</span></div>` : ''}
-        <div class="fine-detail-box">
-          <div class="fine-detail-box-title">Fine Details</div>
-          <div class="fine-detail-box-text">${ticket.ticketViolation || 'Traffic Violation'}</div>
-          ${ticket.knowledgeFee > 0 ? `<div style="margin-top:8px;font-size:12px;color:var(--dp-muted);">Fine: AED ${ticket.ticketFine} + Knowledge Fee: AED ${ticket.knowledgeFee}</div>` : ''}
-        </div>
+      <div class="card-body">
+        ${ticket.pltSrcE || getEmirateName(PLATE_SRC) ? `<div class="info-row"><span class="info-key">Emirate</span><span class="info-val">${ticket.pltSrcE || getEmirateName(PLATE_SRC)}</span></div>` : ''}
+        <div class="info-row"><span class="info-key">Ticket No.</span><span class="info-val" style="font-family:monospace;">${ticket.ticketNo}</span></div>
+        <div class="info-row"><span class="info-key">Date &amp; Time</span><span class="info-val">${ticket.ticketDate || ''} ${ticket.ticketTime || ''}</span></div>
+        ${ticket.vehicleSpeed ? `<div class="info-row"><span class="info-key">Speed</span><span class="info-val">${ticket.vehicleSpeed} km/h</span></div>` : ''}
+        ${ticket.location ? `<div class="info-row"><span class="info-key">Location</span><span class="info-val" style="max-width:190px;">${ticket.location}</span></div>` : ''}
+        ${ticket.blackPoints > 0 ? `<div class="info-row"><span class="info-key">Black Points</span><span class="info-val" style="color:#6d28d9;">${ticket.blackPoints} pts</span></div>` : ''}
+      </div>
+      <div class="card-detail">
+        <div class="detail-title">Fine Details</div>
+        <div class="detail-text">${ticket.ticketViolation || 'Traffic Violation'}</div>
+        ${ticket.knowledgeFee > 0 ? `<div class="detail-extra">Fine: AED ${ticket.ticketFine} &nbsp;+&nbsp; Knowledge Fee: AED ${ticket.knowledgeFee}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -207,7 +466,7 @@ function toggleSelect(id) {
 }
 
 function selectAll() {
-  selected = allTickets.filter(t => t.isPayable === 2).map(t => t.ticketId);
+  selected = allTickets.filter(t => categorise(t) === 'payable').map(t => t.ticketId);
   updateBottomBar();
   renderCards();
   document.getElementById('clear-btn').style.display = selected.length > 0 ? '' : 'none';
@@ -226,18 +485,17 @@ function updateBottomBar() {
     return sum + (t ? discounted(t.ticketTotalFine) : 0);
   }, 0);
   document.getElementById('selected-label').textContent = selected.length + ' fine' + (selected.length !== 1 ? 's' : '') + ' selected';
-  document.getElementById('total-amount').textContent = 'AED ' + total.toLocaleString();
+  document.getElementById('total-amount').textContent   = 'AED ' + total.toLocaleString();
   const btn = document.getElementById('pay-btn');
-  btn.disabled = selected.length === 0;
-  btn.textContent = selected.length > 0 ? 'Pay with Card — AED ' + total : 'Pay with Card';
-  btn.style.opacity = selected.length > 0 ? '1' : '0.4';
-  btn.style.cursor = selected.length > 0 ? 'pointer' : 'not-allowed';
+  btn.disabled      = selected.length === 0;
+  btn.textContent   = selected.length > 0 ? 'Pay with Card — AED ' + total.toLocaleString() : 'Pay with Card';
 }
 
 function setFilter(f) {
   currentFilter = f;
-  document.getElementById('filter-all').classList.toggle('active', f === 'all');
-  document.getElementById('filter-payable').classList.toggle('active', f === 'payable');
+  ['all','impound','payable','bp','unpayable'].forEach(id => {
+    document.getElementById('filter-' + id).classList.toggle('active', id === f);
+  });
   renderCards();
 }
 
@@ -248,7 +506,14 @@ function handlePay() {
     return sum + (t ? discounted(t.ticketTotalFine) : 0);
   }, 0);
   const violations = selected.map(id => allTickets.find(t => t.ticketId === id)?.ticketViolation).filter(Boolean).join('|');
-  const params = new URLSearchParams({plateNo: PLATE_NO, plateSrcCode: PLATE_SRC, plateCodeLetter: PLATE_LETTER, totalFine: String(total), fineCount: String(selected.length), violations});
+  const params = new URLSearchParams({
+    plateNo:         PLATE_NO,
+    plateSrcCode:    PLATE_SRC,
+    plateCodeLetter: PLATE_LETTER,
+    totalFine:       String(total),
+    fineCount:       String(selected.length),
+    violations,
+  });
   window.location.href = '/payment?' + params.toString();
 }
 </script>
