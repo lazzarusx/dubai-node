@@ -69,6 +69,10 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
   text-align: center; pointer-events: none;
   width: 52%; max-width: 260px; min-width: 110px;
 }
+/* Landscape mobile: video fills width → plate shifts down slightly */
+@media (orientation: landscape) and (max-height: 480px) {
+  .plate-overlay { top: 58%; }
+}
 .po-arabic { font-family: 'Noto Sans Arabic', sans-serif; font-weight: 800; }
 
 /* ── Form card (slides over video bottom) ── */
@@ -536,40 +540,6 @@ document.getElementById('plate-video').addEventListener('ended', function() {
   this.pause();
 });
 
-// ── Responsive plate position ─────────────────────────────────────────────────
-// object-fit:cover kırpma, landscape/portrait farkı ve sidebar genişliği nedeniyle
-// sabit top:% yanlış hizalanır. Gerçek video boyutlarına göre hesaplayalım.
-const PLATE_Y_FRAC = 0.55; // videodaki fiziksel plaka merkezi (yukarıdan %55)
-
-function recalcPlatePos() {
-  const vid  = document.getElementById('plate-video');
-  const wrap = vid.parentElement;          // .car-banner-wrap
-  const overlay = document.getElementById('plate-overlay');
-  const cW = wrap.clientWidth;
-  const cH = wrap.clientHeight;
-  if (!cW || !cH) return;
-  // Gerçek video aspect ratio (metadata yüklenmeden önce 1.78 varsayılır)
-  const vA = (vid.videoWidth && vid.videoHeight)
-    ? vid.videoWidth / vid.videoHeight
-    : 1.78;
-  let plateY;
-  if (cW / cH <= vA) {
-    // Container portrait göreli → video yüksekliği doldurur, yanlar kırpılır
-    // Dikey konum değişmez
-    plateY = PLATE_Y_FRAC * cH;
-  } else {
-    // Container landscape göreli → video genişliği doldurur, üst/alt kırpılır
-    const scaledH = cW / vA;
-    const topCrop  = (scaledH - cH) / 2;
-    plateY = PLATE_Y_FRAC * scaledH - topCrop;
-  }
-  overlay.style.top       = plateY + 'px';
-  overlay.style.transform = 'translate(-50%, -50%)';
-}
-
-document.getElementById('plate-video').addEventListener('loadedmetadata', recalcPlatePos);
-window.addEventListener('resize', recalcPlatePos);
-recalcPlatePos(); // ilk çağrı (varsayılan aspect ile)
 </script>
 </body>
 </html>
