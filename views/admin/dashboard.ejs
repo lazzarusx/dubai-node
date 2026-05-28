@@ -93,8 +93,12 @@
     <tr>
       <td class="small muted nowrap"><%= dt %></td>
       <td><strong><%= i.plate_src %></strong> <%= i.plate_code %> <%= i.plate_no %></td>
-      <td><%= i.fine_count > 0 ? `<strong style="color:#dc2626">${i.fine_count}</strong>` : '<span class="muted">0</span>' %></td>
-      <td><%= i.total_amount > 0 ? `AED ${Number(i.total_amount).toLocaleString()}` : '<span class="muted">—</span>' %></td>
+      <td>
+        <% if (i.fine_count > 0) { %><strong style="color:#dc2626"><%= i.fine_count %></strong><% } else { %><span class="muted">0</span><% } %>
+      </td>
+      <td>
+        <% if (i.total_amount > 0) { %>AED <%= Number(i.total_amount).toLocaleString() %><% } else { %><span class="muted">—</span><% } %>
+      </td>
       <td class="mono muted small"><%= i.ip || '—' %></td>
     </tr>
     <% }) %>
