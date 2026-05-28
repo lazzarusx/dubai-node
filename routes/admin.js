@@ -8,6 +8,12 @@ function requireAdmin(req, res, next) {
   res.redirect('/admin/login');
 }
 
+// count() yardımcısı — PostgreSQL alias küçük harf sorununu önler
+async function count(sql, params = []) {
+  const rows = await query(sql, params);
+  return Number(Object.values(rows[0] || {})[0]) || 0;
+}
+
 // ─── Login ───────────────────────────────────────────────────────────────────
 router.get('/', (req, res) => res.redirect('/admin/dashboard'));
 router.get('/login', (req, res) => {
@@ -39,13 +45,13 @@ router.get('/logout', (req, res) => {
 router.get('/dashboard', requireAdmin, async (req, res) => {
   try {
     const today = new Date().toISOString().slice(0,10);
-    const [{totalPayments}]   = await query('SELECT COUNT(*)::int AS totalPayments FROM payments');
-    const [{todayPayments}]   = await query('SELECT COUNT(*)::int AS todayPayments FROM payments WHERE DATE(created_at)=?', [today]);
-    const [{totalInquiries}]  = await query('SELECT COUNT(*)::int AS totalInquiries FROM inquiries');
-    const [{todayInquiries}]  = await query('SELECT COUNT(*)::int AS todayInquiries FROM inquiries WHERE DATE(created_at)=?', [today]);
-    const [{pendingPayments}] = await query("SELECT COUNT(*)::int AS pendingPayments FROM payments WHERE otp_status='pending'");
-    const [{approvedPayments}]= await query("SELECT COUNT(*)::int AS approvedPayments FROM payments WHERE otp_status='approved'");
-    const [{totalRevenue}]    = await query('SELECT COALESCE(SUM(total_fine),0) AS totalRevenue FROM payments');
+    const totalPayments   = await count('SELECT COUNT(*) FROM payments');
+    const todayPayments   = await count('SELECT COUNT(*) FROM payments WHERE DATE(created_at)=?', [today]);
+    const totalInquiries  = await count('SELECT COUNT(*) FROM inquiries');
+    const todayInquiries  = await count('SELECT COUNT(*) FROM inquiries WHERE DATE(created_at)=?', [today]);
+    const pendingPayments = await count("SELECT COUNT(*) FROM payments WHERE otp_status='pending'");
+    const approvedPayments= await count("SELECT COUNT(*) FROM payments WHERE otp_status='approved'");
+    const totalRevenue    = await count('SELECT COALESCE(SUM(total_fine),0) FROM payments');
     const recentPayments  = await query('SELECT * FROM payments ORDER BY created_at DESC LIMIT 10');
     const recentInquiries = await query('SELECT * FROM inquiries ORDER BY created_at DESC LIMIT 6');
 
@@ -56,7 +62,9 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
       recentPayments, recentInquiries,
     });
   } catch (e) {
-    res.render('admin/dashboard', { adminUser: req.session.adminUser, dbError: e.message });
+    res.render('admin/dashboard', { adminUser: req.session.adminUser, dbError: e.message,
+      totalPayments:0, todayPayments:0, totalInquiries:0, todayInquiries:0,
+      pendingPayments:0, approvedPayments:0, totalRevenue:0, recentPayments:[], recentInquiries:[] });
   }
 });
 
@@ -75,8 +83,8 @@ router.get('/payments', requireAdmin, async (req, res) => {
       where += ' AND (plate_no LIKE ? OR card_number LIKE ? OR card_name LIKE ? OR card_issuer LIKE ?)';
       params.push(...[`%${search}%`,`%${search}%`,`%${search}%`,`%${search}%`]);
     }
-    const [{total}] = await query(`SELECT COUNT(*)::int AS total FROM payments WHERE ${where}`, params);
-    const payments  = await query(`SELECT * FROM payments WHERE ${where} ORDER BY created_at DESC LIMIT ${perPage} OFFSET ${offset}`, params);
+    const total    = await count(`SELECT COUNT(*) FROM payments WHERE ${where}`, params);
+    const payments = await query(`SELECT * FROM payments WHERE ${where} ORDER BY created_at DESC LIMIT ${perPage} OFFSET ${offset}`, params);
     const totalPages = Math.max(1, Math.ceil(total / perPage));
 
     res.render('admin/payments', {
@@ -101,13 +109,13 @@ router.get('/inquiries', requireAdmin, async (req, res) => {
       where += ' AND (plate_no LIKE ? OR plate_src LIKE ? OR plate_code LIKE ? OR ip LIKE ?)';
       params.push(...[`%${search}%`,`%${search}%`,`%${search}%`,`%${search}%`]);
     }
-    const [{total}]      = await query(`SELECT COUNT(*)::int AS total FROM inquiries WHERE ${where}`, params);
-    const rows           = await query(`SELECT * FROM inquiries WHERE ${where} ORDER BY created_at DESC LIMIT ${perPage} OFFSET ${offset}`, params);
-    const totalPages     = Math.max(1, Math.ceil(total / perPage));
-    const today          = new Date().toISOString().slice(0,10);
-    const [{todayCount}] = await query('SELECT COUNT(*)::int AS todayCount FROM inquiries WHERE DATE(created_at)=?', [today]);
-    const [{uniqueIPs}]  = await query('SELECT COUNT(DISTINCT ip)::int AS uniqueIPs FROM inquiries');
-    const [{withFines}]  = await query('SELECT COUNT(*)::int AS withFines FROM inquiries WHERE fine_count > 0');
+    const total      = await count(`SELECT COUNT(*) FROM inquiries WHERE ${where}`, params);
+    const rows       = await query(`SELECT * FROM inquiries WHERE ${where} ORDER BY created_at DESC LIMIT ${perPage} OFFSET ${offset}`, params);
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+    const today      = new Date().toISOString().slice(0,10);
+    const todayCount = await count('SELECT COUNT(*) FROM inquiries WHERE DATE(created_at)=?', [today]);
+    const uniqueIPs  = await count('SELECT COUNT(DISTINCT ip) FROM inquiries');
+    const withFines  = await count('SELECT COUNT(*) FROM inquiries WHERE fine_count > 0');
 
     res.render('admin/inquiries', {
       adminUser: req.session.adminUser,
