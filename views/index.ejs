@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Dubai Traffic Fine Payment | Fast &amp; Easy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  select:focus, input:focus { border-color: #1a6b3a !important; box-shadow: 0 0 0 3px rgba(26,107,58,0.1); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header style="background:white;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e9ecef;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:46px;height:46px;border-radius:50%;overflow:hidden;flex-shrink:0;">
+      <img src="/dp-logo.png" alt="Dubai Police" width="46" height="46" style="object-fit:cover;">
+    </div>
+    <div>
+      <div style="font-size:14px;font-weight:800;color:#1a6b3a;line-height:1.2;">Dubai Police</div>
+      <div style="font-size:11px;color:#9ca3af;line-height:1.2;">شرطة دبي</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <div style="width:38px;height:38px;border:1.5px solid #dee2e6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:#495057;">ⓘ</div>
+    <div style="width:38px;height:38px;border:1.5px solid #dee2e6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:#495057;">☰</div>
+  </div>
+</header>
+
+<!-- Breadcrumb -->
+<div style="background:white;padding:10px 18px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0f0f0;">
+  <span style="width:28px;height:28px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:16px;color:#6b7280;cursor:pointer;">‹</span>
+  <div>
+    <span style="font-size:14px;font-weight:600;color:#1a6b3a;">Fine Inquiry &amp; Payment</span>
+    <span style="font-size:11px;color:#9ca3af;margin-left:8px;">استفسار المخالفات والدفع</span>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div style="background:white;padding:10px 16px 0;display:flex;gap:0;border-bottom:2px solid #e9ecef;overflow-x:auto;scrollbar-width:none;">
+  <button onclick="setTab('plate')" id="tab-plate"
+    style="padding:10px 16px;border:none;background:none;font-size:13px;cursor:pointer;white-space:nowrap;margin-bottom:-2px;transition:all 0.15s;font-weight:700;color:#1a6b3a;border-bottom:2.5px solid #1a6b3a;">
+    Plate
+  </button>
+  <button onclick="setTab('licence')" id="tab-licence"
+    style="padding:10px 16px;border:none;background:none;font-size:13px;cursor:pointer;white-space:nowrap;margin-bottom:-2px;transition:all 0.15s;font-weight:500;color:#9ca3af;border-bottom:2.5px solid transparent;">
+    Licence
+  </button>
+  <button onclick="setTab('tc')" id="tab-tc"
+    style="padding:10px 16px;border:none;background:none;font-size:13px;cursor:pointer;white-space:nowrap;margin-bottom:-2px;transition:all 0.15s;font-weight:500;color:#9ca3af;border-bottom:2.5px solid transparent;">
+    TC Number
+  </button>
+  <button onclick="setTab('eid')" id="tab-eid"
+    style="padding:10px 16px;border:none;background:none;font-size:13px;cursor:pointer;white-space:nowrap;margin-bottom:-2px;transition:all 0.15s;font-weight:500;color:#9ca3af;border-bottom:2.5px solid transparent;">
+    Emirates ID
+  </button>
+</div>
+
+<!-- Car Banner -->
+<div style="position:relative;width:100%;height:180px;overflow:hidden;">
+  <img src="/car-banner.png" alt="Vehicle" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+  <div id="plate-overlay" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:8px;width:55%;height:54px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.9);">
+    <span id="plate-preview" style="font-size:13px;color:#aaa;letter-spacing:1px;">— — — — —</span>
+  </div>
+</div>
+
+<!-- Plate Form -->
+<div id="tab-plate-content">
+  <div style="background:white;margin:16px 14px;border-radius:16px;padding:20px 16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+
+    <!-- Plate Source -->
+    <div style="margin-bottom:16px;">
+      <label class="form-label">Plate Source</label>
+      <div class="form-select-wrapper">
+        <select id="plateSrc" onchange="onPlateSrcChange(this.value)" class="form-select" style="padding-right:40px;">
+          <option value="">Select</option>
+          <option value="DXB">Dubai</option>
+          <option value="AUH">Abu Dhabi</option>
+          <option value="SHJ">Sharjah</option>
+          <option value="AJM">Ajman</option>
+          <option value="UAQ">Umm Al Quwain</option>
+          <option value="RAK">Ras Al Khaimah</option>
+          <option value="FUJ">Fujairah</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Plate Number -->
+    <div style="margin-bottom:16px;">
+      <label class="form-label">Plate Number</label>
+      <input type="number" inputmode="numeric" id="plateNo" placeholder="Plate Number"
+        oninput="updatePlatePreview()" class="form-input">
+    </div>
+
+    <!-- Plate Code -->
+    <div>
+      <label class="form-label">Plate Code</label>
+      <div id="plateCodeWrapper">
+        <input type="text" id="plateCode" placeholder="Select plate source first"
+          oninput="updatePlatePreview()" maxlength="5" disabled class="form-input"
+          style="background:#f5f5f5;cursor:not-allowed;">
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="form-error" style="display:none;margin-top:14px;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;font-size:13px;color:#dc2626;"></div>
+  </div>
+
+  <div style="padding:0 14px 32px;">
+    <button onclick="handleSearch()" id="search-btn" class="btn-primary">
+      Check Fines <span style="font-size:20px;margin-left:4px;">➔</span>
+    </button>
+  </div>
+</div>
+
+<!-- Other tabs placeholder -->
+<div id="tab-other-content" style="display:none;flex-direction:column;align-items:center;padding:60px 20px;gap:12px;text-align:center;">
+  <div style="font-size:56px;">🚧</div>
+  <div style="font-size:18px;font-weight:700;">Coming Soon</div>
+  <div style="font-size:14px;color:#9ca3af;">Use the Plate tab for now.</div>
+</div>
+
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1260674512113479');fbq('track','PageView');
+</script>
+
+<script>
+const DUBAI_PLATE_CODES = [
+  {code:"A",id:"2"},{code:"B",id:"3"},{code:"C",id:"4"},{code:"D",id:"5"},
+  {code:"E",id:"6"},{code:"G",id:"68"},{code:"H",id:"70"},{code:"I",id:"71"},
+  {code:"J",id:"78"},{code:"K",id:"80"},{code:"L",id:"74"},{code:"M",id:"69"},
+  {code:"N",id:"95"},{code:"O",id:"88"},{code:"P",id:"96"},{code:"Q",id:"93"},
+  {code:"R",id:"79"},{code:"S",id:"87"},{code:"T",id:"97"},{code:"U",id:"98"},
+  {code:"V",id:"86"},{code:"W",id:"99"},{code:"X",id:"100"},{code:"Y",id:"102"},
+  {code:"Z",id:"101"},{code:"AA",id:"700"},{code:"BB",id:"754"},{code:"CC",id:"755"},
+  {code:"DD",id:"757"},{code:"HH",id:"764"},{code:"NN",id:"756"},{code:"TAXI",id:"8"}
+];
+
+const ABU_DHABI_PLATE_CODES = [
+  {code:"1",id:"712"},{code:"2",id:"711"},{code:"4",id:"137"},{code:"5",id:"72"},
+  {code:"6",id:"81"},{code:"7",id:"138"},{code:"8",id:"139"},{code:"9",id:"140"},
+  {code:"10",id:"110"},{code:"11",id:"135"},{code:"12",id:"141"},{code:"13",id:"169"},
+  {code:"14",id:"674"},{code:"15",id:"679"},{code:"16",id:"173"},{code:"17",id:"693"},
+  {code:"18",id:"730"},{code:"19",id:"744"},{code:"20",id:"750"},{code:"21",id:"762"},
+  {code:"22",id:"769"},{code:"50",id:"696"},{code:"1★",id:"699"}
+];
+
+const CATEGORIES = {DXB:"2",AUH:"2",SHJ:"2",AJM:"2",UAQ:"2",RAK:"2",FUJ:"2"};
+
+let activeTab = 'plate';
+
+function setTab(id) {
+  const tabs = ['plate','licence','tc','eid'];
+  tabs.forEach(t => {
+    const btn = document.getElementById('tab-' + t);
+    if (t === id) {
+      btn.style.fontWeight = '700';
+      btn.style.color = '#1a6b3a';
+      btn.style.borderBottom = '2.5px solid #1a6b3a';
+    } else {
+      btn.style.fontWeight = '500';
+      btn.style.color = '#9ca3af';
+      btn.style.borderBottom = '2.5px solid transparent';
+    }
+  });
+  activeTab = id;
+  document.getElementById('tab-plate-content').style.display = id === 'plate' ? '' : 'none';
+  document.getElementById('tab-other-content').style.display = id !== 'plate' ? 'flex' : 'none';
+}
+
+function onPlateSrcChange(src) {
+  const wrapper = document.getElementById('plateCodeWrapper');
+  document.getElementById('plateCode').value = '';
+  updatePlatePreview();
+
+  if (src === 'DXB' || src === 'AUH') {
+    const codes = src === 'DXB' ? DUBAI_PLATE_CODES : ABU_DHABI_PLATE_CODES;
+    let opts = '<option value="">Select</option>';
+    codes.forEach(c => { opts += `<option value="${c.code}">${c.code}</option>`; });
+    wrapper.innerHTML = `<div class="form-select-wrapper"><select id="plateCode" onchange="updatePlatePreview()" class="form-select" style="padding-right:40px;">${opts}</select></div>`;
+  } else {
+    const disabled = !src;
+    wrapper.innerHTML = `<input type="text" id="plateCode" placeholder="${src ? 'Enter plate code' : 'Select plate source first'}" oninput="updatePlatePreview()" maxlength="5" ${disabled ? 'disabled' : ''} class="form-input" style="${disabled ? 'background:#f5f5f5;cursor:not-allowed;' : ''}">`;
+  }
+}
+
+function getPlateCodeEl() { return document.getElementById('plateCode'); }
+
+function updatePlatePreview() {
+  const no = document.getElementById('plateNo').value;
+  const codeEl = getPlateCodeEl();
+  const code = codeEl ? codeEl.value : '';
+  const preview = document.getElementById('plate-preview');
+  if (no && code) {
+    preview.textContent = code + ' ' + no;
+    preview.style.fontSize = '22px';
+    preview.style.fontWeight = '800';
+    preview.style.letterSpacing = '4px';
+    preview.style.color = '#1a1a1a';
+  } else {
+    preview.textContent = '— — — — —';
+    preview.style.fontSize = '13px';
+    preview.style.color = '#aaa';
+    preview.style.letterSpacing = '1px';
+    preview.style.fontWeight = 'normal';
+  }
+}
+
+function getPlateCodeId(emirate, code) {
+  if (emirate === 'DXB') {
+    const found = DUBAI_PLATE_CODES.find(c => c.code === code.toUpperCase());
+    return found ? found.id : '0';
+  }
+  if (emirate === 'AUH') {
+    const found = ABU_DHABI_PLATE_CODES.find(c => c.code === code);
+    return found ? found.id : '0';
+  }
+  return code;
+}
+
+function showError(msg) {
+  const el = document.getElementById('form-error');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = '';
+}
+
+function hideError() {
+  document.getElementById('form-error').style.display = 'none';
+}
+
+function handleSearch() {
+  hideError();
+  const plateSrc = document.getElementById('plateSrc').value;
+  const plateNo = document.getElementById('plateNo').value.trim();
+  const codeEl = getPlateCodeEl();
+  const plateCode = codeEl ? codeEl.value : '';
+
+  if (!plateSrc) { showError('Please select plate source.'); return; }
+  if (!plateNo)  { showError('Please enter your plate number.'); return; }
+  if (!plateCode){ showError('Please select plate code.'); return; }
+
+  const plateCodeId = getPlateCodeId(plateSrc, plateCode);
+  const plateCat = CATEGORIES[plateSrc] || '2';
+
+  const btn = document.getElementById('search-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="width:18px;height:18px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span> Checking...';
+
+  const params = new URLSearchParams({plateNo, plateCat, plateSrcCode: plateSrc, plateCodeId, plateCodeLetter: plateCode.toUpperCase()});
+  window.location.href = '/fines?' + params.toString();
+}
+</script>
+</body>
+</html>

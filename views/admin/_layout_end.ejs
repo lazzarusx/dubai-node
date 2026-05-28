@@ -1,0 +1,26 @@
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<div id="toast"></div>
+<script>
+document.getElementById('topbar-date').textContent = new Date().toLocaleString('tr-TR', {timeZone:'Asia/Dubai'});
+
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+  el.className = 'show ' + type;
+  setTimeout(() => { el.className = ''; }, 3000);
+}
+
+async function adminAction(data) {
+  const form = new URLSearchParams(data);
+  try {
+    const r = await fetch('/admin/action', { method: 'POST', body: form });
+    const d = await r.json();
+    if (d.ok) { toast('İşlem başarılı'); setTimeout(() => location.reload(), 800); }
+    else toast(d.error || 'Hata', 'error');
+  } catch(e) { toast('Bağlantı hatası', 'error'); }
+}
+</script>
+</body>
+</html>

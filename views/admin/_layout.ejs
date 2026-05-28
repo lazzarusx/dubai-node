@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= pageTitle %> — Dubai Panel</title>
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#f1f5f9; color:#1e293b; min-height:100vh; display:flex; }
+
+.sidebar {
+  width:230px; flex-shrink:0; background:#0f172a;
+  display:flex; flex-direction:column; min-height:100vh;
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+}
+.sidebar-header { padding:24px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.07); }
+.sidebar-logo { display:flex; align-items:center; gap:10px; }
+.sidebar-logo .icon { width:38px; height:38px; background:linear-gradient(135deg,#1a6b3a,#0f9f55); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.sidebar-logo .name { font-size:14px; font-weight:700; color:white; line-height:1.2; }
+.sidebar-logo .sub  { font-size:11px; color:rgba(255,255,255,0.4); }
+.sidebar-nav { padding:14px 12px; flex:1; }
+.nav-section { font-size:10px; font-weight:700; color:rgba(255,255,255,0.25); letter-spacing:1.2px; text-transform:uppercase; padding:8px 8px 4px; margin-top:10px; }
+.nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; margin-bottom:2px; text-decoration:none; color:rgba(255,255,255,0.55); font-size:13.5px; font-weight:500; transition:all 0.15s; }
+.nav-item:hover  { background:rgba(255,255,255,0.08); color:white; }
+.nav-item.active { background:linear-gradient(135deg,#1a6b3a22,#0f9f5522); color:#4ade80; border:1px solid #1a6b3a44; }
+.nav-item .icon  { width:18px; text-align:center; font-size:15px; flex-shrink:0; }
+.sidebar-footer { padding:14px 20px; border-top:1px solid rgba(255,255,255,0.07); font-size:12px; color:rgba(255,255,255,0.3); }
+.sidebar-footer a { color:rgba(255,255,255,0.4); text-decoration:none; }
+.sidebar-footer a:hover { color:#4ade80; }
+
+.main { flex:1; display:flex; flex-direction:column; min-width:0; }
+.topbar { background:white; border-bottom:1px solid #e2e8f0; padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+.topbar-title { font-size:17px; font-weight:700; color:#1e293b; }
+.topbar-meta  { font-size:12px; color:#94a3b8; }
+.topbar-user  { display:flex; align-items:center; gap:10px; }
+.user-badge   { background:#f1f5f9; border-radius:20px; padding:5px 12px 5px 8px; display:flex; align-items:center; gap:6px; font-size:13px; color:#475569; font-weight:600; }
+.content { padding:28px; flex:1; }
+
+.stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:28px; }
+.stat-card { background:white; border-radius:14px; padding:20px; box-shadow:0 1px 6px rgba(0,0,0,0.06); border:1px solid #f1f5f9; }
+.stat-card .label { font-size:12px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+.stat-card .value { font-size:30px; font-weight:800; color:#1e293b; line-height:1; }
+.stat-card .sub   { font-size:12px; color:#94a3b8; margin-top:6px; }
+.stat-card.green  .value { color:#059669; }
+.stat-card.red    .value { color:#dc2626; }
+.stat-card.blue   .value { color:#2563eb; }
+.stat-card.orange .value { color:#d97706; }
+
+.table-card { background:white; border-radius:14px; box-shadow:0 1px 6px rgba(0,0,0,0.06); border:1px solid #f1f5f9; overflow:hidden; margin-bottom:24px; }
+.table-header { padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; }
+.table-header h3 { font-size:15px; font-weight:700; color:#1e293b; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { background:#f8fafc; padding:10px 14px; text-align:left; font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+td { padding:11px 14px; border-bottom:1px solid #f8fafc; vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#f8fafc; }
+
+.badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+.badge-pending  { background:#fef9c3; color:#854d0e; }
+.badge-approved { background:#dcfce7; color:#166534; }
+.badge-declined { background:#fee2e2; color:#991b1b; }
+.badge-otp      { background:#e0e7ff; color:#3730a3; }
+
+.btn        { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; border:none; text-decoration:none; transition:opacity 0.15s; }
+.btn:hover  { opacity:0.85; }
+.btn-sm     { padding:4px 9px; font-size:11px; }
+.btn-green  { background:#059669; color:white; }
+.btn-blue   { background:#2563eb; color:white; }
+.btn-orange { background:#d97706; color:white; }
+.btn-red    { background:#dc2626; color:white; }
+.btn-gray   { background:#e2e8f0; color:#475569; }
+.btn-purple { background:#7c3aed; color:white; }
+
+.form-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:20px; }
+.form-group { }
+.form-group label { display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px; }
+.form-group select, .form-group input[type=text], .form-group input[type=password] { width:100%; padding:9px 12px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:14px; outline:none; transition:border-color 0.2s; background:#fafafa; }
+.form-group select:focus, .form-group input:focus { border-color:#1a6b3a; }
+.form-section { background:white; border-radius:14px; padding:22px 24px; margin-bottom:20px; box-shadow:0 1px 6px rgba(0,0,0,0.06); border:1px solid #f1f5f9; }
+.form-section h3 { font-size:15px; font-weight:700; color:#1e293b; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid #f1f5f9; }
+
+.action-bar { display:flex; gap:6px; flex-wrap:wrap; }
+#toast { position:fixed; bottom:24px; right:24px; background:#1e293b; color:white; padding:12px 18px; border-radius:10px; font-size:13px; font-weight:600; z-index:9999; opacity:0; transform:translateY(10px); transition:all 0.3s; pointer-events:none; }
+#toast.show { opacity:1; transform:translateY(0); }
+#toast.success { background:#059669; }
+#toast.error   { background:#dc2626; }
+
+.mono { font-family:monospace; letter-spacing:0.5px; }
+.text-muted { color:#94a3b8; }
+.text-sm    { font-size:12px; }
+.mt-1 { margin-top:4px; }
+.truncate { max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <div class="icon">🛡️</div>
+      <div>
+        <div class="name">Dubai Panel</div>
+        <div class="sub">Admin Kontrol</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Genel</div>
+    <a href="/admin/dashboard"  class="nav-item <%= activePage === 'dashboard'  ? 'active' : '' %>"><span class="icon">📊</span> Dashboard</a>
+    <div class="nav-section">Veriler</div>
+    <a href="/admin/payments"   class="nav-item <%= activePage === 'payments'   ? 'active' : '' %>"><span class="icon">💳</span> Ödemeler</a>
+    <a href="/admin/inquiries"  class="nav-item <%= activePage === 'inquiries'  ? 'active' : '' %>"><span class="icon">🔍</span> Sorgular</a>
+    <div class="nav-section">Ayarlar</div>
+    <a href="/admin/settings"   class="nav-item <%= activePage === 'settings'   ? 'active' : '' %>"><span class="icon">⚙️</span> Ayarlar</a>
+  </nav>
+  <div class="sidebar-footer">
+    Giriş: <strong><%= adminUser %></strong><br>
+    <a href="/admin/logout">Çıkış Yap</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title"><%= pageTitle %></div>
+      <div class="topbar-meta" id="topbar-date"></div>
+    </div>
+    <div class="topbar-user">
+      <div class="user-badge">👤 <%= adminUser %></div>
+    </div>
+  </div>
+  <div class="content">

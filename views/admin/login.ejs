@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Giriş</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:linear-gradient(135deg,#0f2027,#203a43,#2c5364); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+.card { background:white; border-radius:16px; padding:40px 36px; width:100%; max-width:380px; box-shadow:0 24px 64px rgba(0,0,0,0.4); }
+.logo { text-align:center; margin-bottom:28px; }
+.logo-icon { width:60px; height:60px; background:linear-gradient(135deg,#1a6b3a,#0f4a27); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:26px; color:white; }
+.logo h2 { font-size:20px; font-weight:800; color:#1a1a1a; }
+.logo p  { font-size:13px; color:#9ca3af; margin-top:4px; }
+.form-group { margin-bottom:18px; }
+label { display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px; }
+input[type=text], input[type=password] { width:100%; padding:12px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:15px; outline:none; transition:border-color 0.2s; }
+input:focus { border-color:#1a6b3a; box-shadow:0 0 0 3px rgba(26,107,58,0.1); }
+.btn { width:100%; padding:14px; background:linear-gradient(135deg,#1a6b3a,#0f4a27); color:white; font-size:15px; font-weight:700; border:none; border-radius:50px; cursor:pointer; transition:opacity 0.2s; }
+.btn:hover { opacity:0.9; }
+.error { background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:18px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    <h2>Admin Panel</h2>
+    <p>Dubai Fine Payment System</p>
+  </div>
+  <% if (error) { %>
+  <div class="error">⚠️ <%= error %></div>
+  <% } %>
+  <form method="POST" action="/admin/login">
+    <div class="form-group">
+      <label>Kullanıcı Adı</label>
+      <input type="text" name="username" placeholder="admin" autocomplete="username" required>
+    </div>
+    <div class="form-group">
+      <label>Şifre</label>
+      <input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+    </div>
+    <button type="submit" class="btn">Giriş Yap</button>
+  </form>
+</div>
+</body>
+</html>

