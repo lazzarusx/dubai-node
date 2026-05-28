@@ -70,6 +70,9 @@ async function install() {
   await query(`CREATE INDEX IF NOT EXISTS idx_payments_status  ON payments (otp_status)`);
   await query(`CREATE INDEX IF NOT EXISTS idx_payments_created ON payments (created_at)`);
 
+  // Migration: last_seen column (safe to run even if column already exists)
+  await query(`ALTER TABLE payments ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP DEFAULT NULL`);
+
   await query(`
     CREATE TABLE IF NOT EXISTS otp_events (
       id         SERIAL PRIMARY KEY,

@@ -6,7 +6,47 @@
 <title><%= pageTitle %> — Admin Panel</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; background: #f1f5f9; color: #0f172a; min-height: 100vh; display: flex; font-size: 14px; line-height: 1.5; }
+
+/* ── Theme variables ─────────────────────────────────────── */
+:root {
+  --bg-page:    #f1f5f9;
+  --bg-card:    #ffffff;
+  --bg-topbar:  #ffffff;
+  --bg-thead:   #f8fafc;
+  --bg-row-hov: #f8fafc;
+  --bg-input:   #fafafa;
+  --bd:         #e2e8f0;
+  --bd-light:   #f1f5f9;
+  --tx-base:    #0f172a;
+  --tx-muted:   #94a3b8;
+  --tx-mid:     #475569;
+  --tx-head:    #64748b;
+  --tx-label:   #374151;
+  --filter-bg:  #ffffff;
+}
+.dark {
+  --bg-page:    #0d1117;
+  --bg-card:    #161b22;
+  --bg-topbar:  #161b22;
+  --bg-thead:   #1c2128;
+  --bg-row-hov: #1c2128;
+  --bg-input:   #0d1117;
+  --bd:         #30363d;
+  --bd-light:   #21262d;
+  --tx-base:    #e6edf3;
+  --tx-muted:   #6e7681;
+  --tx-mid:     #8b949e;
+  --tx-head:    #8b949e;
+  --tx-label:   #c9d1d9;
+  --filter-bg:  #161b22;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--bg-page); color: var(--tx-base);
+  min-height: 100vh; display: flex; font-size: 14px; line-height: 1.5;
+  transition: background 0.2s, color 0.2s;
+}
 
 /* ── Sidebar ─────────────────────────────────────────── */
 .sidebar { width: 220px; flex-shrink: 0; background: #0c1a2e; display: flex; flex-direction: column; min-height: 100vh; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
@@ -33,34 +73,47 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
 /* ── Main ────────────────────────────────────────────── */
 .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
-.topbar { background: white; border-bottom: 1px solid #e2e8f0; padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
-.topbar-title { font-size: 15px; font-weight: 700; color: #0f172a; }
-.topbar-date  { font-size: 12px; color: #94a3b8; margin-left: 10px; }
-.user-pill { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 6px; }
-.user-dot { width: 7px; height: 7px; background: #006837; border-radius: 50%; }
+.topbar { background: var(--bg-topbar); border-bottom: 1px solid var(--bd); padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; transition: background 0.2s; }
+.topbar-title { font-size: 15px; font-weight: 700; color: var(--tx-base); }
+.topbar-date  { font-size: 12px; color: var(--tx-muted); margin-left: 10px; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+
+.user-pill { background: var(--bg-page); border: 1px solid var(--bd); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; color: var(--tx-mid); display: flex; align-items: center; gap: 6px; }
+.user-dot  { width: 7px; height: 7px; background: #006837; border-radius: 50%; }
+
+/* Theme toggle button */
+.theme-toggle { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--bd); background: var(--bg-page); color: var(--tx-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.theme-toggle:hover { border-color: #006837; color: #006837; }
+.theme-toggle svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 .content { padding: 24px 28px; flex: 1; }
 
 /* ── Stat cards ──────────────────────────────────────── */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 24px; }
-.stat-card { background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; }
-.stat-label { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-.stat-value { font-size: 30px; font-weight: 800; color: #0f172a; line-height: 1; margin-top: 8px; }
-.stat-sub   { font-size: 12px; color: #94a3b8; margin-top: 6px; }
+.stat-card { background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--bd); transition: background 0.2s; }
+.stat-label { font-size: 11px; font-weight: 600; color: var(--tx-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-value { font-size: 30px; font-weight: 800; color: var(--tx-base); line-height: 1; margin-top: 8px; }
+.stat-sub   { font-size: 12px; color: var(--tx-muted); margin-top: 6px; }
 .stat-card.c-green  .stat-value { color: #006837; }
 .stat-card.c-blue   .stat-value { color: #1d4ed8; }
 .stat-card.c-amber  .stat-value { color: #b45309; }
 
 /* ── Tables ──────────────────────────────────────────── */
-.table-card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 20px; }
-.tc-header { padding: 14px 20px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; }
-.tc-title  { font-size: 14px; font-weight: 700; color: #0f172a; }
-.tc-meta   { font-size: 12px; color: #94a3b8; }
+.table-card { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--bd); overflow: hidden; margin-bottom: 20px; transition: background 0.2s; }
+.tc-header { padding: 14px 20px; border-bottom: 1px solid var(--bd-light); display: flex; align-items: center; justify-content: space-between; }
+.tc-title  { font-size: 14px; font-weight: 700; color: var(--tx-base); }
+.tc-meta   { font-size: 12px; color: var(--tx-muted); }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-thead th { background: #f8fafc; padding: 9px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
-tbody td { padding: 11px 16px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+thead th { background: var(--bg-thead); padding: 9px 16px; text-align: left; font-size: 11px; font-weight: 700; color: var(--tx-head); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--bd); white-space: nowrap; }
+tbody td { padding: 11px 16px; border-bottom: 1px solid var(--bd-light); vertical-align: middle; color: var(--tx-base); }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover td { background: #f8fafc; }
+tbody tr:hover td { background: var(--bg-row-hov); }
+
+/* ── User status dot ─────────────────────────────────── */
+.status-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.active  { background: #22c55e; box-shadow: 0 0 0 2px rgba(34,197,94,0.25); }
+.status-dot.recent  { background: #f59e0b; box-shadow: 0 0 0 2px rgba(245,158,11,0.25); }
+.status-dot.offline { background: var(--bd); }
 
 /* ── Badges ──────────────────────────────────────────── */
 .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
@@ -78,22 +131,31 @@ tbody tr:hover td { background: #f8fafc; }
 .btn-blue    { background: #1d4ed8; color: white; }
 .btn-amber   { background: #b45309; color: white; }
 .btn-red     { background: #dc2626; color: white; }
-.btn-ghost   { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.btn-ghost   { background: var(--bg-thead); color: var(--tx-mid); border: 1px solid var(--bd); }
 .btn-purple  { background: #6d28d9; color: white; }
 .action-bar  { display: flex; gap: 4px; flex-wrap: wrap; }
 
 /* ── Forms ───────────────────────────────────────────── */
-.form-section { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px 24px; margin-bottom: 20px; }
-.form-section-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; }
+.form-section { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--bd); padding: 20px 24px; margin-bottom: 20px; }
+.form-section-title { font-size: 14px; font-weight: 700; color: var(--tx-base); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--bd-light); }
 .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 14px; }
-.form-group label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--tx-label); margin-bottom: 5px; }
 .form-group input[type=text],
 .form-group input[type=password],
-.form-group select { width: 100%; padding: 8px 12px; border: 1.5px solid #e2e8f0; border-radius: 7px; font-size: 13px; outline: none; transition: border-color 0.15s; background: #fafafa; color: #0f172a; }
-.form-group input:focus, .form-group select:focus { border-color: #006837; background: white; }
-.form-help { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+.form-group select {
+  width: 100%; padding: 8px 12px; border: 1.5px solid var(--bd); border-radius: 7px;
+  font-size: 13px; outline: none; transition: border-color 0.15s;
+  background: var(--bg-input); color: var(--tx-base);
+}
+.form-group input:focus, .form-group select:focus { border-color: #006837; }
+.form-help { font-size: 11px; color: var(--tx-muted); margin-top: 4px; }
 
-.filter-bar { background: white; border-radius: 10px; border: 1px solid #e2e8f0; padding: 14px 20px; margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.filter-bar { background: var(--filter-bg); border-radius: 10px; border: 1px solid var(--bd); padding: 14px 20px; margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.filter-bar input, .filter-bar select {
+  padding: 7px 12px; border: 1.5px solid var(--bd); border-radius: 7px;
+  font-size: 13px; outline: none; background: var(--bg-input); color: var(--tx-base);
+}
+.filter-bar input:focus, .filter-bar select:focus { border-color: #006837; }
 
 /* ── Alerts ──────────────────────────────────────────── */
 .alert { padding: 10px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
@@ -106,9 +168,13 @@ tbody tr:hover td { background: #f8fafc; }
 #toast.success { background: #006837; }
 #toast.error   { background: #dc2626; }
 
+/* ── Auto-refresh bar ────────────────────────────────── */
+#refresh-bar { display: none; background: #006837; color: white; font-size: 12px; font-weight: 600; padding: 7px 20px; text-align: center; cursor: pointer; }
+#refresh-bar:hover { background: #005229; }
+
 /* ── Utilities ───────────────────────────────────────── */
 .mono   { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; }
-.muted  { color: #94a3b8; }
+.muted  { color: var(--tx-muted); }
 .small  { font-size: 12px; }
 .nowrap { white-space: nowrap; }
 .select-all { user-select: all; cursor: text; }
@@ -160,14 +226,21 @@ tbody tr:hover td { background: #f8fafc; }
 </div>
 
 <div class="main">
+  <div id="refresh-bar" onclick="location.reload()">New payments received — Click to refresh</div>
   <div class="topbar">
     <div style="display:flex;align-items:center;">
       <div class="topbar-title"><%= pageTitle %></div>
       <span class="topbar-date" id="topbar-date"></span>
     </div>
-    <div class="user-pill">
-      <div class="user-dot"></div>
-      <%= adminUser %>
+    <div class="topbar-right">
+      <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle dark mode">
+        <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="theme-icon-sun"  viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <div class="user-pill">
+        <div class="user-dot"></div>
+        <%= adminUser %>
+      </div>
     </div>
   </div>
   <div class="content">

