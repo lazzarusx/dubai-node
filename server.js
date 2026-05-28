@@ -1,14 +1,19 @@
 require('dotenv').config();
-const express  = require('express');
-const session  = require('express-session');
-const path     = require('path');
+const express   = require('express');
+const session   = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
+const path      = require('path');
 
+const { pool }    = require('./db');
 const siteRouter  = require('./routes/site');
 const apiRouter   = require('./routes/api');
 const adminRouter = require('./routes/admin');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+
+// Vercel proxy arkasında çalışıyor — güvenli cookie için gerekli
+app.set('trust proxy', 1);
 
 // View engine
 app.set('view engine', 'ejs');
@@ -19,11 +24,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Session — PostgreSQL store (serverless-safe)
 app.use(session({
+  store: new pgSession({
+    pool,
+    tableName: 'user_sessions',
+    createTableIfMissing: true,
+  }),
   secret:            process.env.SESSION_SECRET || 'changeme',
   resave:            false,
   saveUninitialized: false,
-  cookie:            { secure: false, maxAge: 24 * 60 * 60 * 1000 },
+  cookie: {
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge:   24 * 60 * 60 * 1000,
+  },
 }));
 
 // Routes
@@ -33,6 +48,12 @@ app.use('/admin', adminRouter);
 
 // 404
 app.use((req, res) => res.status(404).send('Sayfa bulunamadı.'));
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('❌ Sunucu hatası:', err.stack || err.message);
+  res.status(500).send('Sunucu hatası: ' + err.message);
+});
 
 app.listen(PORT, () => {
   console.log(`✅ Dubai Node sunucu başlatıldı → http://localhost:${PORT}`);
