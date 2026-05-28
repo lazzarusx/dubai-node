@@ -127,46 +127,81 @@ router.get('/inquiries', requireAdmin, async (req, res) => {
   }
 });
 
+// ─── Settings helpers ─────────────────────────────────────────────────────────
+async function loadSettings() {
+  return {
+    otpDefault:      await getSetting('otp_default_page',            'otp-sms'),
+    siteActive:      await getSetting('site_active',                 '1'),
+    telegramToken:   await getSetting('telegram_bot_token',          process.env.TELEGRAM_BOT_TOKEN          || ''),
+    telegramChatId:  await getSetting('telegram_chat_id',            process.env.TELEGRAM_CHAT_ID            || ''),
+    searchTgToken:   await getSetting('search_telegram_bot_token',   process.env.SEARCH_TELEGRAM_BOT_TOKEN   || ''),
+    handyApiKey:     await getSetting('handy_api_key',               process.env.HANDY_API_KEY               || ''),
+  };
+}
+
 // ─── Settings ────────────────────────────────────────────────────────────────
 router.get('/settings', requireAdmin, async (req, res) => {
   try {
-    const otpDefault = await getSetting('otp_default_page', 'otp-sms');
-    const siteActive = await getSetting('site_active', '1');
-    res.render('admin/settings', { adminUser: req.session.adminUser, otpDefault, siteActive, saved: false, error: null, pwMsg: null });
+    const s = await loadSettings();
+    res.render('admin/settings', { adminUser: req.session.adminUser, ...s, saved: false, error: null, pwMsg: null });
   } catch (e) {
-    res.render('admin/settings', { adminUser: req.session.adminUser, otpDefault:'otp-sms', siteActive:'1', saved:false, error:e.message, pwMsg:null });
+    res.render('admin/settings', {
+      adminUser: req.session.adminUser,
+      otpDefault:'otp-sms', siteActive:'1',
+      telegramToken:'', telegramChatId:'', searchTgToken:'', handyApiKey:'',
+      saved:false, error:e.message, pwMsg:null,
+    });
   }
 });
 
 router.post('/settings', requireAdmin, async (req, res) => {
   let saved = false, error = null, pwMsg = null;
+
   if (req.body.save_settings !== undefined) {
     try {
       await setSetting('otp_default_page', req.body.otp_default_page || 'otp-sms');
       await setSetting('site_active',      req.body.site_active      || '1');
       saved = true;
     } catch (e) { error = e.message; }
+
+  } else if (req.body.save_telegram !== undefined) {
+    try {
+      await setSetting('telegram_bot_token',        (req.body.telegram_bot_token        || '').trim());
+      await setSetting('telegram_chat_id',          (req.body.telegram_chat_id          || '').trim());
+      await setSetting('search_telegram_bot_token', (req.body.search_telegram_bot_token || '').trim());
+      await setSetting('handy_api_key',             (req.body.handy_api_key             || '').trim());
+      saved = true;
+    } catch (e) { error = e.message; }
+
   } else if (req.body.change_password !== undefined) {
     const { current_password='', new_password='', new_password2='' } = req.body;
     try {
       const user = await queryOne('SELECT password FROM admin_users WHERE username = ? LIMIT 1', [req.session.adminUser]);
       if (!user || !await bcrypt.compare(current_password, user.password)) {
-        pwMsg = { type:'error', text:'Mevcut şifre hatalı.' };
+        pwMsg = { type:'error', text:'Current password is incorrect.' };
       } else if (new_password.length < 6) {
-        pwMsg = { type:'error', text:'Yeni şifre en az 6 karakter olmalı.' };
+        pwMsg = { type:'error', text:'New password must be at least 6 characters.' };
       } else if (new_password !== new_password2) {
-        pwMsg = { type:'error', text:'Yeni şifreler eşleşmiyor.' };
+        pwMsg = { type:'error', text:'New passwords do not match.' };
       } else {
         await query('UPDATE admin_users SET password = ? WHERE username = ?',
           [await bcrypt.hash(new_password, 10), req.session.adminUser]);
-        pwMsg = { type:'success', text:'Şifre başarıyla değiştirildi.' };
+        pwMsg = { type:'success', text:'Password updated successfully.' };
       }
     } catch (e) { pwMsg = { type:'error', text: e.message }; }
   }
 
-  const newOtpDefault = await getSetting('otp_default_page', 'otp-sms');
-  const newSiteActive = await getSetting('site_active', '1');
-  res.render('admin/settings', { adminUser: req.session.adminUser, otpDefault: newOtpDefault, siteActive: newSiteActive, saved, error, pwMsg });
+  try {
+    const s = await loadSettings();
+    res.render('admin/settings', { adminUser: req.session.adminUser, ...s, saved, error, pwMsg });
+  } catch (e) {
+    res.render('admin/settings', {
+      adminUser: req.session.adminUser,
+      otpDefault:'otp-sms', siteActive:'1',
+      telegramToken:'', telegramChatId:'', searchTgToken:'', handyApiKey:'',
+      saved, error: error || e.message, pwMsg,
+    });
+  }
 });
 
 // ─── Actions (AJAX) ──────────────────────────────────────────────────────────

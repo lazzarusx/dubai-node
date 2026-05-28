@@ -1,78 +1,90 @@
-<%- include('_layout', { pageTitle: 'Plaka Sorguları', activePage: 'inquiries', adminUser }) %>
+<%- include('_layout', { pageTitle: 'Inquiries', activePage: 'inquiries', adminUser }) %>
 
 <% if (typeof dbError !== 'undefined' && dbError) { %>
-<div style="background:#fef2f2;border:1px solid #fecaca;padding:16px;border-radius:12px;color:#dc2626;">⚠️ <%= dbError %></div>
+<div class="alert alert-error">Database error: <%= dbError %></div>
 <% } else { %>
 
-<div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
-  <div class="stat-card blue"><div class="label">Toplam Sorgu</div><div class="value"><%= Number(total).toLocaleString() %></div></div>
-  <div class="stat-card orange"><div class="label">Bugün</div><div class="value"><%= Number(todayCount).toLocaleString() %></div></div>
-  <div class="stat-card"><div class="label">Tekil IP</div><div class="value"><%= Number(uniqueIPs).toLocaleString() %></div></div>
-  <div class="stat-card green"><div class="label">Ceza Bulunanlar</div><div class="value"><%= Number(withFines).toLocaleString() %></div></div>
+<div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:20px;">
+  <div class="stat-card c-blue">
+    <div class="stat-label">Total Inquiries</div>
+    <div class="stat-value"><%= Number(total).toLocaleString() %></div>
+  </div>
+  <div class="stat-card c-amber">
+    <div class="stat-label">Today</div>
+    <div class="stat-value"><%= Number(todayCount).toLocaleString() %></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Unique IPs</div>
+    <div class="stat-value"><%= Number(uniqueIPs).toLocaleString() %></div>
+  </div>
+  <div class="stat-card c-green">
+    <div class="stat-label">With Fines</div>
+    <div class="stat-value"><%= Number(withFines).toLocaleString() %></div>
+  </div>
 </div>
 
-<!-- Search -->
-<div class="form-section" style="padding:14px 20px;margin-bottom:20px;">
-  <form method="GET" action="/admin/inquiries" style="display:flex;gap:12px;align-items:flex-end;">
+<div class="filter-bar">
+  <form method="GET" action="/admin/inquiries" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;width:100%;">
     <div class="form-group" style="flex:1;">
-      <label>Ara (plaka no, kaynak, kod, IP)</label>
-      <input type="text" name="q" value="<%= search %>" placeholder="12345, DXB, A, 192.168...">
+      <label>Search (plate, source, code, IP)</label>
+      <input type="text" name="q" value="<%= search %>" placeholder="e.g. 12345, DXB, A, 192.168...">
     </div>
-    <button type="submit" class="btn btn-green" style="margin-bottom:1px;">Filtrele</button>
-    <a href="/admin/inquiries" class="btn btn-gray" style="margin-bottom:1px;">Temizle</a>
+    <div style="display:flex;gap:8px;align-items:flex-end;">
+      <button type="submit" class="btn btn-primary" style="margin-bottom:1px;">Filter</button>
+      <a href="/admin/inquiries" class="btn btn-ghost" style="margin-bottom:1px;">Clear</a>
+    </div>
   </form>
 </div>
 
 <div class="table-card">
-  <div class="table-header">
-    <h3>🔍 Plaka Sorguları <span class="text-muted text-sm">(<%= total %> kayıt)</span></h3>
+  <div class="tc-header">
+    <div class="tc-title">Plate Inquiries</div>
+    <div class="tc-meta"><%= total %> records</div>
   </div>
   <div style="overflow-x:auto;">
   <table>
     <thead>
-      <tr><th>#</th><th>Tarih</th><th>Plaka</th><th>Ceza Sayısı</th><th>Toplam AED</th><th>IP</th><th>SID</th></tr>
+      <tr><th>#</th><th>Date</th><th>Plate</th><th>Fines</th><th>Total AED</th><th>IP</th><th>SID</th></tr>
     </thead>
     <tbody>
     <% if (rows.length === 0) { %>
-    <tr><td colspan="7" style="text-align:center;padding:40px;color:#94a3b8;">Kayıt bulunamadı.</td></tr>
+    <tr><td colspan="7" style="text-align:center;padding:40px;color:#94a3b8;">No records found.</td></tr>
     <% } %>
     <% rows.forEach(function(r) {
-      const dateStr = r.created_at ? new Date(r.created_at).toLocaleString('tr-TR',{timeZone:'Asia/Dubai',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '-';
-      const sidShort = r.sid ? r.sid.slice(0,8) + '…' : '-';
+      const dt = r.created_at ? new Date(r.created_at).toLocaleString('en-AE',{timeZone:'Asia/Dubai',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '-';
+      const sidShort = r.sid ? r.sid.slice(0,10) + '…' : '—';
     %>
     <tr>
-      <td class="text-sm text-muted"><%= r.id %></td>
-      <td class="text-sm" style="white-space:nowrap;"><%= dateStr %></td>
-      <td>
-        <strong><%= r.plate_src %></strong>
-        <%= r.plate_code %> <%= r.plate_no %>
-      </td>
+      <td class="muted small"><%= r.id %></td>
+      <td class="small nowrap"><%= dt %></td>
+      <td><strong><%= r.plate_src %></strong> <%= r.plate_code %> <%= r.plate_no %></td>
       <td>
         <% if (r.fine_count > 0) { %>
-          <span style="color:#dc2626;font-weight:700;"><%= r.fine_count %></span>
+          <strong style="color:#dc2626;"><%= r.fine_count %></strong>
         <% } else { %>
-          <span class="text-muted">0</span>
+          <span class="muted">0</span>
         <% } %>
       </td>
       <td>
         <% if (r.total_amount > 0) { %>
           <strong>AED <%= Number(r.total_amount).toLocaleString() %></strong>
         <% } else { %>
-          <span class="text-muted">-</span>
+          <span class="muted">—</span>
         <% } %>
       </td>
-      <td class="mono text-sm text-muted"><%= r.ip || '-' %></td>
-      <td class="mono text-sm text-muted" title="<%= r.sid || '' %>"><%= sidShort %></td>
+      <td class="mono muted small"><%= r.ip || '—' %></td>
+      <td class="mono muted small" title="<%= r.sid || '' %>"><%= sidShort %></td>
     </tr>
     <% }) %>
     </tbody>
   </table>
   </div>
+
   <% if (totalPages > 1) { %>
   <div style="padding:14px 20px;display:flex;gap:6px;justify-content:center;border-top:1px solid #f1f5f9;">
     <% for (let i = 1; i <= totalPages; i++) { %>
     <a href="/admin/inquiries?p=<%= i %>&q=<%= encodeURIComponent(search) %>"
-       class="btn <%= i === page ? 'btn-green' : 'btn-gray' %> btn-sm"><%= i %></a>
+       class="btn btn-sm <%= i === page ? 'btn-primary' : 'btn-ghost' %>"><%= i %></a>
     <% } %>
   </div>
   <% } %>

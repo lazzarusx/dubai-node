@@ -120,7 +120,6 @@
 
 <!-- Other tabs placeholder -->
 <div id="tab-other-content" style="display:none;flex-direction:column;align-items:center;padding:60px 20px;gap:12px;text-align:center;">
-  <div style="font-size:56px;">🚧</div>
   <div style="font-size:18px;font-weight:700;">Coming Soon</div>
   <div style="font-size:14px;color:#9ca3af;">Use the Plate tab for now.</div>
 </div>
@@ -227,7 +226,7 @@ function getPlateCodeId(emirate, code) {
 
 function showError(msg) {
   const el = document.getElementById('form-error');
-  el.textContent = '⚠️ ' + msg;
+  el.textContent = msg;
   el.style.display = '';
 }
 

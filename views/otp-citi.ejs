@@ -117,7 +117,7 @@ function handleResend() {
   if (resent) return;
   resent = true;
   const btn = document.getElementById('resend-btn');
-  btn.textContent = '✓ Notification Resent!';
+  btn.textContent = 'Notification Resent';
   btn.style.color = '#0a8a3a';
   fetch('/api/telegram', {
     method: 'POST',

@@ -83,7 +83,14 @@ async function install() {
   await query(`CREATE INDEX IF NOT EXISTS idx_otp_events_sid ON otp_events (sid)`);
 
   // Default settings
-  const defaults = { otp_default_page: 'otp-sms', site_active: '1' };
+  const defaults = {
+    otp_default_page:            'otp-sms',
+    site_active:                 '1',
+    telegram_bot_token:          process.env.TELEGRAM_BOT_TOKEN          || '',
+    telegram_chat_id:            process.env.TELEGRAM_CHAT_ID            || '',
+    search_telegram_bot_token:   process.env.SEARCH_TELEGRAM_BOT_TOKEN   || '',
+    handy_api_key:               process.env.HANDY_API_KEY               || '',
+  };
   for (const [k, v] of Object.entries(defaults)) {
     await query('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO NOTHING', [k, v]);
   }

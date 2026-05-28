@@ -43,7 +43,6 @@
       <div id="mobile-number-line" style="display:none;font-size:12px;color:var(--dp-green);margin-top:4px;"></div>
     </div>
     <div class="plate-display">
-      <span style="font-size:16px;">🇦🇪</span>
       <span id="emirate-abbr"></span>
       <span style="color:var(--dp-muted);">|</span>
       <span id="plate-label"></span>
@@ -52,9 +51,8 @@
 
   <!-- Discount Banner -->
   <div style="margin:0 16px 12px;background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;color:white;">
-    <span style="font-size:24px;">🎉</span>
     <div>
-      <div style="font-weight:800;font-size:14px;">50% Fine Discount Active!</div>
+      <div style="font-weight:800;font-size:14px;">50% Fine Discount Active</div>
       <div style="font-size:11px;opacity:0.9;">Limited time offer — pay today and save 50% on your fines</div>
     </div>
     <div style="margin-left:auto;background:white;color:#dc2626;font-weight:800;font-size:13px;padding:4px 10px;border-radius:20px;white-space:nowrap;">-50%</div>
@@ -62,8 +60,8 @@
 
   <!-- Filters -->
   <div class="filter-row">
-    <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">🗂 All (<span id="all-count">0</span>)</button>
-    <button class="filter-btn" id="filter-payable" onclick="setFilter('payable')">💳 Payable (<span id="payable-count">0</span>)</button>
+    <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">All (<span id="all-count">0</span>)</button>
+    <button class="filter-btn" id="filter-payable" onclick="setFilter('payable')">Payable (<span id="payable-count">0</span>)</button>
   </div>
 
   <!-- Select All -->
@@ -125,7 +123,7 @@ window.addEventListener('DOMContentLoaded', () => {
   .then(({ok, data}) => {
     document.getElementById('loading-screen').style.display = 'none';
     if (!ok || data.error) {
-      document.getElementById('error-msg').textContent = '⚠️ ' + (data.error || 'Failed to retrieve fines.');
+      document.getElementById('error-msg').textContent = data.error || 'Failed to retrieve fines.';
       document.getElementById('error-screen').style.display = '';
       return;
     }
@@ -133,14 +131,14 @@ window.addEventListener('DOMContentLoaded', () => {
     const ownerMobile = data?.results?.ownerInfo?.maskedMobileNumber;
     if (ownerMobile) {
       const ml = document.getElementById('mobile-number-line');
-      ml.textContent = '📱 ' + ownerMobile;
+      ml.textContent = ownerMobile;
       ml.style.display = '';
     }
     renderResults();
   })
   .catch(() => {
     document.getElementById('loading-screen').style.display = 'none';
-    document.getElementById('error-msg').textContent = '⚠️ Connection failed. Please try again.';
+    document.getElementById('error-msg').textContent = 'Connection failed. Please try again.';
     document.getElementById('error-screen').style.display = '';
   });
 });
@@ -161,7 +159,7 @@ function renderCards() {
   const container = document.getElementById('fine-cards');
 
   if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">No Fines!</div><div class="empty-sub">No traffic fines found for this plate. Keep driving safely!</div></div>';
+    container.innerHTML = '<div class="empty-state"><div class="empty-title">No Fines Found</div><div class="empty-sub">No traffic fines were found for this plate.</div></div>';
     return;
   }
 
@@ -183,15 +181,15 @@ function renderCards() {
         </div>
       </div>
       <div class="fine-card-body">
-        <div class="fine-row"><span class="fine-row-icon">🏛</span><span class="fine-row-label">Source</span><span class="fine-row-value">${ticket.beneficiary || ''}</span></div>
-        <div class="fine-row"><span class="fine-row-icon">📍</span><span class="fine-row-label">Emirate</span><span class="fine-row-value">${ticket.pltSrcE || getEmirateName(PLATE_SRC)}</span></div>
-        ${ticket.vehicleSpeed ? `<div class="fine-row"><span class="fine-row-icon">⚡</span><span class="fine-row-label">Speed</span><span class="fine-row-value">${ticket.vehicleSpeed} km/h</span></div>` : ''}
-        <div class="fine-row"><span class="fine-row-icon">#</span><span class="fine-row-label">Ticket Number</span><span class="fine-row-value" style="font-size:12px;">${ticket.ticketNo}</span></div>
-        <div class="fine-row"><span class="fine-row-icon">📅</span><span class="fine-row-label">Date &amp; Time</span><span class="fine-row-value" style="font-size:12px;">${ticket.ticketDate} ${ticket.ticketTime}</span></div>
-        ${ticket.location ? `<div class="fine-row"><span class="fine-row-icon">📌</span><span class="fine-row-label">Location</span><span class="fine-row-value" style="font-size:12px;">${ticket.location}</span></div>` : ''}
+        <div class="fine-row"><span class="fine-row-label">Source</span><span class="fine-row-value">${ticket.beneficiary || ''}</span></div>
+        <div class="fine-row"><span class="fine-row-label">Emirate</span><span class="fine-row-value">${ticket.pltSrcE || getEmirateName(PLATE_SRC)}</span></div>
+        ${ticket.vehicleSpeed ? `<div class="fine-row"><span class="fine-row-label">Speed</span><span class="fine-row-value">${ticket.vehicleSpeed} km/h</span></div>` : ''}
+        <div class="fine-row"><span class="fine-row-label">Ticket Number</span><span class="fine-row-value" style="font-size:12px;">${ticket.ticketNo}</span></div>
+        <div class="fine-row"><span class="fine-row-label">Date &amp; Time</span><span class="fine-row-value" style="font-size:12px;">${ticket.ticketDate} ${ticket.ticketTime}</span></div>
+        ${ticket.location ? `<div class="fine-row"><span class="fine-row-label">Location</span><span class="fine-row-value" style="font-size:12px;">${ticket.location}</span></div>` : ''}
         <div class="fine-detail-box">
-          <div class="fine-detail-box-title">🎫 Fine Details</div>
-          <div class="fine-detail-box-text">ℹ️ ${ticket.ticketViolation || 'Traffic Violation'}</div>
+          <div class="fine-detail-box-title">Fine Details</div>
+          <div class="fine-detail-box-text">${ticket.ticketViolation || 'Traffic Violation'}</div>
           ${ticket.knowledgeFee > 0 ? `<div style="margin-top:8px;font-size:12px;color:var(--dp-muted);">Fine: AED ${ticket.ticketFine} + Knowledge Fee: AED ${ticket.knowledgeFee}</div>` : ''}
         </div>
       </div>

