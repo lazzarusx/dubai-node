@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Inquire &amp; Pay | Dubai Police</title>
 <link rel="icon" type="image/png" href="/dp-logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Barlow+Condensed:wght@700;800;900&family=Noto+Sans+Arabic:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -58,23 +58,46 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 /* ── Car banner ── */
 .car-banner-wrap { position: relative; width: 100%; background: #b8cbb8; overflow: hidden; flex-shrink: 0; }
 .car-banner-vid  { width: 100%; height: 62vh; min-height: 280px; display: block; object-fit: cover; object-position: center center; }
+
+/* Plate overlay — TRANSPARENT, text only, sits on the physical plate */
 .plate-overlay {
   position: absolute;
-  /* tweak bottom% to land on the physical plate in the video */
-  bottom: 29%; left: 50%; transform: translateX(-50%);
-  background: rgba(255,255,255,0.93);
-  border: none; border-radius: 5px;
-  padding: 5px 16px 4px;
-  width: 40%; max-width: 310px; min-width: 150px;
+  top: 64%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  border: none; box-shadow: none;
   text-align: center; pointer-events: none;
-  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  width: 36%; max-width: 260px; min-width: 120px;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
 }
-.plate-top { display: flex; align-items: center; justify-content: center; gap: 7px; }
-.plate-src-txt  { font-size: 9px; font-weight: 700; color: #555; letter-spacing: 0.5px; text-transform: uppercase; }
-.plate-uae      { font-size: 9px; font-weight: 800; color: #333; letter-spacing: 2.5px; }
-.plate-code-txt { font-size: 12px; font-weight: 800; color: #222; }
-.plate-num      { font-size: 26px; font-weight: 900; color: #111; letter-spacing: 4px; line-height: 1.1; font-family: 'Inter', monospace; }
-.plate-empty    { font-size: 14px; color: #bbb; letter-spacing: 2px; }
+.po-header {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%; padding: 0 2px;
+  font-size: 7.5px; font-weight: 800; letter-spacing: 1.5px;
+  line-height: 1.3; color: #222;
+}
+.po-arabic { font-family: 'Noto Sans Arabic', sans-serif; font-weight: 800; }
+.po-main   {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  font-family: 'Barlow Condensed', 'Inter', sans-serif; font-weight: 900;
+  color: #111; line-height: 1;
+}
+.po-code   { font-size: 18px; letter-spacing: 1px; }
+.po-num    { font-size: 28px; letter-spacing: 3px; }
+.po-empty  { font-size: 13px; color: #aaa; letter-spacing: 2px; font-family: 'Inter', sans-serif; }
+
+/* Mini plates in source dropdown */
+.cs-opt-row    { display: flex; align-items: center; gap: 11px; }
+.cs-opt-label  { font-size: 14px; color: var(--text); }
+.mp { width: 62px; height: 30px; border-radius: 3px; overflow: hidden; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Barlow Condensed','Inter',sans-serif; }
+.mp-uae    { background: white; border: 1.5px solid #ccc; }
+.mp-oman   { background: #f5c518; border: 1.5px solid #c9a100; }
+.mp-qatar  { background: white; border: 1.5px solid #ccc; }
+.mp-kuwait { background: white; border: 2px solid #2563eb; }
+.mp-bhr    { background: white; border: 1.5px solid #ccc; }
+.mp-ksa    { background: white; border: 1.5px solid #ccc; }
+.mp-hdr    { font-size: 6px; font-weight: 800; letter-spacing: .5px; line-height: 1.4; }
+.mp-body   { font-size: 10px; font-weight: 900; letter-spacing: 1px; line-height: 1; }
 
 /* ── Form card (slides over video bottom) ── */
 .form-card {
@@ -186,13 +209,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
         <source src="/plate.mp4" type="video/mp4">
       </video>
       <div class="plate-overlay" id="plate-overlay">
-        <div class="plate-top">
-          <span class="plate-src-txt"  id="plate-src-display"  style="display:none;"></span>
-          <span class="plate-uae"      id="plate-uae-text"      style="display:none;">U A E</span>
-          <span class="plate-code-txt" id="plate-code-display"  style="display:none;"></span>
-        </div>
-        <span class="plate-num"   id="plate-num-display"  style="display:none;"></span>
-        <span class="plate-empty" id="plate-placeholder">— — — — —</span>
+        <span class="po-empty" id="plate-placeholder">— — — — —</span>
       </div>
     </div>
 
@@ -369,15 +386,34 @@ const SOURCE_DISPLAY = {
   OMN:'Oman', QTR:'Qatar', KWT:'Kuwait', BHR:'Bahrain', KSA:'KSA',
 };
 
+// ── Mini plate HTML per source ────────────────────────────────────────────────
+const MINI_PLATES = {
+  DXB: `<div class="mp mp-uae"><div class="mp-hdr" style="color:#006837;letter-spacing:1.5px;">DUBAI &nbsp; دبي</div><div class="mp-body" style="color:#111;">A 000</div></div>`,
+  AUH: `<div class="mp mp-uae" style="flex-direction:row;padding:0;"><div style="background:#c0392b;width:14px;height:100%;display:flex;align-items:center;justify-content:center;color:white;font-size:7px;font-weight:900;flex-shrink:0;">2</div><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;"><div class="mp-hdr" style="color:#555;">ABU DHABI</div><div class="mp-body" style="color:#111;">000</div></div></div>`,
+  SHJ: `<div class="mp mp-uae"><div class="mp-hdr" style="color:#555;">SHARJAH &nbsp; ش</div><div class="mp-body" style="color:#111;">000</div></div>`,
+  AJM: `<div class="mp mp-uae"><div class="mp-hdr" style="color:#555;">AJMAN</div><div class="mp-body" style="color:#111;">000</div></div>`,
+  UAQ: `<div class="mp mp-uae"><div class="mp-hdr" style="color:#555;">UMM AL QUWAIN</div><div class="mp-body" style="color:#111;">000</div></div>`,
+  RAK: `<div class="mp mp-uae"><div class="mp-hdr" style="color:#555;">RAS AL KHAIMAH</div><div class="mp-body" style="color:#111;">000</div></div>`,
+  FUJ: `<div class="mp mp-uae"><div class="mp-hdr" style="color:#555;">FUJAIRAH</div><div class="mp-body" style="color:#111;">000</div></div>`,
+  OMN: `<div class="mp mp-oman"><div class="mp-hdr" style="color:#7a5c00;">OMAN &nbsp; عُمان</div><div class="mp-body" style="color:#111;">000</div></div>`,
+  QTR: `<div class="mp mp-qatar" style="flex-direction:row;padding:0;"><div style="background:#8d1b3d;width:12px;height:100%;flex-shrink:0;clip-path:polygon(0 0,100% 15%,0 30%,100% 45%,0 60%,100% 75%,0 90%,100% 100%,0 100%);"></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;"><div class="mp-hdr" style="color:#8d1b3d;">QATAR</div><div class="mp-body" style="color:#111;">000</div></div></div>`,
+  KWT: `<div class="mp mp-kuwait"><div class="mp-hdr" style="color:#1d4ed8;">KUWAIT</div><div class="mp-body" style="color:#111;">000</div></div>`,
+  BHR: `<div class="mp mp-bhr" style="flex-direction:row;padding:0;"><div style="background:linear-gradient(to bottom,#ce1126 33%,white 33%,white 67%,#ce1126 67%);width:10px;height:100%;flex-shrink:0;"></div><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;"><div class="mp-hdr" style="color:#555;">BAHRAIN</div><div class="mp-body" style="color:#111;">000</div></div></div>`,
+  KSA: `<div class="mp mp-ksa"><div class="mp-hdr" style="color:#006c35;font-family:'Noto Sans Arabic',sans-serif;">٣٢١ &nbsp; ب&nbsp;ت</div><div class="mp-body" style="color:#111;font-size:8px;">B T &nbsp; 1 2 3</div></div>`,
+};
+
 // ── Custom Select ─────────────────────────────────────────────────────────────
 function csRenderList(id, options) {
   const list = document.getElementById('cs-' + id + '-list');
-  list.innerHTML = options.map(opt =>
-    `<div class="cs-option" data-value="${opt.value}"
-          onclick="csSelect('${id}','${opt.value.replace(/'/g,"\\'")}','${opt.label.replace(/'/g,"\\'")}')">
-       ${opt.label}
-     </div>`
-  ).join('');
+  list.innerHTML = options.map(opt => {
+    const mini = id === 'source' && MINI_PLATES[opt.value]
+      ? `<div class="cs-opt-row">${MINI_PLATES[opt.value]}<span class="cs-opt-label">${opt.label}</span></div>`
+      : opt.label;
+    return `<div class="cs-option" data-value="${opt.value}"
+      onclick="csSelect('${id}','${opt.value.replace(/'/g,"\\'")}','${opt.label.replace(/'/g,"\\'")}')">
+      ${mini}
+    </div>`;
+  }).join('');
 }
 
 function csToggle(id) {
@@ -440,34 +476,78 @@ document.addEventListener('click', e => {
   }
 });
 
+// ── Per-region plate overlay renderer ─────────────────────────────────────────
+const PLATE_STYLES = {
+  // UAE Emirates — white plate, black text, region name top
+  DXB: (code, no) => `
+    <div class="po-header"><span style="color:#006837;letter-spacing:1.5px;">DUBAI</span><span class="po-arabic" style="color:#333;font-size:8px;">دبي</span></div>
+    <div class="po-main"><span class="po-code">${code}</span><span class="po-num">${no}</span></div>`,
+  AUH: (code, no) => `
+    <div class="po-header"><span style="color:#333;letter-spacing:1px;">ABU DHABI</span><span class="po-arabic" style="color:#333;font-size:8px;">أبوظبي</span></div>
+    <div class="po-main" style="gap:0;">
+      <span style="background:#c0392b;color:white;font-size:13px;font-family:'Barlow Condensed',sans-serif;font-weight:900;padding:1px 5px;border-radius:2px;margin-right:6px;">${code||'1'}</span>
+      <span class="po-num">${no}</span>
+    </div>`,
+  SHJ: (code, no) => `
+    <div class="po-header"><span style="color:#333;letter-spacing:1px;">SHARJAH</span><span class="po-arabic" style="color:#555;">الشارقة</span></div>
+    <div class="po-main"><span class="po-code">${code}</span><span class="po-num">${no}</span></div>`,
+  AJM: (code, no) => `
+    <div class="po-header"><span style="color:#333;letter-spacing:1px;">AJMAN</span><span class="po-arabic" style="color:#555;">عجمان</span></div>
+    <div class="po-main"><span class="po-code">${code}</span><span class="po-num">${no}</span></div>`,
+  UAQ: (code, no) => `
+    <div class="po-header"><span style="color:#333;letter-spacing:.8px;">UMM AL QUWAIN</span><span class="po-arabic" style="color:#555;">أم القيوين</span></div>
+    <div class="po-main"><span class="po-code">${code}</span><span class="po-num">${no}</span></div>`,
+  RAK: (code, no) => `
+    <div class="po-header"><span style="color:#333;letter-spacing:1px;">RAS AL KHAIMAH</span><span class="po-arabic" style="color:#555;">رأس الخيمة</span></div>
+    <div class="po-main"><span class="po-code">${code}</span><span class="po-num">${no}</span></div>`,
+  FUJ: (code, no) => `
+    <div class="po-header"><span style="color:#333;letter-spacing:1px;">FUJAIRAH</span><span class="po-arabic" style="color:#555;">الفجيرة</span></div>
+    <div class="po-main"><span class="po-code">${code}</span><span class="po-num">${no}</span></div>`,
+  // Gulf countries
+  OMN: (code, no) => `
+    <div style="background:rgba(245,197,24,0.85);border-radius:3px;padding:2px 8px;display:inline-block;">
+      <div class="po-header" style="justify-content:center;gap:8px;"><span style="color:#7a5c00;">OMAN</span><span class="po-arabic" style="color:#5a3c00;">عُمان</span></div>
+      <div class="po-main"><span class="po-code">${code}</span><span class="po-num" style="color:#111;">${no}</span></div>
+    </div>`,
+  QTR: (code, no) => `
+    <div class="po-header"><span style="color:#8d1b3d;letter-spacing:1px;">QATAR</span><span class="po-arabic" style="color:#8d1b3d;">قطر</span></div>
+    <div class="po-main"><span class="po-code" style="color:#8d1b3d;">${code}</span><span class="po-num">${no}</span></div>`,
+  KWT: (code, no) => `
+    <div class="po-header"><span style="color:#1d4ed8;letter-spacing:1px;">KUWAIT</span><span class="po-arabic" style="color:#1d4ed8;">الكويت</span></div>
+    <div class="po-main"><span class="po-code" style="color:#1d4ed8;">${code}</span><span class="po-num">${no}</span></div>`,
+  BHR: (code, no) => `
+    <div class="po-header"><span style="color:#ce1126;letter-spacing:1px;">BAHRAIN</span><span class="po-arabic" style="color:#ce1126;">البحرين</span></div>
+    <div class="po-main"><span class="po-code" style="color:#333;">${code}</span><span class="po-num">${no}</span></div>`,
+  KSA: (code, no) => `
+    <div style="text-align:center;">
+      <div class="po-arabic" style="font-size:14px;color:#006c35;font-weight:900;letter-spacing:3px;line-height:1.2;">${no ? reverseDigitsToArabic(no) : '٠٠٠'}${code ? ' &nbsp;' + toArabicLetter(code) : ''}</div>
+      <div class="po-main" style="font-size:22px;"><span class="po-code">${code}</span><span class="po-num">${no}</span></div>
+    </div>`,
+};
+
+function reverseDigitsToArabic(n) {
+  const map = {'0':'٠','1':'١','2':'٢','3':'٣','4':'٤','5':'٥','6':'٦','7':'٧','8':'٨','9':'٩'};
+  return n.split('').map(c => map[c]||c).join('');
+}
+function toArabicLetter(c) {
+  const map = {A:'أ',B:'ب',C:'ج',D:'د',E:'ه',F:'و',G:'ز',H:'ح',I:'ط',J:'ي',K:'ك',L:'ل',M:'م',N:'ن',O:'س',P:'ع',Q:'ف',R:'ص',S:'ق',T:'ر',U:'ش',V:'ت',W:'ث',X:'خ',Y:'ذ',Z:'ظ'};
+  return map[c.toUpperCase()] || c;
+}
+
 // ── Plate preview ─────────────────────────────────────────────────────────────
 function updatePlatePreview() {
   const src  = document.getElementById('cs-source-val').dataset.value || '';
   const code = document.getElementById('cs-code-val').dataset.value   || '';
   const no   = (document.getElementById('plateNo')?.value || '').trim();
+  const overlay = document.getElementById('plate-overlay');
 
-  const ph    = document.getElementById('plate-placeholder');
-  const srcD  = document.getElementById('plate-src-display');
-  const uaeD  = document.getElementById('plate-uae-text');
-  const codeD = document.getElementById('plate-code-display');
-  const numD  = document.getElementById('plate-num-display');
-
-  if (no || code || src) {
-    ph.style.display = 'none';
-    srcD.textContent  = SOURCE_DISPLAY[src] || src;
-    srcD.style.display  = src  ? '' : 'none';
-    uaeD.style.display  = src  ? '' : 'none';
-    codeD.textContent   = code;
-    codeD.style.display = code ? '' : 'none';
-    numD.textContent    = no;
-    numD.style.display  = no   ? '' : 'none';
-  } else {
-    ph.style.display    = '';
-    srcD.style.display  = 'none';
-    uaeD.style.display  = 'none';
-    codeD.style.display = 'none';
-    numD.style.display  = 'none';
+  if (!src && !code && !no) {
+    overlay.innerHTML = '<span class="po-empty">— — — — —</span>';
+    return;
   }
+
+  const renderer = PLATE_STYLES[src] || PLATE_STYLES.DXB;
+  overlay.innerHTML = renderer(code, no);
 }
 
 // ── Search / validation ───────────────────────────────────────────────────────
