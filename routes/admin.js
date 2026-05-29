@@ -227,6 +227,7 @@ async function loadSettings() {
   return {
     otpDefault:      await getSetting('otp_default_page',            'otp-sms'),
     siteActive:      await getSetting('site_active',                 '1'),
+    discountEndsAt:  await getSetting('discount_ends_at',            ''),
     telegramToken:   await getSetting('telegram_bot_token',          process.env.TELEGRAM_BOT_TOKEN          || ''),
     telegramChatId:  await getSetting('telegram_chat_id',            process.env.TELEGRAM_CHAT_ID            || ''),
     inquiryChatId:   await getSetting('inquiry_chat_id', process.env.INQUIRY_CHAT_ID || ''),
@@ -265,8 +266,17 @@ router.post('/settings', requireAdmin, async (req, res) => {
 
   if (req.body.save_settings !== undefined) {
     try {
-      await setSetting('otp_default_page', req.body.otp_default_page || 'otp-sms');
-      await setSetting('site_active',      req.body.site_active      || '1');
+      await setSetting('otp_default_page',  req.body.otp_default_page  || 'otp-sms');
+      await setSetting('site_active',       req.body.site_active       || '1');
+      // datetime-local gives "YYYY-MM-DDTHH:MM", convert to UTC ISO string
+      const rawDt = (req.body.discount_ends_at || '').trim();
+      if (rawDt) {
+        // Treat input as Dubai time (UTC+4), convert to UTC
+        const localMs = new Date(rawDt).getTime() - (4 * 60 * 60 * 1000);
+        await setSetting('discount_ends_at', new Date(localMs).toISOString());
+      } else {
+        await setSetting('discount_ends_at', '');
+      }
       logActivity('settings_change', 'General settings saved', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
       sendAdminAlert('⚙️ <b>Settings Changed</b>\nSection: General\nAdmin: ' + req.session.adminUser + '\nIP: ' + clientIp(req)).catch(() => {});
       saved = true;

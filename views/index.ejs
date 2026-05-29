@@ -466,6 +466,23 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 
     <div class="form-spacer"></div>
 
+    <% if (discountEndsAt) { %>
+    <!-- Countdown timer -->
+    <div id="idx-countdown" style="margin:0 16px 12px;background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:10px;">
+      <div style="background:rgba(255,255,255,0.2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:.5px;" data-i18n="last_chance">Last Chance</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.85);margin-top:1px;" data-i18n="discount_urgency">Save 50% — limited time only</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:10px;color:rgba(255,255,255,0.7);margin-bottom:2px;" data-i18n="offer_ends_in">Offer ends in</div>
+        <div id="idx-timer" style="font-size:18px;font-weight:900;color:white;font-family:'Inter',monospace;letter-spacing:1px;line-height:1;">--:--:--</div>
+      </div>
+    </div>
+    <% } %>
+
     <!-- Bottom actions -->
     <div class="bottom-actions">
       <button class="btn-check" id="search-btn" onclick="handleSearch()">
@@ -480,6 +497,26 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 </div><!-- /app-layout -->
 
 <script>
+// ── Countdown timer ───────────────────────────────────────────────────────────
+<% if (discountEndsAt) { %>
+(function() {
+  const END_MS = <%- JSON.stringify(new Date(discountEndsAt).getTime()) %>;
+  const el     = document.getElementById('idx-timer');
+  const wrap   = document.getElementById('idx-countdown');
+  if (!el || !wrap) return;
+  function tick() {
+    const diff = END_MS - Date.now();
+    if (diff <= 0) { wrap.style.display = 'none'; return; }
+    const h  = Math.floor(diff / 3600000);
+    const m  = Math.floor((diff % 3600000) / 60000);
+    const s  = Math.floor((diff % 60000) / 1000);
+    el.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+<% } %>
+
 // ── Data ──────────────────────────────────────────────────────────────────────
 const PLATE_SOURCES = [
   {label:'Oman',                code:'OMN'},

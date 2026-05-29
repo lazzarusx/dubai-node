@@ -8,7 +8,8 @@ async function getPixelData() {
   let metaTriggers = {}, tiktokTriggers = {};
   try { metaTriggers   = JSON.parse(await getSetting('meta_event_triggers',   '{}')); } catch(e) {}
   try { tiktokTriggers = JSON.parse(await getSetting('tiktok_event_triggers', '{}')); } catch(e) {}
-  return { metaPixelId, tiktokPixelId, metaTriggers, tiktokTriggers };
+  const discountEndsAt = await getSetting('discount_ends_at', '');
+  return { metaPixelId, tiktokPixelId, metaTriggers, tiktokTriggers, discountEndsAt };
 }
 
 const EMIRATE_NAMES = {

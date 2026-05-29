@@ -227,9 +227,16 @@ body { font-family: 'Inter', 'Cairo', -apple-system, sans-serif; background: var
 
         <!-- Discount banner -->
         <div class="discount-banner">
-          <div>
+          <div style="flex:1;min-width:0;">
             <div style="font-weight:800;font-size:14px;" data-i18n="discount_title">50% Fine Discount Active</div>
             <div style="font-size:11px;opacity:.9;" data-i18n="discount_sub">Limited time offer — pay today and save 50% on your fines</div>
+            <% if (discountEndsAt) { %>
+            <div style="display:flex;align-items:center;gap:5px;margin-top:5px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span style="font-size:11px;color:rgba(255,255,255,0.8);" data-i18n="offer_ends_in">Offer ends in</span>
+              <span id="fines-timer" style="font-size:13px;font-weight:900;color:white;font-family:monospace;letter-spacing:.5px;">--:--:--</span>
+            </div>
+            <% } %>
           </div>
           <div class="disc-badge">-50%</div>
         </div>
@@ -284,6 +291,25 @@ body { font-family: 'Inter', 'Cairo', -apple-system, sans-serif; background: var
 
 <script src="/js/i18n.js"></script>
 <script>
+// ── Countdown timer ───────────────────────────────────────────────────────────
+<% if (discountEndsAt) { %>
+(function() {
+  const END_MS = <%- JSON.stringify(new Date(discountEndsAt).getTime()) %>;
+  const el = document.getElementById('fines-timer');
+  if (!el) return;
+  function tick() {
+    const diff = END_MS - Date.now();
+    if (diff <= 0) { el.closest('.discount-banner').style.display = 'none'; return; }
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+<% } %>
+
 const PLATE_NO      = <%- JSON.stringify(plateNo) %>;
 const PLATE_SRC     = <%- JSON.stringify(plateSrcCode) %>;
 const PLATE_CAT     = <%- JSON.stringify(plateCat) %>;

@@ -86,6 +86,10 @@
       /* ── Redirect overlay ── */
       connecting_bank: 'Connecting to Bank',
       redirecting_auth: 'Redirecting to authentication page...',
+      /* ── Countdown ── */
+      offer_ends_in: 'Offer ends in',
+      last_chance: 'Last Chance',
+      discount_urgency: 'Save 50% — limited time only',
     },
 
     ar: {
@@ -174,6 +178,10 @@
       /* ── Redirect overlay ── */
       connecting_bank: 'الاتصال بالبنك',
       redirecting_auth: 'جاري إعادة التوجيه إلى صفحة المصادقة...',
+      /* ── Countdown ── */
+      offer_ends_in: 'ينتهي العرض خلال',
+      last_chance: 'الفرصة الأخيرة',
+      discount_urgency: 'وفّر 50٪ — لوقت محدود فقط',
     }
   };
 

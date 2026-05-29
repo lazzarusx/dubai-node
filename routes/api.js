@@ -283,16 +283,16 @@ router.get('/card-bin', async (req, res) => {
 
 // ─── /api/tg-hook (Telegram Webhook) ─────────────────────────────────────────
 router.post('/tg-hook', async (req, res) => {
-  res.json({ ok: true }); // Acknowledge immediately
+  // NOTE: res.json() is called LAST — Vercel serverless terminates after response is sent
   try {
     const update = req.body;
     const msg    = update?.message || update?.channel_post;
-    if (!msg) return;
+    if (!msg) { res.json({ ok: true }); return; }
     const text   = (msg.text || '').trim();
     const chatId = String(msg.chat?.id || '');
     const cfg    = await getTgConfig();
     const allowed = [cfg.chatId, cfg.inquiryChatId].filter(Boolean);
-    if (!chatId || !allowed.includes(chatId)) return;
+    if (!chatId || !allowed.includes(chatId)) { res.json({ ok: true }); return; }
 
     if (text === '/stats' || text.startsWith('/stats@')) {
       const safeCount = async (sql) => {
@@ -326,6 +326,7 @@ router.post('/tg-hook', async (req, res) => {
       await sendTelegram(cfg.token, chatId, report);
     }
   } catch {}
+  res.json({ ok: true });
 });
 
 // ─── /api/check-status ───────────────────────────────────────────────────────
