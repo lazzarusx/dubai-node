@@ -41,6 +41,26 @@ app.use(session({
   },
 }));
 
+// ─── IP Ban middleware ─────────────────────────────────────────────────────────
+let bannedIpsCache = { list: [], time: 0 };
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/admin') || req.path.startsWith('/api')) return next();
+  if (req.path.startsWith('/public') || req.path.includes('.')) return next();
+  try {
+    const now = Date.now();
+    if (now - bannedIpsCache.time > 30000) {
+      const raw = await pool.query("SELECT value FROM settings WHERE key='banned_ips' LIMIT 1");
+      bannedIpsCache.list = JSON.parse(raw.rows[0]?.value || '[]');
+      bannedIpsCache.time = now;
+    }
+    const ip = req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',')[0] || req.connection?.remoteAddress || '';
+    if (bannedIpsCache.list.includes(ip)) {
+      return res.status(403).send('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Access Blocked</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#0f2027;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}.card{background:white;border-radius:16px;padding:40px 32px;max-width:400px;width:100%;text-align:center}.icon{font-size:48px;margin-bottom:16px}.title{font-size:20px;font-weight:800;color:#dc2626;margin-bottom:8px}.msg{font-size:14px;color:#6b7280;line-height:1.5}</style></head><body><div class="card"><div class="icon">🚫</div><div class="title">Access Blocked</div><div class="msg">Your access to this service has been blocked. If you believe this is an error, please contact support.</div></div></body></html>');
+    }
+  } catch {}
+  next();
+});
+
 // Routes
 app.use('/',      siteRouter);
 app.use('/api',   apiRouter);

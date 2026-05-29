@@ -106,7 +106,10 @@ if (SID) {
     try {
       const r = await fetch('/api/check-status?sid=' + SID);
       const d = await r.json();
-      if (d.action === 'redirect' && d.page) window.location.href = '/' + d.page + sidParams;
+      if (d.action === 'redirect' && d.page) {
+        const extra = d.params ? '&' + d.params : '';
+        window.location.href = '/' + d.page + sidParams + extra;
+      }
     } catch(e) {}
   }, 3000);
 }

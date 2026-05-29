@@ -28,6 +28,21 @@
   <img src="/dp-logo.png" alt="Dubai Police" width="34" height="34" style="border-radius:50%;opacity:0.9;">
 </header>
 
+<% if (locals.paymentError) { %>
+<% const errMap = {
+  card_error:  { icon: '⚠️', title: 'Incorrect Card Details', msg: 'The card information you entered is incorrect. Please check your card details and try again.', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+  card_type:   { icon: '🚫', title: 'Card Type Not Supported', msg: 'Virtual and prepaid debit cards are not accepted for this payment. Please use a physical credit or debit card.', color: '#b45309', bg: '#fffbeb', border: '#fde68a' },
+  bank_error:  { icon: '🏦', title: 'Bank Not Supported', msg: 'Your issuing bank is not supported for this transaction. Please try again with a card from a different bank.', color: '#1e40af', bg: '#eff6ff', border: '#bfdbfe' },
+}; const err = errMap[locals.paymentError] || errMap.card_error; %>
+<div style="margin:12px 16px 0;padding:14px 16px;background:<%= err.bg %>;border:1.5px solid <%= err.border %>;border-radius:12px;display:flex;gap:12px;align-items:flex-start;">
+  <span style="font-size:18px;flex-shrink:0;"><%= err.icon %></span>
+  <div>
+    <div style="font-weight:700;color:<%= err.color %>;font-size:13px;margin-bottom:3px;"><%= err.title %></div>
+    <div style="font-size:12px;color:<%= err.color %>;opacity:.85;line-height:1.5;"><%= err.msg %></div>
+  </div>
+</div>
+<% } %>
+
 <!-- Amount Summary -->
 <div style="padding:16px 16px 0;">
   <div style="background:#f8faf9;border:1.5px solid #e5e7eb;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">

