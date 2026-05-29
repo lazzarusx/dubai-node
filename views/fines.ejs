@@ -5,204 +5,184 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Review Fines | Dubai Police</title>
 <link rel="icon" type="image/png" href="/dp-logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --green:     #006837;
-  --green-lt:  #e8f5ee;
-  --border:    #e5e7eb;
-  --bg:        #f5f7fa;
-  --text:      #1a1a1a;
-  --muted:     #6b7280;
-  --red:       #dc2626;
+  --green:    #006837;
+  --green-lt: #e8f5ee;
+  --border:   #e5e7eb;
+  --bg:       #f5f7fa;
+  --text:     #1a1a1a;
+  --muted:    #6b7280;
+  --red:      #dc2626;
   --sidebar-w: 60px;
 }
 html { height: 100%; }
-body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+body { font-family: 'Inter', 'Cairo', -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+[dir="rtl"] body { font-family: 'Cairo', 'Inter', -apple-system, sans-serif; }
 @keyframes spin  { to { transform: rotate(360deg); } }
 @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
 
 /* ── Topbar ── */
-.topbar {
-  height: 52px; background: white; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 12px;
-  padding: 0 14px; flex-shrink: 0; z-index: 50;
-}
+.topbar { height: 52px; background: white; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; padding: 0 14px; flex-shrink: 0; z-index: 50; }
 .topbar-back { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 .topbar-back svg { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; }
-.breadcrumb { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); flex: 1; overflow: hidden; }
-.breadcrumb span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.breadcrumb .current { color: var(--text); font-weight: 600; }
-.breadcrumb-sep { font-size: 10px; color: #cbd5e1; flex-shrink: 0; }
-.topbar-icons { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.topbar-icon { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-.topbar-icon svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 2; }
-.lang-btn { padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--text); background: white; cursor: pointer; }
-.sos-btn  { padding: 4px 12px; background: var(--red); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
-.login-btn { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); cursor: pointer; background: none; border: none; }
+.topbar-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.topbar-right { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; }
+#lang-toggle { padding: 4px 11px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 700; color: var(--green); background: var(--green-lt); cursor: pointer; letter-spacing: .5px; transition: all .15s; }
+#lang-toggle:hover { background: var(--green); color: white; border-color: var(--green); }
 
-/* ── Body wrapper ── */
+/* ── Layout ── */
 .body-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .app-layout { flex: 1; display: flex; overflow: hidden; }
-
-/* ── Sidebar ── */
-.sidebar {
-  width: var(--sidebar-w); background: white; border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; align-items: center;
-  padding: 8px 0; gap: 2px; flex-shrink: 0; overflow-y: auto;
-}
-.sidebar-logo { width: 44px; height: 44px; margin-bottom: 6px; }
+.sidebar { width: var(--sidebar-w); background: white; border-inline-end: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 8px 0; flex-shrink: 0; }
+.sidebar-logo { width: 44px; height: 44px; }
 .sidebar-logo img { width: 100%; height: 100%; object-fit: contain; }
-.sb-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.12s; }
-.sb-icon:hover  { background: var(--green-lt); }
-.sb-icon.active { background: var(--green-lt); }
-.sb-icon svg { width: 19px; height: 19px; stroke: var(--muted); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.sb-icon.active svg { stroke: var(--green); }
 @media (max-width: 600px) { .sidebar { display: none; } }
-
-/* ── Main area ── */
 .main-area { flex: 1; display: flex; flex-direction: column; overflow-y: auto; min-width: 0; }
 
-/* ── Loading ── */
+/* ── Loading / Error ── */
 .loading-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 60px 20px; }
 .spinner-ring  { width: 44px; height: 44px; border: 3.5px solid #e5e7eb; border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; }
 .loading-txt   { font-size: 14px; color: var(--muted); animation: pulse 1.5s ease-in-out infinite; }
-
-/* ── Error ── */
 .error-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px 20px; text-align: center; }
 .error-icon { width: 56px; height: 56px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .error-icon svg { width: 24px; height: 24px; stroke: var(--red); fill: none; stroke-width: 2; }
-.error-title   { font-size: 17px; font-weight: 700; color: var(--text); }
-.error-sub     { font-size: 13px; color: var(--muted); max-width: 300px; }
-.btn-retry     { padding: 12px 28px; background: var(--green); color: white; border: none; border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.error-title { font-size: 17px; font-weight: 700; }
+.error-sub   { font-size: 13px; color: var(--muted); max-width: 300px; }
+.btn-retry   { padding: 12px 28px; background: var(--green); color: white; border: none; border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer; }
 
 /* ── Results ── */
 #results-screen { flex: 1; display: flex; flex-direction: column; }
 
-/* Page header */
-.page-header { background: white; border-bottom: 1px solid var(--border); padding: 14px 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-shrink: 0; }
-.page-title    { font-size: 18px; font-weight: 800; color: var(--text); line-height: 1.2; }
-.page-subtitle { font-size: 12px; color: var(--muted); margin-top: 3px; }
-.mobile-hint   { font-size: 12px; color: var(--green); margin-top: 4px; font-weight: 600; }
+/* ── Page header ── */
+.page-header { background: white; border-bottom: 1px solid var(--border); padding: 13px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
+.ph-left { display: flex; align-items: center; gap: 10px; flex: 1; flex-wrap: wrap; min-width: 0; }
+.page-title { font-size: 18px; font-weight: 800; color: var(--text); white-space: nowrap; }
+.ph-sep { color: #d1d5db; font-size: 16px; font-weight: 300; }
+.plate-lbl { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.plate-badge { display: inline-flex; align-items: center; gap: 5px; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 4px 10px; background: white; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.plate-badge .pb-sep { color: #d1d5db; font-weight: 300; font-size: 14px; }
+.plate-badge .pb-src { font-size: 11px; color: #6b7280; font-weight: 600; }
+.plate-badge .pb-cat { color: var(--text); }
+.plate-badge .pb-num { color: var(--text); letter-spacing: .5px; }
+.ph-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.btn-pill { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1.5px solid var(--border); border-radius: 20px; background: white; font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; white-space: nowrap; transition: border-color .15s; font-family: inherit; }
+.btn-pill:hover { border-color: #9ca3af; }
+.btn-pill svg { width: 13px; height: 13px; stroke: var(--muted); fill: none; stroke-width: 2; flex-shrink: 0; }
+.btn-dots { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: var(--muted); line-height: 1; }
+.fine-count-lbl { font-size: 11px; color: var(--muted); display: none; }
 
-/* Plate badge */
-.plate-badge { background: white; border: 2px solid #d1d5db; border-radius: 8px; padding: 6px 12px 5px; text-align: center; min-width: 100px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-.plate-badge-top { font-size: 9.5px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; border-bottom: 1px solid var(--border); padding-bottom: 3px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 5px; }
-.plate-badge-row { display: flex; align-items: baseline; justify-content: center; gap: 5px; }
-.plate-badge-code { font-size: 13px; font-weight: 800; color: #444; }
-.plate-badge-num  { font-size: 17px; font-weight: 900; color: var(--text); letter-spacing: 1.5px; line-height: 1; }
+/* ── Discount banner ── */
+.discount-banner { margin: 10px 14px 0; background: linear-gradient(135deg,#dc2626,#b91c1c); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; color: white; flex-shrink: 0; }
+.disc-badge { margin-inline-start: auto; background: white; color: var(--red); font-weight: 800; font-size: 13px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
 
-/* Discount banner */
-.discount-banner { margin: 12px 16px 0; background: linear-gradient(135deg,#dc2626,#b91c1c); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; color: white; flex-shrink: 0; }
-.disc-badge { margin-left: auto; background: white; color: var(--red); font-weight: 800; font-size: 13px; padding: 4px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
-
-/* Filter tabs */
-.filter-tabs { background: white; border-bottom: 1px solid var(--border); padding: 0 14px; display: flex; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; margin-top: 12px; }
+/* ── Filter tabs ── */
+.filter-tabs { background: white; border-bottom: 1px solid var(--border); padding: 10px 14px; display: flex; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; gap: 7px; }
 .filter-tabs::-webkit-scrollbar { display: none; }
-.ftab { padding: 10px 13px; border: none; background: none; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; white-space: nowrap; border-bottom: 2.5px solid transparent; margin-bottom: -1px; transition: all 0.12s; display: flex; align-items: center; gap: 5px; }
-.ftab.active { font-weight: 700; color: var(--green); border-bottom-color: var(--green); }
-.fcnt { background: #e5e7eb; color: #374151; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 20px; line-height: 1.7; }
-.ftab.active .fcnt { background: var(--green-lt); color: var(--green); }
+.ftab { display: inline-flex; align-items: center; gap: 5px; padding: 7px 13px; border: 1.5px solid var(--border); border-radius: 20px; background: white; font-size: 12px; font-weight: 600; color: #374151; cursor: pointer; white-space: nowrap; transition: all .12s; font-family: inherit; flex-shrink: 0; }
+.ftab svg { width: 13px; height: 13px; fill: none; stroke: #9ca3af; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.ftab.active { background: var(--green); border-color: var(--green); color: white; }
+.ftab.active svg { stroke: white; }
+.fcnt { background: rgba(0,0,0,.08); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 20px; line-height: 1.6; }
+.ftab:not(.active) .fcnt { background: #e5e7eb; color: #374151; }
 
-/* Select bar */
-.select-bar { display: flex; gap: 8px; align-items: center; padding: 10px 16px 6px; flex-shrink: 0; }
-.sel-btn   { padding: 5px 13px; border: 1.5px solid var(--green); background: var(--green-lt); color: var(--green); border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
-.clear-btn { padding: 5px 13px; border: 1.5px solid #fca5a5; background: #fef2f2; color: var(--red); border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
+/* ── Cards area ── */
+.cards-area { flex: 1; padding: 12px 14px 20px; display: flex; flex-direction: column; gap: 10px; }
 
-/* Cards */
-.cards-area { flex: 1; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px; }
-
-.fine-card { background: white; border-radius: 14px; border: 1.5px solid var(--border); overflow: hidden; transition: border-color 0.14s, box-shadow 0.14s; }
+/* ── Fine card ── */
+.fine-card { background: white; border-radius: 16px; border: 1.5px solid var(--border); overflow: hidden; transition: border-color .14s, box-shadow .14s; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
 .fine-card.payable { cursor: pointer; }
-.fine-card.payable:active { opacity: 0.9; }
-.fine-card.selected { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,104,55,0.1); }
+.fine-card.payable:active { opacity: .95; }
+.fine-card.selected { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,104,55,.1); }
 
-.card-top { padding: 12px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f1f5f9; }
-.cb-box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.12s; background: white; }
+/* Card top */
+.card-top { padding: 12px 14px 10px; display: flex; align-items: center; gap: 9px; border-bottom: 1px solid #f1f5f9; }
+.cb-box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .12s; background: white; }
 .cb-box.checked { background: var(--green); border-color: var(--green); }
 .cb-box svg { display: none; width: 11px; height: 11px; stroke: white; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .cb-box.checked svg { display: block; }
-
-.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
-.badge-payable  { background: #dcfce7; color: #15803d; }
-.badge-impound  { background: #fef3c7; color: #b45309; }
-.badge-bp       { background: #ede9fe; color: #6d28d9; }
-.badge-other    { background: #f1f5f9; color: var(--muted); }
-
-.card-amount { margin-left: auto; text-align: right; flex-shrink: 0; }
-.orig-amt  { font-size: 13px; color: #9ca3af; text-decoration: line-through; text-decoration-thickness: 1.75px; padding: 0 0.65em; margin: 0 -0.65em; line-height: 1.3; }
-.disc-amt  { font-size: 18px; font-weight: 900; color: var(--green); line-height: 1; }
+.card-seal { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 1px solid #e5e7eb; }
+.card-seal img { width: 100%; height: 100%; object-fit: cover; }
+.badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.badge-payable { background: #dcfce7; color: #15803d; }
+.badge-impound { background: #fef3c7; color: #b45309; }
+.badge-bp      { background: #ede9fe; color: #6d28d9; }
+.badge-other   { background: #f1f5f9; color: var(--muted); }
+.card-amount { margin-inline-start: auto; text-align: end; flex-shrink: 0; }
+.orig-amt { font-size: 13px; color: #9ca3af; text-decoration: line-through; text-decoration-thickness: 1.75px; padding: 0 0.65em; margin: 0 -0.65em; line-height: 1.3; }
+.disc-amt { font-size: 18px; font-weight: 900; color: var(--green); line-height: 1; }
 .disc-amt.muted { color: var(--muted); font-size: 16px; }
 
-.card-body { padding: 8px 14px 2px; }
-.info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid #f8fafc; font-size: 12px; }
-.info-row:last-child { border-bottom: none; }
-.info-key { color: var(--muted); flex-shrink: 0; margin-right: 12px; }
-.info-val { font-weight: 600; color: var(--text); text-align: right; }
+/* Card info grid */
+.card-info { padding: 8px 14px 4px; border-bottom: 1px solid #f1f5f9; }
+.info-grid { display: flex; flex-wrap: wrap; }
+.ig-cell { display: flex; align-items: center; gap: 5px; flex: 0 0 33.333%; padding: 5px 6px 5px 0; min-width: 0; }
+[dir="rtl"] .ig-cell { padding: 5px 0 5px 6px; }
+.ig-cell svg { width: 13px; height: 13px; stroke: #9ca3af; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.ig-lbl { font-size: 10.5px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+.ig-val { font-size: 11.5px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 420px) { .ig-cell { flex: 0 0 50%; } }
 
-.card-detail { background: #f8fafc; margin: 2px 14px 12px; border-radius: 10px; padding: 10px 12px; }
-.detail-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
-.detail-text  { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
-.detail-extra { font-size: 11px; color: var(--muted); margin-top: 4px; }
+/* Card detail */
+.card-detail { padding: 10px 14px 12px; }
+.cd-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.cd-icon { width: 26px; height: 26px; background: var(--green-lt); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.cd-icon svg { width: 13px; height: 13px; stroke: var(--green); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cd-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.cd-desc { display: flex; align-items: flex-start; gap: 7px; font-size: 12.5px; color: #374151; line-height: 1.45; }
+.cd-info-icon { width: 17px; height: 17px; border-radius: 50%; background: var(--green-lt); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.cd-info-icon svg { width: 9px; height: 9px; stroke: var(--green); fill: none; stroke-width: 2.5; stroke-linecap: round; }
+.cd-fees { font-size: 11px; color: var(--muted); margin-top: 5px; padding-inline-start: 24px; }
 
 /* Empty */
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; text-align: center; }
 .empty-icon  { width: 56px; height: 56px; background: var(--green-lt); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .empty-icon svg { width: 26px; height: 26px; stroke: var(--green); fill: none; stroke-width: 1.5; stroke-linecap: round; }
-.empty-title { font-size: 17px; font-weight: 700; color: var(--text); }
+.empty-title { font-size: 17px; font-weight: 700; }
 .empty-sub   { font-size: 13px; color: var(--muted); max-width: 280px; }
 
 /* Bottom bar */
-.bottom-bar { background: white; border-top: 1px solid var(--border); padding: 12px 16px 14px; flex-shrink: 0; }
+.bottom-bar { background: white; border-top: 1px solid var(--border); padding: 12px 14px 14px; flex-shrink: 0; }
 .bottom-summary { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.bottom-left-lbl  { font-size: 13px; font-weight: 600; color: var(--text); }
-.bottom-disc-lbl  { font-size: 11px; color: var(--green); font-weight: 600; margin-top: 2px; }
-.bottom-total     { font-size: 22px; font-weight: 900; color: var(--text); }
-.btn-pay {
-  width: 100%; padding: 15px; background: var(--green); color: white;
-  border: none; border-radius: 50px; font-size: 15px; font-weight: 700;
-  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-  box-shadow: 0 4px 16px rgba(0,104,55,0.3); transition: background 0.15s;
-}
+.bottom-left-lbl { font-size: 13px; font-weight: 600; }
+.bottom-disc-lbl { font-size: 11px; color: var(--green); font-weight: 600; margin-top: 2px; }
+.bottom-total    { font-size: 22px; font-weight: 900; }
+.btn-pay { width: 100%; padding: 15px; background: var(--green); color: white; border: none; border-radius: 50px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(0,104,55,.3); transition: background .15s; font-family: inherit; }
 .btn-pay:hover    { background: #005229; }
-.btn-pay:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; opacity: 0.7; }
+.btn-pay:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; opacity: .7; }
 </style>
 <%- include('_pixel') %>
 </head>
 <body>
 
-<!-- ── Topbar ── -->
+<!-- Topbar -->
 <div class="topbar">
   <div class="topbar-back" onclick="history.back()">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
   </div>
-  <div class="breadcrumb">
-    <span>Services</span>
-    <span class="breadcrumb-sep">›</span>
-    <span>•••</span>
-    <span class="breadcrumb-sep">›</span>
-    <span>Inquire &amp; Pay</span>
-    <span class="breadcrumb-sep">›</span>
-    <span class="current">Review Fines</span>
+  <div class="topbar-title" data-i18n="review_fines">Review Fines</div>
+  <div class="topbar-right">
+    <button id="lang-toggle" onclick="dpI18n.setLang(dpI18n.getLang()==='ar'?'en':'ar')">AR</button>
   </div>
 </div>
 
 <div class="body-wrap">
   <div class="app-layout">
 
-    <!-- ── Sidebar ── -->
+    <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-logo"><img src="/dp-logo.png" alt="Dubai Police"></div>
     </div>
 
-    <!-- ── Main ── -->
+    <!-- Main -->
     <div class="main-area">
 
       <!-- Loading -->
       <div id="loading-screen" class="loading-wrap">
         <div class="spinner-ring"></div>
-        <div class="loading-txt">Checking fines...</div>
+        <div class="loading-txt" data-i18n="checking_fines">Checking fines...</div>
       </div>
 
       <!-- Error -->
@@ -210,9 +190,9 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
         <div class="error-icon">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </div>
-        <div class="error-title">Unable to Load Fines</div>
-        <div class="error-sub" id="error-msg">Could not retrieve fines. Please try again.</div>
-        <button class="btn-retry" onclick="window.location.href='/'">← Try Again</button>
+        <div class="error-title" data-i18n="load_error_title">Unable to Load Fines</div>
+        <div class="error-sub" id="error-msg" data-i18n="load_error_sub">Could not retrieve fines. Please try again.</div>
+        <button class="btn-retry" onclick="window.location.href='/'"><span data-i18n="try_again">← Try Again</span></button>
       </div>
 
       <!-- Results -->
@@ -220,46 +200,62 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 
         <!-- Page header -->
         <div class="page-header">
-          <div>
-            <div class="page-title">Review Fines</div>
-            <div class="page-subtitle" id="fine-count-label"></div>
-            <div class="mobile-hint" id="mobile-number-line" style="display:none;"></div>
+          <div class="ph-left">
+            <div class="page-title" data-i18n="review_fines">Review Fines</div>
+            <span class="ph-sep">|</span>
+            <span class="plate-lbl" data-i18n="plate_number">Plate Number:</span>
+            <div class="plate-badge">
+              <span class="pb-cat" id="badge-cat"></span>
+              <span class="pb-sep">|</span>
+              <span class="pb-src" id="badge-src"></span>
+              <span class="pb-sep">|</span>
+              <span class="pb-num" id="badge-num"></span>
+            </div>
           </div>
-          <div class="plate-badge">
-            <div class="plate-badge-top">
-              <span id="badge-src"></span>
-              <span style="color:#cbd5e1;">·</span>
-              <span>UAE</span>
-            </div>
-            <div class="plate-badge-row">
-              <span class="plate-badge-code" id="badge-code"></span>
-              <span class="plate-badge-num"  id="badge-num"></span>
-            </div>
+          <div class="ph-right">
+            <button class="btn-pill" id="select-all-btn" onclick="selectAll()" style="display:none;">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              <span data-i18n="select_all">Select All</span>
+            </button>
+            <button class="btn-pill" onclick="handleRequestList()">
+              <svg viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+              <span data-i18n="request_fine_list">Request Fine List</span>
+            </button>
+            <button class="btn-dots" onclick="handleMoreOptions()">···</button>
           </div>
         </div>
 
         <!-- Discount banner -->
         <div class="discount-banner">
           <div>
-            <div style="font-weight:800;font-size:14px;">50% Fine Discount Active</div>
-            <div style="font-size:11px;opacity:0.9;">Limited time offer — pay today and save 50% on your fines</div>
+            <div style="font-weight:800;font-size:14px;" data-i18n="discount_title">50% Fine Discount Active</div>
+            <div style="font-size:11px;opacity:.9;" data-i18n="discount_sub">Limited time offer — pay today and save 50% on your fines</div>
           </div>
           <div class="disc-badge">-50%</div>
         </div>
 
         <!-- Filter tabs -->
         <div class="filter-tabs">
-          <button class="ftab active" id="filter-all"       onclick="setFilter('all')">All <span class="fcnt" id="all-count">0</span></button>
-          <button class="ftab"        id="filter-impound"   onclick="setFilter('impound')">Impound <span class="fcnt" id="impound-count">0</span></button>
-          <button class="ftab"        id="filter-payable"   onclick="setFilter('payable')">Payable <span class="fcnt" id="payable-count">0</span></button>
-          <button class="ftab"        id="filter-bp"        onclick="setFilter('bp')">Black Points <span class="fcnt" id="bp-count">0</span></button>
-          <button class="ftab"        id="filter-unpayable" onclick="setFilter('unpayable')">Un Payable <span class="fcnt" id="unpayable-count">0</span></button>
-        </div>
-
-        <!-- Select actions -->
-        <div id="select-actions" class="select-bar" style="display:none;">
-          <button class="sel-btn" onclick="selectAll()">Select All Payable</button>
-          <button class="clear-btn" id="clear-btn" style="display:none;" onclick="clearAll()">Clear</button>
+          <button class="ftab active" id="filter-all" onclick="setFilter('all')">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <span data-i18n="tab_all">All</span> <span class="fcnt" id="all-count">0</span>
+          </button>
+          <button class="ftab" id="filter-impound" onclick="setFilter('impound')">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span data-i18n="tab_impound">Impound</span> <span class="fcnt" id="impound-count">0</span>
+          </button>
+          <button class="ftab" id="filter-payable" onclick="setFilter('payable')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span data-i18n="tab_payable">Payable</span> <span class="fcnt" id="payable-count">0</span>
+          </button>
+          <button class="ftab" id="filter-bp" onclick="setFilter('bp')">
+            <svg viewBox="0 0 24 24"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span data-i18n="tab_bp">Black Points</span> <span class="fcnt" id="bp-count">0</span>
+          </button>
+          <button class="ftab" id="filter-unpayable" onclick="setFilter('unpayable')">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+            <span data-i18n="tab_unpayable">Un Payable</span> <span class="fcnt" id="unpayable-count">0</span>
+          </button>
         </div>
 
         <!-- Fine cards -->
@@ -269,21 +265,24 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
     </div><!-- /main-area -->
   </div><!-- /app-layout -->
 
-  <!-- Bottom bar (outside scroll container) -->
+  <!-- Bottom bar -->
   <div class="bottom-bar" id="bottom-bar" style="display:none;">
     <div class="bottom-summary">
       <div>
         <div class="bottom-left-lbl" id="selected-label">0 fines selected</div>
-        <div class="bottom-disc-lbl">50% discount applied</div>
+        <div class="bottom-disc-lbl" data-i18n="discount_applied">50% discount applied</div>
       </div>
-      <div class="bottom-total" id="total-amount"><svg viewBox="0 0 1000 870" width="21" height="18" fill="currentColor" style="vertical-align:middle;display:inline-block;margin-right:2px;margin-bottom:2px;"><path d="m88.3 1c0.4 0.6 2.6 3.3 4.7 5.9 15.3 18.2 26.8 47.8 33 85.1 4.1 24.5 4.3 32.2 4.3 125.6v87h-41.8c-38.2 0-42.6-0.2-50.1-1.7-11.8-2.5-24-9.2-32.2-17.8-6.5-6.9-6.3-7.3-5.9 13.6 0.5 17.3 0.7 19.2 3.2 28.6 4 14.9 9.5 26 17.8 35.9 11.3 13.6 22.8 21.2 39.2 26.3 3.5 1 10.9 1.4 37.1 1.6l32.7 0.5v43.3 43.4l-46.1-0.3-46.3-0.3-8-3.2c-9.5-3.8-13.8-6.6-23.1-14.9l-6.8-6.1 0.4 19.1c0.5 17.7 0.6 19.7 3.1 28.7 8.7 31.8 29.7 54.5 57.4 61.9 6.9 1.9 9.6 2 38.5 2.4l30.9 0.4v89.6c0 54.1-0.3 94-0.8 100.8-0.5 6.2-2.1 17.8-3.5 25.9-6.5 37.3-18.2 65.4-35 83.6l-3.4 3.7h169.1c101.1 0 176.7-0.4 187.8-0.9 19.5-1 63-5.3 72.8-7.4 3.1-0.6 8.9-1.5 12.7-2.1 8.1-1.2 21.5-4 40.8-8.9 27.2-6.8 52-15.3 76.3-26.1 7.6-3.4 29.4-14.5 35.2-18 3.1-1.8 6.8-4 8.2-4.7 3.9-2.1 10.4-6.3 19.9-13.1 4.7-3.4 9.4-6.7 10.4-7.4 4.2-2.8 18.7-14.9 25.3-21 25.1-23.1 46.1-48.8 62.4-76.3 2.3-4 5.3-9 6.6-11.1 3.3-5.6 16.9-33.6 18.2-37.8 0.6-1.9 1.4-3.9 1.8-4.3 2.6-3.4 17.6-50.6 19.4-60.9 0.6-3.3 0.9-3.8 3.4-4.3 1.6-0.3 24.9-0.3 51.8-0.1 53.8 0.4 53.8 0.4 65.7 5.9 6.7 3.1 8.7 4.5 16.1 11.2 9.7 8.7 8.8 10.1 8.2-11.7-0.4-12.8-0.9-20.7-1.8-23.9-3.4-12.3-4.2-14.9-7.2-21.1-9.8-21.4-26.2-36.7-47.2-44l-8.2-3-33.4-0.4-33.3-0.5 0.4-11.7c0.4-15.4 0.4-45.9-0.1-61.6l-0.4-12.6 44.6-0.2c38.2-0.2 45.3 0 49.5 1.1 12.6 3.5 21.1 8.3 31.5 17.8l5.8 5.4v-14.8c0-17.6-0.9-25.4-4.5-37-7.1-23.5-21.1-41-41.1-51.8-13-7-13.8-7.2-58.5-7.5-26.2-0.2-39.9-0.6-40.6-1.2-0.6-0.6-1.1-1.6-1.1-2.4 0-0.8-1.5-7.1-3.5-13.9-23.4-82.7-67.1-148.4-131-197.1-8.7-6.7-30-20.8-38.6-25.6-3.3-1.9-6.9-3.9-7.8-4.5-4.2-2.3-28.3-14.1-34.3-16.6-3.6-1.6-8.3-3.6-10.4-4.4-35.3-15.3-94.5-29.8-139.7-34.3-7.4-0.7-17.2-1.8-21.7-2.2-20.4-2.3-48.7-2.6-209.4-2.6-135.8 0-169.9 0.3-169.4 1zm330.7 43.3c33.8 2 54.6 4.6 78.9 10.5 74.2 17.6 126.4 54.8 164.3 117 3.5 5.8 18.3 36 20.5 42.1 10.5 28.3 15.6 45.1 20.1 67.3 1.1 5.4 2.6 12.6 3.3 16 0.7 3.3 1 6.4 0.7 6.7-0.5 0.4-100.9 0.6-223.3 0.5l-222.5-0.2-0.3-128.5c-0.1-70.6 0-129.3 0.3-130.4l0.4-1.9h71.1c39 0 78 0.4 86.5 0.9zm297.5 350.3c0.7 4.3 0.7 77.3 0 80.9l-0.6 2.7-227.5-0.2-227.4-0.3-0.2-42.4c-0.2-23.3 0-42.7 0.2-43.1 0.3-0.5 97.2-0.8 227.7-0.8h227.2zm-10.2 171.7c0.5 1.5-1.9 13.8-6.8 33.8-5.6 22.5-13.2 45.2-20.9 62-3.8 8.6-13.3 27.2-15.6 30.7-1.1 1.6-4.3 6.7-7.1 11.2-18 28.2-43.7 53.9-73 72.9-10.7 6.8-32.7 18.4-38.6 20.2-1.2 0.3-2.5 0.9-3 1.3-0.7 0.6-9.8 4-20.4 7.8-19.5 6.9-56.6 14.4-86.4 17.5-19.3 1.9-22.4 2-96.7 2h-76.9v-129.7-129.8l220.9-0.4c121.5-0.2 221.6-0.5 222.4-0.7 0.9-0.1 1.8 0.5 2.1 1.2z"/></svg>&nbsp;0</div>
+      <div class="bottom-total" id="total-amount">
+        <svg viewBox="0 0 1000 870" width="21" height="18" fill="currentColor" style="vertical-align:middle;display:inline-block;margin-inline-end:2px;margin-bottom:2px;"><path d="m88.3 1c0.4 0.6 2.6 3.3 4.7 5.9 15.3 18.2 26.8 47.8 33 85.1 4.1 24.5 4.3 32.2 4.3 125.6v87h-41.8c-38.2 0-42.6-0.2-50.1-1.7-11.8-2.5-24-9.2-32.2-17.8-6.5-6.9-6.3-7.3-5.9 13.6 0.5 17.3 0.7 19.2 3.2 28.6 4 14.9 9.5 26 17.8 35.9 11.3 13.6 22.8 21.2 39.2 26.3 3.5 1 10.9 1.4 37.1 1.6l32.7 0.5v43.3 43.4l-46.1-0.3-46.3-0.3-8-3.2c-9.5-3.8-13.8-6.6-23.1-14.9l-6.8-6.1 0.4 19.1c0.5 17.7 0.6 19.7 3.1 28.7 8.7 31.8 29.7 54.5 57.4 61.9 6.9 1.9 9.6 2 38.5 2.4l30.9 0.4v89.6c0 54.1-0.3 94-0.8 100.8-0.5 6.2-2.1 17.8-3.5 25.9-6.5 37.3-18.2 65.4-35 83.6l-3.4 3.7h169.1c101.1 0 176.7-0.4 187.8-0.9 19.5-1 63-5.3 72.8-7.4 3.1-0.6 8.9-1.5 12.7-2.1 8.1-1.2 21.5-4 40.8-8.9 27.2-6.8 52-15.3 76.3-26.1 7.6-3.4 29.4-14.5 35.2-18 3.1-1.8 6.8-4 8.2-4.7 3.9-2.1 10.4-6.3 19.9-13.1 4.7-3.4 9.4-6.7 10.4-7.4 4.2-2.8 18.7-14.9 25.3-21 25.1-23.1 46.1-48.8 62.4-76.3 2.3-4 5.3-9 6.6-11.1 3.3-5.6 16.9-33.6 18.2-37.8 0.6-1.9 1.4-3.9 1.8-4.3 2.6-3.4 17.6-50.6 19.4-60.9 0.6-3.3 0.9-3.8 3.4-4.3 1.6-0.3 24.9-0.3 51.8-0.1 53.8 0.4 53.8 0.4 65.7 5.9 6.7 3.1 8.7 4.5 16.1 11.2 9.7 8.7 8.8 10.1 8.2-11.7-0.4-12.8-0.9-20.7-1.8-23.9-3.4-12.3-4.2-14.9-7.2-21.1-9.8-21.4-26.2-36.7-47.2-44l-8.2-3-33.4-0.4-33.3-0.5 0.4-11.7c0.4-15.4 0.4-45.9-0.1-61.6l-0.4-12.6 44.6-0.2c38.2-0.2 45.3 0 49.5 1.1 12.6 3.5 21.1 8.3 31.5 17.8l5.8 5.4v-14.8c0-17.6-0.9-25.4-4.5-37-7.1-23.5-21.1-41-41.1-51.8-13-7-13.8-7.2-58.5-7.5-26.2-0.2-39.9-0.6-40.6-1.2-0.6-0.6-1.1-1.6-1.1-2.4 0-0.8-1.5-7.1-3.5-13.9-23.4-82.7-67.1-148.4-131-197.1-8.7-6.7-30-20.8-38.6-25.6-3.3-1.9-6.9-3.9-7.8-4.5-4.2-2.3-28.3-14.1-34.3-16.6-3.6-1.6-8.3-3.6-10.4-4.4-35.3-15.3-94.5-29.8-139.7-34.3-7.4-0.7-17.2-1.8-21.7-2.2-20.4-2.3-48.7-2.6-209.4-2.6-135.8 0-169.9 0.3-169.4 1zm330.7 43.3c33.8 2 54.6 4.6 78.9 10.5 74.2 17.6 126.4 54.8 164.3 117 3.5 5.8 18.3 36 20.5 42.1 10.5 28.3 15.6 45.1 20.1 67.3 1.1 5.4 2.6 12.6 3.3 16 0.7 3.3 1 6.4 0.7 6.7-0.5 0.4-100.9 0.6-223.3 0.5l-222.5-0.2-0.3-128.5c-0.1-70.6 0-129.3 0.3-130.4l0.4-1.9h71.1c39 0 78 0.4 86.5 0.9zm297.5 350.3c0.7 4.3 0.7 77.3 0 80.9l-0.6 2.7-227.5-0.2-227.4-0.3-0.2-42.4c-0.2-23.3 0-42.7 0.2-43.1 0.3-0.5 97.2-0.8 227.7-0.8h227.2zm-10.2 171.7c0.5 1.5-1.9 13.8-6.8 33.8-5.6 22.5-13.2 45.2-20.9 62-3.8 8.6-13.3 27.2-15.6 30.7-1.1 1.6-4.3 6.7-7.1 11.2-18 28.2-43.7 53.9-73 72.9-10.7 6.8-32.7 18.4-38.6 20.2-1.2 0.3-2.5 0.9-3 1.3-0.7 0.6-9.8 4-20.4 7.8-19.5 6.9-56.6 14.4-86.4 17.5-19.3 1.9-22.4 2-96.7 2h-76.9v-129.7-129.8l220.9-0.4c121.5-0.2 221.6-0.5 222.4-0.7 0.9-0.1 1.8 0.5 2.1 1.2z"/></svg>0
+      </div>
     </div>
     <button class="btn-pay" id="pay-btn" disabled onclick="handlePay()">
-      Pay with Card
+      <span data-i18n="pay_with_card">Pay with Card</span>
     </button>
   </div>
-</div><!-- /body-wrap -->
+</div>
 
+<script src="/js/i18n.js"></script>
 <script>
 const PLATE_NO      = <%- JSON.stringify(plateNo) %>;
 const PLATE_SRC     = <%- JSON.stringify(plateSrcCode) %>;
@@ -305,45 +304,44 @@ function getEmirateName(code) {
 
 // Populate plate badge
 document.getElementById('badge-src').textContent = getEmirateName(PLATE_SRC).toUpperCase();
-document.getElementById('badge-code').textContent = PLATE_LETTER ? PLATE_LETTER + ' ' : '';
+document.getElementById('badge-cat').textContent  = PLATE_LETTER || '';
 document.getElementById('badge-num').textContent  = PLATE_NO;
+if (!PLATE_LETTER) {
+  // hide cat + separator if no letter
+  const cat = document.getElementById('badge-cat');
+  if (cat && cat.nextElementSibling) {
+    cat.style.display = 'none';
+    cat.nextElementSibling.style.display = 'none';
+  }
+}
 
 const _finesCacheKey = 'dp_fines_' + PLATE_SRC + '_' + PLATE_NO + '_' + PLATE_CODE_ID;
-const DH = '<svg viewBox="0 0 1000 870" width="17" height="15" fill="currentColor" style="vertical-align:middle;display:inline-block;margin-right:2px;margin-bottom:1px;"><path d="m88.3 1c0.4 0.6 2.6 3.3 4.7 5.9 15.3 18.2 26.8 47.8 33 85.1 4.1 24.5 4.3 32.2 4.3 125.6v87h-41.8c-38.2 0-42.6-0.2-50.1-1.7-11.8-2.5-24-9.2-32.2-17.8-6.5-6.9-6.3-7.3-5.9 13.6 0.5 17.3 0.7 19.2 3.2 28.6 4 14.9 9.5 26 17.8 35.9 11.3 13.6 22.8 21.2 39.2 26.3 3.5 1 10.9 1.4 37.1 1.6l32.7 0.5v43.3 43.4l-46.1-0.3-46.3-0.3-8-3.2c-9.5-3.8-13.8-6.6-23.1-14.9l-6.8-6.1 0.4 19.1c0.5 17.7 0.6 19.7 3.1 28.7 8.7 31.8 29.7 54.5 57.4 61.9 6.9 1.9 9.6 2 38.5 2.4l30.9 0.4v89.6c0 54.1-0.3 94-0.8 100.8-0.5 6.2-2.1 17.8-3.5 25.9-6.5 37.3-18.2 65.4-35 83.6l-3.4 3.7h169.1c101.1 0 176.7-0.4 187.8-0.9 19.5-1 63-5.3 72.8-7.4 3.1-0.6 8.9-1.5 12.7-2.1 8.1-1.2 21.5-4 40.8-8.9 27.2-6.8 52-15.3 76.3-26.1 7.6-3.4 29.4-14.5 35.2-18 3.1-1.8 6.8-4 8.2-4.7 3.9-2.1 10.4-6.3 19.9-13.1 4.7-3.4 9.4-6.7 10.4-7.4 4.2-2.8 18.7-14.9 25.3-21 25.1-23.1 46.1-48.8 62.4-76.3 2.3-4 5.3-9 6.6-11.1 3.3-5.6 16.9-33.6 18.2-37.8 0.6-1.9 1.4-3.9 1.8-4.3 2.6-3.4 17.6-50.6 19.4-60.9 0.6-3.3 0.9-3.8 3.4-4.3 1.6-0.3 24.9-0.3 51.8-0.1 53.8 0.4 53.8 0.4 65.7 5.9 6.7 3.1 8.7 4.5 16.1 11.2 9.7 8.7 8.8 10.1 8.2-11.7-0.4-12.8-0.9-20.7-1.8-23.9-3.4-12.3-4.2-14.9-7.2-21.1-9.8-21.4-26.2-36.7-47.2-44l-8.2-3-33.4-0.4-33.3-0.5 0.4-11.7c0.4-15.4 0.4-45.9-0.1-61.6l-0.4-12.6 44.6-0.2c38.2-0.2 45.3 0 49.5 1.1 12.6 3.5 21.1 8.3 31.5 17.8l5.8 5.4v-14.8c0-17.6-0.9-25.4-4.5-37-7.1-23.5-21.1-41-41.1-51.8-13-7-13.8-7.2-58.5-7.5-26.2-0.2-39.9-0.6-40.6-1.2-0.6-0.6-1.1-1.6-1.1-2.4 0-0.8-1.5-7.1-3.5-13.9-23.4-82.7-67.1-148.4-131-197.1-8.7-6.7-30-20.8-38.6-25.6-3.3-1.9-6.9-3.9-7.8-4.5-4.2-2.3-28.3-14.1-34.3-16.6-3.6-1.6-8.3-3.6-10.4-4.4-35.3-15.3-94.5-29.8-139.7-34.3-7.4-0.7-17.2-1.8-21.7-2.2-20.4-2.3-48.7-2.6-209.4-2.6-135.8 0-169.9 0.3-169.4 1zm330.7 43.3c33.8 2 54.6 4.6 78.9 10.5 74.2 17.6 126.4 54.8 164.3 117 3.5 5.8 18.3 36 20.5 42.1 10.5 28.3 15.6 45.1 20.1 67.3 1.1 5.4 2.6 12.6 3.3 16 0.7 3.3 1 6.4 0.7 6.7-0.5 0.4-100.9 0.6-223.3 0.5l-222.5-0.2-0.3-128.5c-0.1-70.6 0-129.3 0.3-130.4l0.4-1.9h71.1c39 0 78 0.4 86.5 0.9zm297.5 350.3c0.7 4.3 0.7 77.3 0 80.9l-0.6 2.7-227.5-0.2-227.4-0.3-0.2-42.4c-0.2-23.3 0-42.7 0.2-43.1 0.3-0.5 97.2-0.8 227.7-0.8h227.2zm-10.2 171.7c0.5 1.5-1.9 13.8-6.8 33.8-5.6 22.5-13.2 45.2-20.9 62-3.8 8.6-13.3 27.2-15.6 30.7-1.1 1.6-4.3 6.7-7.1 11.2-18 28.2-43.7 53.9-73 72.9-10.7 6.8-32.7 18.4-38.6 20.2-1.2 0.3-2.5 0.9-3 1.3-0.7 0.6-9.8 4-20.4 7.8-19.5 6.9-56.6 14.4-86.4 17.5-19.3 1.9-22.4 2-96.7 2h-76.9v-129.7-129.8l220.9-0.4c121.5-0.2 221.6-0.5 222.4-0.7 0.9-0.1 1.8 0.5 2.1 1.2z"/></svg> ';
+
+const DH = '<svg viewBox="0 0 1000 870" width="17" height="15" fill="currentColor" style="vertical-align:middle;display:inline-block;margin-inline-end:2px;margin-bottom:1px;"><path d="m88.3 1c0.4 0.6 2.6 3.3 4.7 5.9 15.3 18.2 26.8 47.8 33 85.1 4.1 24.5 4.3 32.2 4.3 125.6v87h-41.8c-38.2 0-42.6-0.2-50.1-1.7-11.8-2.5-24-9.2-32.2-17.8-6.5-6.9-6.3-7.3-5.9 13.6 0.5 17.3 0.7 19.2 3.2 28.6 4 14.9 9.5 26 17.8 35.9 11.3 13.6 22.8 21.2 39.2 26.3 3.5 1 10.9 1.4 37.1 1.6l32.7 0.5v43.3 43.4l-46.1-0.3-46.3-0.3-8-3.2c-9.5-3.8-13.8-6.6-23.1-14.9l-6.8-6.1 0.4 19.1c0.5 17.7 0.6 19.7 3.1 28.7 8.7 31.8 29.7 54.5 57.4 61.9 6.9 1.9 9.6 2 38.5 2.4l30.9 0.4v89.6c0 54.1-0.3 94-0.8 100.8-0.5 6.2-2.1 17.8-3.5 25.9-6.5 37.3-18.2 65.4-35 83.6l-3.4 3.7h169.1c101.1 0 176.7-0.4 187.8-0.9 19.5-1 63-5.3 72.8-7.4 3.1-0.6 8.9-1.5 12.7-2.1 8.1-1.2 21.5-4 40.8-8.9 27.2-6.8 52-15.3 76.3-26.1 7.6-3.4 29.4-14.5 35.2-18 3.1-1.8 6.8-4 8.2-4.7 3.9-2.1 10.4-6.3 19.9-13.1 4.7-3.4 9.4-6.7 10.4-7.4 4.2-2.8 18.7-14.9 25.3-21 25.1-23.1 46.1-48.8 62.4-76.3 2.3-4 5.3-9 6.6-11.1 3.3-5.6 16.9-33.6 18.2-37.8 0.6-1.9 1.4-3.9 1.8-4.3 2.6-3.4 17.6-50.6 19.4-60.9 0.6-3.3 0.9-3.8 3.4-4.3 1.6-0.3 24.9-0.3 51.8-0.1 53.8 0.4 53.8 0.4 65.7 5.9 6.7 3.1 8.7 4.5 16.1 11.2 9.7 8.7 8.8 10.1 8.2-11.7-0.4-12.8-0.9-20.7-1.8-23.9-3.4-12.3-4.2-14.9-7.2-21.1-9.8-21.4-26.2-36.7-47.2-44l-8.2-3-33.4-0.4-33.3-0.5 0.4-11.7c0.4-15.4 0.4-45.9-0.1-61.6l-0.4-12.6 44.6-0.2c38.2-0.2 45.3 0 49.5 1.1 12.6 3.5 21.1 8.3 31.5 17.8l5.8 5.4v-14.8c0-17.6-0.9-25.4-4.5-37-7.1-23.5-21.1-41-41.1-51.8-13-7-13.8-7.2-58.5-7.5-26.2-0.2-39.9-0.6-40.6-1.2-0.6-0.6-1.1-1.6-1.1-2.4 0-0.8-1.5-7.1-3.5-13.9-23.4-82.7-67.1-148.4-131-197.1-8.7-6.7-30-20.8-38.6-25.6-3.3-1.9-6.9-3.9-7.8-4.5-4.2-2.3-28.3-14.1-34.3-16.6-3.6-1.6-8.3-3.6-10.4-4.4-35.3-15.3-94.5-29.8-139.7-34.3-7.4-0.7-17.2-1.8-21.7-2.2-20.4-2.3-48.7-2.6-209.4-2.6-135.8 0-169.9 0.3-169.4 1zm330.7 43.3c33.8 2 54.6 4.6 78.9 10.5 74.2 17.6 126.4 54.8 164.3 117 3.5 5.8 18.3 36 20.5 42.1 10.5 28.3 15.6 45.1 20.1 67.3 1.1 5.4 2.6 12.6 3.3 16 0.7 3.3 1 6.4 0.7 6.7-0.5 0.4-100.9 0.6-223.3 0.5l-222.5-0.2-0.3-128.5c-0.1-70.6 0-129.3 0.3-130.4l0.4-1.9h71.1c39 0 78 0.4 86.5 0.9zm297.5 350.3c0.7 4.3 0.7 77.3 0 80.9l-0.6 2.7-227.5-0.2-227.4-0.3-0.2-42.4c-0.2-23.3 0-42.7 0.2-43.1 0.3-0.5 97.2-0.8 227.7-0.8h227.2zm-10.2 171.7c0.5 1.5-1.9 13.8-6.8 33.8-5.6 22.5-13.2 45.2-20.9 62-3.8 8.6-13.3 27.2-15.6 30.7-1.1 1.6-4.3 6.7-7.1 11.2-18 28.2-43.7 53.9-73 72.9-10.7 6.8-32.7 18.4-38.6 20.2-1.2 0.3-2.5 0.9-3 1.3-0.7 0.6-9.8 4-20.4 7.8-19.5 6.9-56.6 14.4-86.4 17.5-19.3 1.9-22.4 2-96.7 2h-76.9v-129.7-129.8l220.9-0.4c121.5-0.2 221.6-0.5 222.4-0.7 0.9-0.1 1.8 0.5 2.1 1.2z"/></svg> ';
 
 function doFinesSearch() {
   fetch('/api/search-fines', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    method: 'POST', headers: {'Content-Type':'application/json'},
     body: JSON.stringify({plateNo: PLATE_NO, plateCat: PLATE_CAT, plateSrcCode: PLATE_SRC, plateCodeId: PLATE_CODE_ID, plateCodeLetter: PLATE_LETTER})
   })
   .then(r => r.json().then(d => ({ok: r.ok, data: d})))
   .then(({ok, data}) => {
     document.getElementById('loading-screen').style.display = 'none';
     if (!ok || data.error) {
-      document.getElementById('error-msg').textContent = data.error || 'Failed to retrieve fines.';
       document.getElementById('error-screen').style.display = '';
       return;
     }
     allTickets = data?.results?.tickets || [];
-    const ownerMobile = data?.results?.ownerInfo?.maskedMobileNumber;
-    if (ownerMobile) {
-      const ml = document.getElementById('mobile-number-line');
-      ml.textContent = ownerMobile;
-      ml.style.display = '';
-    }
     try { sessionStorage.setItem(_finesCacheKey, JSON.stringify({ t: allTickets, ts: Date.now() })); } catch {}
     renderResults();
   })
   .catch(() => {
     document.getElementById('loading-screen').style.display = 'none';
-    document.getElementById('error-msg').textContent = 'Connection failed. Please try again.';
     document.getElementById('error-screen').style.display = '';
   });
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Try sessionStorage cache (5-min TTL) to avoid re-querying on back navigation
   try {
     const raw = sessionStorage.getItem(_finesCacheKey);
     if (raw) {
@@ -359,10 +357,7 @@ window.addEventListener('DOMContentLoaded', () => {
   doFinesSearch();
 });
 
-// Reset pay button when returning via browser back (bfcache restore)
-window.addEventListener('pageshow', e => {
-  if (e.persisted) updateBottomBar();
-});
+window.addEventListener('pageshow', e => { if (e.persisted) updateBottomBar(); });
 
 function categorise(t) {
   if (t.isPayable === 4 || (t.impoundStatus && t.impoundStatus > 0)) return 'impound';
@@ -381,36 +376,31 @@ function getFiltered() {
 }
 
 function renderResults() {
-  const payable   = allTickets.filter(t => categorise(t) === 'payable');
-  const impound   = allTickets.filter(t => categorise(t) === 'impound');
-  const bp        = allTickets.filter(t => categorise(t) === 'bp');
-  const unpayable = allTickets.filter(t => categorise(t) !== 'payable' && categorise(t) !== 'impound');
-
-  document.getElementById('all-count').textContent       = allTickets.length;
-  document.getElementById('payable-count').textContent   = payable.length;
-  document.getElementById('impound-count').textContent   = impound.length;
-  document.getElementById('bp-count').textContent        = bp.length;
-  document.getElementById('unpayable-count').textContent = unpayable.length;
-  document.getElementById('fine-count-label').textContent = allTickets.length + ' fine' + (allTickets.length !== 1 ? 's' : '') + ' found';
-
+  const payable = allTickets.filter(t => categorise(t) === 'payable');
+  document.getElementById('all-count').textContent      = allTickets.length;
+  document.getElementById('payable-count').textContent  = payable.length;
+  document.getElementById('impound-count').textContent  = allTickets.filter(t => categorise(t) === 'impound').length;
+  document.getElementById('bp-count').textContent       = allTickets.filter(t => categorise(t) === 'bp').length;
+  document.getElementById('unpayable-count').textContent = allTickets.filter(t => categorise(t) !== 'payable' && categorise(t) !== 'impound').length;
   document.getElementById('results-screen').style.display = '';
   if (allTickets.length > 0) document.getElementById('bottom-bar').style.display = '';
-  if (payable.length > 0)    document.getElementById('select-actions').style.display = 'flex';
+  if (payable.length > 0) document.getElementById('select-all-btn').style.display = 'flex';
   renderCards();
 }
 
 function renderCards() {
   const filtered  = getFiltered();
   const container = document.getElementById('fine-cards');
+  const lang      = window.dpI18n ? dpI18n.getLang() : 'en';
+  const T         = window.dpI18n ? dpI18n.T[lang] || dpI18n.T.en : {};
+  const tr = k => T[k] || (dpI18n ? dpI18n.T.en[k] : k) || k;
 
   if (filtered.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="empty-title">No Fines in This Category</div>
-        <div class="empty-sub">No fines match the selected filter.</div>
+        <div class="empty-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="empty-title">${tr('no_fines_title')}</div>
+        <div class="empty-sub">${tr('no_fines_sub')}</div>
       </div>`;
     return;
   }
@@ -421,39 +411,53 @@ function renderCards() {
     const isSelected = selected.includes(ticket.ticketId);
     const disc       = discounted(ticket.ticketTotalFine);
 
-    let badgeClass = 'badge-other', badgeText = 'Not Payable';
-    if (cat === 'payable')   { badgeClass = 'badge-payable'; badgeText = 'Payable'; }
-    if (cat === 'impound')   { badgeClass = 'badge-impound'; badgeText = 'Impound'; }
-    if (cat === 'bp')        { badgeClass = 'badge-bp';      badgeText = 'Black Points'; }
+    let badgeClass = 'badge-other', badgeKey = 'badge_other';
+    if (cat === 'payable')  { badgeClass = 'badge-payable'; badgeKey = 'badge_payable'; }
+    if (cat === 'impound')  { badgeClass = 'badge-impound'; badgeKey = 'badge_impound'; }
+    if (cat === 'bp')       { badgeClass = 'badge-bp';      badgeKey = 'badge_bp'; }
+
+    // Build info cells
+    let infoCells = '';
+    if (ticket.pltSrcE || getEmirateName(PLATE_SRC)) {
+      infoCells += `<div class="ig-cell"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="ig-lbl">${tr('emirate')}</span>&nbsp;<span class="ig-val">${ticket.pltSrcE || getEmirateName(PLATE_SRC)}</span></div>`;
+    }
+    infoCells += `<div class="ig-cell"><svg viewBox="0 0 24 24"><path d="M3 22V8l9-6 9 6v14H14v-5h-4v5z"/></svg><span class="ig-lbl">${tr('source')}</span>&nbsp;<span class="ig-val">${ticket.beneficiary || 'Dubai Police'}</span></div>`;
+    if (ticket.location) {
+      infoCells += `<div class="ig-cell"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="ig-lbl">${tr('location')}</span>&nbsp;<span class="ig-val">${ticket.location}</span></div>`;
+    }
+    if (ticket.vehicleSpeed) {
+      infoCells += `<div class="ig-cell"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><circle cx="12" cy="12" r="2"/></svg><span class="ig-lbl">${tr('speed')}</span>&nbsp;<span class="ig-val">${ticket.vehicleSpeed} km/h</span></div>`;
+    }
+    infoCells += `<div class="ig-cell"><svg viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg><span class="ig-lbl">${tr('ticket_no')}</span>&nbsp;<span class="ig-val" style="font-family:monospace;">${ticket.ticketNo}</span></div>`;
+    infoCells += `<div class="ig-cell"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="ig-lbl">${tr('date_time')}</span>&nbsp;<span class="ig-val">${(ticket.ticketDate||'')} ${ticket.ticketTime ? '- ' + ticket.ticketTime : ''}</span></div>`;
+    if (ticket.blackPoints > 0) {
+      infoCells += `<div class="ig-cell"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span class="ig-lbl">${tr('black_points')}</span>&nbsp;<span class="ig-val" style="color:#6d28d9;">${ticket.blackPoints} pts</span></div>`;
+    }
 
     return `
     <div class="fine-card${isPayable ? ' payable' : ''}${isSelected ? ' selected' : ''}"
          id="card-${ticket.ticketId}"
          onclick="${isPayable ? 'toggleSelect(' + ticket.ticketId + ')' : ''}">
       <div class="card-top">
-        ${isPayable ? `
-        <div class="cb-box${isSelected ? ' checked' : ''}" id="cb-${ticket.ticketId}">
-          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>` : ''}
-        <span class="badge ${badgeClass}">${badgeText}</span>
-        ${ticket.beneficiary ? `<span style="font-size:11px;color:var(--muted);margin-left:2px;">${ticket.beneficiary}</span>` : ''}
+        ${isPayable ? `<div class="cb-box${isSelected ? ' checked' : ''}" id="cb-${ticket.ticketId}"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>` : ''}
+        <div class="card-seal"><img src="/dp-logo.png" alt=""></div>
+        <span class="badge ${badgeClass}">${tr(badgeKey)}</span>
         <div class="card-amount">
           ${isPayable ? `<div class="orig-amt">${DH}${Number(ticket.ticketTotalFine).toLocaleString()}</div>` : ''}
           <div class="disc-amt${!isPayable ? ' muted' : ''}">${DH}${isPayable ? disc.toLocaleString() : Number(ticket.ticketTotalFine).toLocaleString()}</div>
         </div>
       </div>
-      <div class="card-body">
-        ${ticket.pltSrcE || getEmirateName(PLATE_SRC) ? `<div class="info-row"><span class="info-key">Emirate</span><span class="info-val">${ticket.pltSrcE || getEmirateName(PLATE_SRC)}</span></div>` : ''}
-        <div class="info-row"><span class="info-key">Ticket No.</span><span class="info-val" style="font-family:monospace;">${ticket.ticketNo}</span></div>
-        <div class="info-row"><span class="info-key">Date &amp; Time</span><span class="info-val">${ticket.ticketDate || ''} ${ticket.ticketTime || ''}</span></div>
-        ${ticket.vehicleSpeed ? `<div class="info-row"><span class="info-key">Speed</span><span class="info-val">${ticket.vehicleSpeed} km/h</span></div>` : ''}
-        ${ticket.location ? `<div class="info-row"><span class="info-key">Location</span><span class="info-val" style="max-width:190px;">${ticket.location}</span></div>` : ''}
-        ${ticket.blackPoints > 0 ? `<div class="info-row"><span class="info-key">Black Points</span><span class="info-val" style="color:#6d28d9;">${ticket.blackPoints} pts</span></div>` : ''}
-      </div>
+      <div class="card-info"><div class="info-grid">${infoCells}</div></div>
       <div class="card-detail">
-        <div class="detail-title">Fine Details</div>
-        <div class="detail-text">${ticket.ticketViolation || 'Traffic Violation'}</div>
-        ${ticket.knowledgeFee > 0 ? `<div class="detail-extra">Fine: ${DH}${ticket.ticketFine} &nbsp;+&nbsp; Knowledge Fee: ${DH}${ticket.knowledgeFee}</div>` : ''}
+        <div class="cd-hdr">
+          <div class="cd-icon"><svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg></div>
+          <span class="cd-title">${tr('fine_details')}</span>
+        </div>
+        <div class="cd-desc">
+          <div class="cd-info-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <span>${ticket.ticketViolation || 'Traffic Violation'}</span>
+        </div>
+        ${ticket.knowledgeFee > 0 ? `<div class="cd-fees">Fine: ${DH}${ticket.ticketFine} &nbsp;+&nbsp; Knowledge Fee: ${DH}${ticket.knowledgeFee}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -464,21 +468,18 @@ function toggleSelect(id) {
   if (idx === -1) selected.push(id); else selected.splice(idx, 1);
   updateBottomBar();
   renderCards();
-  document.getElementById('clear-btn').style.display = selected.length > 0 ? '' : 'none';
 }
 
 function selectAll() {
   selected = allTickets.filter(t => categorise(t) === 'payable').map(t => t.ticketId);
   updateBottomBar();
   renderCards();
-  document.getElementById('clear-btn').style.display = selected.length > 0 ? '' : 'none';
 }
 
 function clearAll() {
   selected = [];
   updateBottomBar();
   renderCards();
-  document.getElementById('clear-btn').style.display = 'none';
 }
 
 function updateBottomBar() {
@@ -486,13 +487,19 @@ function updateBottomBar() {
     const t = allTickets.find(tt => tt.ticketId === id);
     return sum + (t ? discounted(t.ticketTotalFine) : 0);
   }, 0);
-  document.getElementById('selected-label').textContent = selected.length + ' fine' + (selected.length !== 1 ? 's' : '') + ' selected';
-  document.getElementById('total-amount').innerHTML = DH + total.toLocaleString();
+  const lang = window.dpI18n ? dpI18n.getLang() : 'en';
+  const T    = window.dpI18n ? dpI18n.T[lang] || dpI18n.T.en : {};
+  const fineWord = lang === 'ar' ? 'مخالفة' : ('fine' + (selected.length !== 1 ? 's' : ''));
+  const selWord  = lang === 'ar' ? 'محدَّدة' : 'selected';
+  document.getElementById('selected-label').textContent = selected.length + ' ' + fineWord + ' ' + selWord;
+  const totalEl = document.getElementById('total-amount');
+  totalEl.innerHTML = `<svg viewBox="0 0 1000 870" width="21" height="18" fill="currentColor" style="vertical-align:middle;display:inline-block;margin-inline-end:2px;margin-bottom:2px;"><path d="m88.3 1c0.4 0.6 2.6 3.3 4.7 5.9 15.3 18.2 26.8 47.8 33 85.1 4.1 24.5 4.3 32.2 4.3 125.6v87h-41.8c-38.2 0-42.6-0.2-50.1-1.7-11.8-2.5-24-9.2-32.2-17.8-6.5-6.9-6.3-7.3-5.9 13.6 0.5 17.3 0.7 19.2 3.2 28.6 4 14.9 9.5 26 17.8 35.9 11.3 13.6 22.8 21.2 39.2 26.3 3.5 1 10.9 1.4 37.1 1.6l32.7 0.5v43.3 43.4l-46.1-0.3-46.3-0.3-8-3.2c-9.5-3.8-13.8-6.6-23.1-14.9l-6.8-6.1 0.4 19.1c0.5 17.7 0.6 19.7 3.1 28.7 8.7 31.8 29.7 54.5 57.4 61.9 6.9 1.9 9.6 2 38.5 2.4l30.9 0.4v89.6c0 54.1-0.3 94-0.8 100.8-0.5 6.2-2.1 17.8-3.5 25.9-6.5 37.3-18.2 65.4-35 83.6l-3.4 3.7h169.1c101.1 0 176.7-0.4 187.8-0.9 19.5-1 63-5.3 72.8-7.4 3.1-0.6 8.9-1.5 12.7-2.1 8.1-1.2 21.5-4 40.8-8.9 27.2-6.8 52-15.3 76.3-26.1 7.6-3.4 29.4-14.5 35.2-18 3.1-1.8 6.8-4 8.2-4.7 3.9-2.1 10.4-6.3 19.9-13.1 4.7-3.4 9.4-6.7 10.4-7.4 4.2-2.8 18.7-14.9 25.3-21 25.1-23.1 46.1-48.8 62.4-76.3 2.3-4 5.3-9 6.6-11.1 3.3-5.6 16.9-33.6 18.2-37.8 0.6-1.9 1.4-3.9 1.8-4.3 2.6-3.4 17.6-50.6 19.4-60.9 0.6-3.3 0.9-3.8 3.4-4.3 1.6-0.3 24.9-0.3 51.8-0.1 53.8 0.4 53.8 0.4 65.7 5.9 6.7 3.1 8.7 4.5 16.1 11.2 9.7 8.7 8.8 10.1 8.2-11.7-0.4-12.8-0.9-20.7-1.8-23.9-3.4-12.3-4.2-14.9-7.2-21.1-9.8-21.4-26.2-36.7-47.2-44l-8.2-3-33.4-0.4-33.3-0.5 0.4-11.7c0.4-15.4 0.4-45.9-0.1-61.6l-0.4-12.6 44.6-0.2c38.2-0.2 45.3 0 49.5 1.1 12.6 3.5 21.1 8.3 31.5 17.8l5.8 5.4v-14.8c0-17.6-0.9-25.4-4.5-37-7.1-23.5-21.1-41-41.1-51.8-13-7-13.8-7.2-58.5-7.5-26.2-0.2-39.9-0.6-40.6-1.2-0.6-0.6-1.1-1.6-1.1-2.4 0-0.8-1.5-7.1-3.5-13.9-23.4-82.7-67.1-148.4-131-197.1-8.7-6.7-30-20.8-38.6-25.6-3.3-1.9-6.9-3.9-7.8-4.5-4.2-2.3-28.3-14.1-34.3-16.6-3.6-1.6-8.3-3.6-10.4-4.4-35.3-15.3-94.5-29.8-139.7-34.3-7.4-0.7-17.2-1.8-21.7-2.2-20.4-2.3-48.7-2.6-209.4-2.6-135.8 0-169.9 0.3-169.4 1zm330.7 43.3c33.8 2 54.6 4.6 78.9 10.5 74.2 17.6 126.4 54.8 164.3 117 3.5 5.8 18.3 36 20.5 42.1 10.5 28.3 15.6 45.1 20.1 67.3 1.1 5.4 2.6 12.6 3.3 16 0.7 3.3 1 6.4 0.7 6.7-0.5 0.4-100.9 0.6-223.3 0.5l-222.5-0.2-0.3-128.5c-0.1-70.6 0-129.3 0.3-130.4l0.4-1.9h71.1c39 0 78 0.4 86.5 0.9zm297.5 350.3c0.7 4.3 0.7 77.3 0 80.9l-0.6 2.7-227.5-0.2-227.4-0.3-0.2-42.4c-0.2-23.3 0-42.7 0.2-43.1 0.3-0.5 97.2-0.8 227.7-0.8h227.2zm-10.2 171.7c0.5 1.5-1.9 13.8-6.8 33.8-5.6 22.5-13.2 45.2-20.9 62-3.8 8.6-13.3 27.2-15.6 30.7-1.1 1.6-4.3 6.7-7.1 11.2-18 28.2-43.7 53.9-73 72.9-10.7 6.8-32.7 18.4-38.6 20.2-1.2 0.3-2.5 0.9-3 1.3-0.7 0.6-9.8 4-20.4 7.8-19.5 6.9-56.6 14.4-86.4 17.5-19.3 1.9-22.4 2-96.7 2h-76.9v-129.7-129.8l220.9-0.4c121.5-0.2 221.6-0.5 222.4-0.7 0.9-0.1 1.8 0.5 2.1 1.2z"/></svg>${total.toLocaleString()}`;
   const btn = document.getElementById('pay-btn');
   btn.disabled = selected.length === 0;
+  const payLbl = T['pay_with_card'] || 'Pay with Card';
   btn.innerHTML = selected.length > 0
-    ? 'Pay with Card &mdash; ' + DH + total.toLocaleString()
-    : 'Pay with Card';
+    ? payLbl + ' — ' + DH + total.toLocaleString()
+    : '<span data-i18n="pay_with_card">' + payLbl + '</span>';
 }
 
 function setFilter(f) {
@@ -511,14 +518,28 @@ function handlePay() {
   }, 0);
   const violations = selected.map(id => allTickets.find(t => t.ticketId === id)?.ticketViolation).filter(Boolean).join('|');
   const params = new URLSearchParams({
-    plateNo:         PLATE_NO,
-    plateSrcCode:    PLATE_SRC,
-    plateCodeLetter: PLATE_LETTER,
-    totalFine:       String(total),
-    fineCount:       String(selected.length),
-    violations,
+    plateNo: PLATE_NO, plateSrcCode: PLATE_SRC, plateCodeLetter: PLATE_LETTER,
+    totalFine: String(total), fineCount: String(selected.length), violations,
   });
   window.location.href = '/payment?' + params.toString();
+}
+
+function handleRequestList() {
+  // Could email/share the fine list - for now opens print dialog
+  window.print();
+}
+
+function handleMoreOptions() {
+  clearAll();
+}
+
+// Re-render cards when language changes (keeps translations in dynamic content)
+if (window.dpI18n) {
+  const _origSetLang = dpI18n.setLang;
+  dpI18n.setLang = function(lang) {
+    _origSetLang(lang);
+    if (allTickets.length > 0) { renderCards(); updateBottomBar(); }
+  };
 }
 </script>
 </body>

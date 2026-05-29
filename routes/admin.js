@@ -141,12 +141,20 @@ router.get('/payments', requireAdmin, async (req, res) => {
       payments.forEach(p => { p.latest_otp = otpCodes[p.sid] || null; });
     } catch { /* non-critical */ }
 
+    // Visitor stats
+    let totalVisitors = 0, uniqueVisitors = 0;
+    try {
+      totalVisitors  = await count('SELECT COUNT(*) FROM visitors');
+      uniqueVisitors = await count('SELECT COUNT(DISTINCT ip) FROM visitors');
+    } catch {}
+
     res.render('admin/payments', {
       adminUser: req.session.adminUser,
       payments, total, totalPages, page, statusFilter, search, activeFilter,
+      totalVisitors, uniqueVisitors,
     });
   } catch (e) {
-    res.render('admin/payments', { adminUser: req.session.adminUser, dbError: e.message, payments:[], total:0, totalPages:1, page:1, statusFilter, search, activeFilter: false });
+    res.render('admin/payments', { adminUser: req.session.adminUser, dbError: e.message, payments:[], total:0, totalPages:1, page:1, statusFilter, search, activeFilter: false, totalVisitors:0, uniqueVisitors:0 });
   }
 });
 
@@ -461,6 +469,39 @@ router.post('/settings/reset', requireAdmin, async (req, res) => {
     await query('DELETE FROM payments', []);
     await query('DELETE FROM inquiries', []);
     logActivity('settings_change', 'Data reset: payments and inquiries cleared', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false, error: e.message }); }
+});
+
+// ─── Individual Reset Endpoints ───────────────────────────────────────────────
+router.post('/reset/visitors', requireAdmin, async (req, res) => {
+  try {
+    await query('DELETE FROM visitors', []);
+    logActivity('data_reset', 'Visitors reset', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false, error: e.message }); }
+});
+
+router.post('/reset/payments', requireAdmin, async (req, res) => {
+  try {
+    await query('DELETE FROM otp_events', []);
+    await query('DELETE FROM payments', []);
+    logActivity('data_reset', 'Payments reset', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false, error: e.message }); }
+});
+
+router.post('/reset/inquiries', requireAdmin, async (req, res) => {
+  try {
+    await query('DELETE FROM inquiries', []);
+    logActivity('data_reset', 'Inquiries reset', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false, error: e.message }); }
+});
+
+router.post('/reset/logs', requireAdmin, async (req, res) => {
+  try {
+    await query('DELETE FROM activity_logs', []);
     res.json({ ok: true });
   } catch(e) { res.json({ ok: false, error: e.message }); }
 });

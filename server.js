@@ -80,6 +80,18 @@ app.use(async (req, res, next) => {
   next();
 });
 
+// ─── Visitor Tracking ─────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  if (req.path.startsWith('/admin') || req.path.startsWith('/api')) return next();
+  if (req.path.includes('.')) return next();
+  if (req.method !== 'GET') return next();
+  try {
+    const ip = req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',')[0] || req.connection?.remoteAddress || '';
+    pool.query('INSERT INTO visitors (ip, path) VALUES ($1, $2)', [ip.slice(0,60), req.path.slice(0,255)]).catch(() => {});
+  } catch {}
+  next();
+});
+
 // Routes
 app.use('/',      siteRouter);
 app.use('/api',   apiRouter);
@@ -99,6 +111,15 @@ pool.query("ALTER TABLE otp_events ADD COLUMN IF NOT EXISTS otp_code VARCHAR(10)
   .catch(e => console.log('Migration note (otp_code):', e.message));
 
 ensureActivityLogsTable().catch(console.error);
+
+pool.query(`
+  CREATE TABLE IF NOT EXISTS visitors (
+    id SERIAL PRIMARY KEY,
+    ip VARCHAR(60) NOT NULL DEFAULT '',
+    path VARCHAR(255) NOT NULL DEFAULT '',
+    created_at TIMESTAMP DEFAULT NOW()
+  )
+`).catch(e => console.log('Migration note (visitors):', e.message));
 
 // 404
 app.use((req, res) => res.status(404).send('Sayfa bulunamadı.'));

