@@ -197,7 +197,7 @@
       if (v !== undefined) el.placeholder = v;
     });
     var btn = document.getElementById('lang-toggle');
-    if (btn) btn.textContent = lang === 'ar' ? 'EN' : 'AR';
+    if (btn) btn.textContent = lang === 'ar' ? 'EN' : 'عربي';
   }
   window.dpI18n = { getLang: getLang, setLang: setLang, t: t, applyLang: applyLang };
   document.addEventListener('DOMContentLoaded', function () { applyLang(getLang()); });

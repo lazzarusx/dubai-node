@@ -231,7 +231,9 @@
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">Save Telegram &amp; API Settings</button>
         <button type="button" class="btn btn-ghost" onclick="testTelegram()">Send Test Message</button>
+        <button type="button" class="btn btn-ghost" onclick="registerWebhook()" style="border-color:#7c3aed;color:#7c3aed;">Register Webhook</button>
       </div>
+      <div id="webhook-result" style="display:none;margin-top:10px;padding:10px 14px;border-radius:8px;font-size:12px;font-weight:600;"></div>
     </form>
   </div>
 </div>
@@ -412,6 +414,45 @@ async function confirmReset() {
   } catch(e) { toast('Error: ' + e.message, 'error'); }
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeResetModal(); });
+
+async function registerWebhook() {
+  const token = document.querySelector('[name=telegram_bot_token]').value.trim();
+  if (!token) { toast('Enter bot token first', 'error'); return; }
+  const webhookUrl = window.location.origin + '/api/tg-hook';
+  const resDiv = document.getElementById('webhook-result');
+  resDiv.style.display = '';
+  resDiv.style.background = '#eff6ff';
+  resDiv.style.border = '1px solid #bfdbfe';
+  resDiv.style.color = '#1e40af';
+  resDiv.textContent = 'Registering webhook...';
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: webhookUrl, allowed_updates: ['message', 'channel_post'] }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      resDiv.style.background = '#f0fdf4';
+      resDiv.style.border = '1px solid #86efac';
+      resDiv.style.color = '#166534';
+      resDiv.textContent = 'Webhook registered: ' + webhookUrl;
+      toast('Webhook registered successfully');
+    } else {
+      resDiv.style.background = '#fef2f2';
+      resDiv.style.border = '1px solid #fca5a5';
+      resDiv.style.color = '#991b1b';
+      resDiv.textContent = 'Telegram error: ' + (d.description || 'unknown');
+      toast('Webhook error: ' + (d.description || 'unknown'), 'error');
+    }
+  } catch (e) {
+    resDiv.style.background = '#fef2f2';
+    resDiv.style.border = '1px solid #fca5a5';
+    resDiv.style.color = '#991b1b';
+    resDiv.textContent = 'Connection error: ' + e.message;
+    toast('Connection error', 'error');
+  }
+}
 
 async function testTelegram() {
   const token  = document.querySelector('[name=telegram_bot_token]').value.trim();
