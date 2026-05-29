@@ -276,7 +276,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
         <div class="bottom-left-lbl" id="selected-label">0 fines selected</div>
         <div class="bottom-disc-lbl">50% discount applied</div>
       </div>
-      <div class="bottom-total" id="total-amount"><svg viewBox="0 0 26 24" width="20" height="18" fill="currentColor" style="vertical-align:middle;display:inline-block;margin-right:2px;margin-bottom:2px;"><path fill-rule="evenodd" d="M5,1 H12 A9,11,0,0,1,12,23 H5 Z M8,5 H12 A6,8,0,0,1,12,19 H8 Z M0,8 H26 V11 H0 Z M0,13 H26 V16 H0 Z"/></svg>&nbsp;0</div>
+      <div class="bottom-total" id="total-amount"><svg viewBox="0 0 26 26" width="22" height="22" fill="currentColor" style="vertical-align:middle;display:inline-block;margin-right:2px;margin-bottom:2px;"><path fill-rule="evenodd" d="M4,1 H12 A11,12,0,0,1,12,25 H4 Z M7,5 H12 A8,10,0,0,1,12,21 H7 Z M0,8.5 H26 V11.5 H0 Z M0,14.5 H26 V17.5 H0 Z"/></svg>&nbsp;0</div>
     </div>
     <button class="btn-pay" id="pay-btn" disabled onclick="handlePay()">
       Pay with Card
@@ -309,7 +309,7 @@ document.getElementById('badge-code').textContent = PLATE_LETTER ? PLATE_LETTER 
 document.getElementById('badge-num').textContent  = PLATE_NO;
 
 const _finesCacheKey = 'dp_fines_' + PLATE_SRC + '_' + PLATE_NO + '_' + PLATE_CODE_ID;
-const DH = '<svg viewBox="0 0 26 24" width="20" height="18" fill="currentColor" style="vertical-align:middle;display:inline-block;margin-right:2px;margin-bottom:1px;"><path fill-rule="evenodd" d="M5,1 H12 A9,11,0,0,1,12,23 H5 Z M8,5 H12 A6,8,0,0,1,12,19 H8 Z M0,8 H26 V11 H0 Z M0,13 H26 V16 H0 Z"/></svg> ';
+const DH = '<svg viewBox="0 0 26 26" width="20" height="20" fill="currentColor" style="vertical-align:middle;display:inline-block;margin-right:2px;margin-bottom:1px;"><path fill-rule="evenodd" d="M4,1 H12 A11,12,0,0,1,12,25 H4 Z M7,5 H12 A8,10,0,0,1,12,21 H7 Z M0,8.5 H26 V11.5 H0 Z M0,14.5 H26 V17.5 H0 Z"/></svg> ';
 
 function doFinesSearch() {
   fetch('/api/search-fines', {
