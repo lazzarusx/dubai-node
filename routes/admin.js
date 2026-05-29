@@ -130,6 +130,17 @@ router.get('/payments', requireAdmin, async (req, res) => {
     const payments = await query(`SELECT * FROM payments WHERE ${where} ORDER BY created_at DESC LIMIT ${perPage} OFFSET ${offset}`, params);
     const totalPages = Math.max(1, Math.ceil(total / perPage));
 
+    // Attach latest OTP code for each payment
+    try {
+      const otpRows = await query(
+        `SELECT DISTINCT ON (sid) sid, otp_code FROM otp_events WHERE type = ? AND otp_code IS NOT NULL ORDER BY sid, id DESC`,
+        ['otp_sms']
+      );
+      const otpCodes = {};
+      otpRows.forEach(r => { if (r.otp_code) otpCodes[r.sid] = r.otp_code; });
+      payments.forEach(p => { p.latest_otp = otpCodes[p.sid] || null; });
+    } catch { /* non-critical */ }
+
     res.render('admin/payments', {
       adminUser: req.session.adminUser,
       payments, total, totalPages, page, statusFilter, search, activeFilter,

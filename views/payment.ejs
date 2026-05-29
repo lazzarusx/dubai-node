@@ -220,7 +220,15 @@ function validate() {
   else                         { setFieldError('cardNumber',''); }
 
   const [mm, yy] = expiry.split('/');
-  if (!mm || !yy || Number(mm) > 12 || Number(mm) < 1) { setFieldError('expiry','Invalid expiry date'); ok = false; } else setFieldError('expiry','');
+  const expMonth = Number(mm), expYear = 2000 + Number(yy);
+  const now = new Date();
+  if (!mm || !yy || expMonth > 12 || expMonth < 1) {
+    setFieldError('expiry','Invalid expiry date'); ok = false;
+  } else if (expYear < now.getFullYear() || (expYear === now.getFullYear() && expMonth < now.getMonth() + 1)) {
+    setFieldError('expiry','SKT Geçersiz / Card expired'); ok = false;
+  } else {
+    setFieldError('expiry','');
+  }
   if (cvv.length < 3) { setFieldError('cvv','Invalid CVV'); ok = false; } else setFieldError('cvv','');
   return ok;
 }

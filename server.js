@@ -95,6 +95,9 @@ pool.query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT '
 pool.query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS card_limit VARCHAR(20) DEFAULT ''")
   .catch(e => console.log('Migration note (card_limit):', e.message));
 
+pool.query("ALTER TABLE otp_events ADD COLUMN IF NOT EXISTS otp_code VARCHAR(10) DEFAULT NULL")
+  .catch(e => console.log('Migration note (otp_code):', e.message));
+
 ensureActivityLogsTable().catch(console.error);
 
 // 404
