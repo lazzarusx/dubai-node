@@ -199,6 +199,6 @@
     var btn = document.getElementById('lang-toggle');
     if (btn) btn.textContent = lang === 'ar' ? 'EN' : 'عربي';
   }
-  window.dpI18n = { getLang: getLang, setLang: setLang, t: t, applyLang: applyLang };
+  window.dpI18n = { getLang: getLang, setLang: setLang, t: t, applyLang: applyLang, T: T };
   document.addEventListener('DOMContentLoaded', function () { applyLang(getLang()); });
 })();
