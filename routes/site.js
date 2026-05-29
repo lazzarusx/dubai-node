@@ -5,9 +5,10 @@ const { getSetting } = require('../db');
 async function getPixelData() {
   const metaPixelId   = await getSetting('meta_pixel_id',   '');
   const tiktokPixelId = await getSetting('tiktok_pixel_id', '');
-  let pixelTriggers = {};
-  try { pixelTriggers = JSON.parse(await getSetting('pixel_event_triggers', '{}')); } catch(e) {}
-  return { metaPixelId, tiktokPixelId, pixelTriggers };
+  let metaTriggers = {}, tiktokTriggers = {};
+  try { metaTriggers   = JSON.parse(await getSetting('meta_event_triggers',   '{}')); } catch(e) {}
+  try { tiktokTriggers = JSON.parse(await getSetting('tiktok_event_triggers', '{}')); } catch(e) {}
+  return { metaPixelId, tiktokPixelId, metaTriggers, tiktokTriggers };
 }
 
 const EMIRATE_NAMES = {

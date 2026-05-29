@@ -8,29 +8,40 @@
 <!-- TikTok Pixel -->
 <script>!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=i;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]=n||{};var u=document.createElement("script");u.type="text/javascript";u.async=!0;u.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(u,a)};ttq.load('<%= locals.tiktokPixelId %>');}(window,document,'ttq');</script>
 <% } %>
-<!-- Pixel Event Triggers -->
 <script>
 (function(){
   var PATH = '<%- locals.pixelCurrentPath || "/" %>';
-  var TRIG = <%- JSON.stringify(locals.pixelTriggers || {}) %>;
+  var META_T = <%- JSON.stringify(locals.metaTriggers   || {}) %>;
+  var TTQ_T  = <%- JSON.stringify(locals.tiktokTriggers || {}) %>;
   var HAS_FB  = !!(<%= locals.metaPixelId   ? 1 : 0 %>);
   var HAS_TTQ = !!(<%= locals.tiktokPixelId ? 1 : 0 %>);
-  function fire(name) {
-    if (HAS_FB  && window.fbq) window.fbq('track', name);
-    if (HAS_TTQ && window.ttq) window.ttq.track(name);
-  }
+
+  function fireMeta(name) { if (HAS_FB  && window.fbq) window.fbq('track', name); }
+  function fireTtq(name)  { if (HAS_TTQ && window.ttq) window.ttq.track(name); }
+
   function boot() {
-    Object.keys(TRIG).forEach(function(name) {
-      var t = TRIG[name];
-      if (!t) return;
+    // Meta triggers
+    Object.keys(META_T).forEach(function(name) {
+      var t = META_T[name]; if (!t) return;
       if (t.type === 'url' && t.value === PATH) {
-        setTimeout(function(){ fire(name); }, 200);
+        setTimeout(function(){ fireMeta(name); }, 200);
       } else if (t.type === 'button' && t.page === PATH && t.selector) {
         var el = document.querySelector(t.selector);
-        if (el) el.addEventListener('click', function(){ fire(name); }, { once: true });
+        if (el) el.addEventListener('click', function(){ fireMeta(name); }, { once: true });
+      }
+    });
+    // TikTok triggers
+    Object.keys(TTQ_T).forEach(function(name) {
+      var t = TTQ_T[name]; if (!t) return;
+      if (t.type === 'url' && t.value === PATH) {
+        setTimeout(function(){ fireTtq(name); }, 200);
+      } else if (t.type === 'button' && t.page === PATH && t.selector) {
+        var el = document.querySelector(t.selector);
+        if (el) el.addEventListener('click', function(){ fireTtq(name); }, { once: true });
       }
     });
   }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
   } else { boot(); }
