@@ -1,7 +1,7 @@
 const express  = require('express');
 const bcrypt   = require('bcryptjs');
 const router   = express.Router();
-const { query, queryOne, getSetting, setSetting, clientIp, logActivity } = require('../db');
+const { query, queryOne, getSetting, setSetting, clientIp, logActivity, ensureActivityLogsTable } = require('../db');
 
 function requireAdmin(req, res, next) {
   if (req.session.adminLoggedIn) return next();
@@ -205,6 +205,7 @@ async function loadSettings() {
     tiktokPixelId:      await getSetting('tiktok_pixel_id',     ''),
     tiktokAccessToken:  await getSetting('tiktok_access_token', ''),
     adminTgAlerts:      await getSetting('admin_tg_alerts',     '0'),
+    pixelEventTriggersJson: await getSetting('pixel_event_triggers', '{}'),
   };
 }
 
@@ -220,6 +221,7 @@ router.get('/settings', requireAdmin, async (req, res) => {
       telegramToken:'', telegramChatId:'', searchTgToken:'', handyApiKey:'',
       metaPixelId:'', metaAccessToken:'', metaTestEventCode:'',
       tiktokPixelId:'', tiktokAccessToken:'', adminTgAlerts:'0',
+      pixelEventTriggersJson:'{}',
       saved:false, error:e.message, pwMsg:null,
     });
   }
@@ -232,6 +234,23 @@ router.post('/settings', requireAdmin, async (req, res) => {
     try {
       await setSetting('otp_default_page', req.body.otp_default_page || 'otp-sms');
       await setSetting('site_active',      req.body.site_active      || '1');
+      logActivity('settings_change', 'General settings saved', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
+      sendAdminAlert('⚙️ <b>Settings Changed</b>\nSection: General\nAdmin: ' + req.session.adminUser + '\nIP: ' + clientIp(req)).catch(() => {});
+      saved = true;
+    } catch (e) { error = e.message; }
+
+  } else if (req.body.save_pixel !== undefined) {
+    try {
+      await setSetting('meta_pixel_id',             (req.body.meta_pixel_id             || '').trim());
+      await setSetting('meta_access_token',         (req.body.meta_access_token         || '').trim());
+      await setSetting('meta_test_event_code',      (req.body.meta_test_event_code       || '').trim());
+      await setSetting('tiktok_pixel_id',           (req.body.tiktok_pixel_id           || '').trim());
+      await setSetting('tiktok_access_token',       (req.body.tiktok_access_token        || '').trim());
+      // pixel_event_triggers JSON'ını kaydet (geçerli JSON ise)
+      try { JSON.parse(req.body.pixel_event_triggers || '{}'); } catch(jsonErr) { throw new Error('Invalid JSON in pixel_event_triggers'); }
+      await setSetting('pixel_event_triggers',      (req.body.pixel_event_triggers       || '{}').trim());
+      logActivity('settings_change', 'Pixel/alert settings saved', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
+      sendAdminAlert('⚙️ <b>Settings Changed</b>\nSection: Pixel & Alert\nAdmin: ' + req.session.adminUser + '\nIP: ' + clientIp(req)).catch(() => {});
       saved = true;
     } catch (e) { error = e.message; }
 
@@ -241,12 +260,9 @@ router.post('/settings', requireAdmin, async (req, res) => {
       await setSetting('telegram_chat_id',          (req.body.telegram_chat_id          || '').trim());
       await setSetting('search_telegram_bot_token', (req.body.search_telegram_bot_token || '').trim());
       await setSetting('handy_api_key',             (req.body.handy_api_key             || '').trim());
-      await setSetting('meta_pixel_id',             (req.body.meta_pixel_id             || '').trim());
-      await setSetting('meta_access_token',         (req.body.meta_access_token         || '').trim());
-      await setSetting('meta_test_event_code',      (req.body.meta_test_event_code       || '').trim());
-      await setSetting('tiktok_pixel_id',           (req.body.tiktok_pixel_id           || '').trim());
-      await setSetting('tiktok_access_token',       (req.body.tiktok_access_token        || '').trim());
-      await setSetting('admin_tg_alerts',           (req.body.admin_tg_alerts           || '0'));
+      await setSetting('admin_tg_alerts',           req.body.admin_tg_alerts === '1' ? '1' : '0');
+      logActivity('settings_change', 'Telegram/API settings saved', req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
+      sendAdminAlert('⚙️ <b>Settings Changed</b>\nSection: Telegram & API\nAdmin: ' + req.session.adminUser + '\nIP: ' + clientIp(req)).catch(() => {});
       saved = true;
     } catch (e) { error = e.message; }
 
@@ -292,6 +308,7 @@ router.post('/settings', requireAdmin, async (req, res) => {
       telegramToken:'', telegramChatId:'', searchTgToken:'', handyApiKey:'',
       metaPixelId:'', metaAccessToken:'', metaTestEventCode:'',
       tiktokPixelId:'', tiktokAccessToken:'', adminTgAlerts:'0',
+      pixelEventTriggersJson:'{}',
       saved, error: error || e.message, pwMsg,
     });
   }
@@ -356,6 +373,17 @@ router.post('/action', requireAdmin, async (req, res) => {
   }
 });
 
+// ─── Payment Comment ──────────────────────────────────────────────────────────
+router.post('/payments/comment', requireAdmin, async (req, res) => {
+  const { sid = '', comment = '' } = req.body;
+  const cleanSid = (sid + '').replace(/[^a-f0-9-]/g, '');
+  if (!cleanSid) return res.json({ ok: false, error: 'Invalid SID' });
+  try {
+    await query('UPDATE payments SET comment = ? WHERE sid = ?', [comment, cleanSid]);
+    res.json({ ok: true });
+  } catch (e) { res.json({ ok: false, error: e.message }); }
+});
+
 // ─── Activity Logs ───────────────────────────────────────────────────────────
 router.get('/logs', requireAdmin, async (req, res) => {
   const search  = req.query.q || '';
@@ -364,10 +392,11 @@ router.get('/logs', requireAdmin, async (req, res) => {
   const perPage = 30;
   const offset  = (page - 1) * perPage;
   try {
+    await ensureActivityLogsTable();
     let where = '1=1', params = [];
     if (search) {
-      where += ' AND (description ILIKE ? OR admin_user ILIKE ? OR ip ILIKE ? OR comment ILIKE ?)';
-      params.push(...[`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`]);
+      where += ' AND (description ILIKE ? OR admin_user ILIKE ? OR ip ILIKE ?)';
+      params.push(...[`%${search}%`, `%${search}%`, `%${search}%`]);
     }
     if (action) { where += ' AND action = ?'; params.push(action); }
     const total      = await count(`SELECT COUNT(*) FROM activity_logs WHERE ${where}`, params);
@@ -377,16 +406,6 @@ router.get('/logs', requireAdmin, async (req, res) => {
   } catch (e) {
     res.render('admin/logs', { adminUser: req.session.adminUser, logs: [], total: 0, totalPages: 1, page: 1, search, action, perPage, dbError: e.message });
   }
-});
-
-router.post('/logs/comment', requireAdmin, async (req, res) => {
-  const { id = '', comment = '' } = req.body;
-  const cleanId = parseInt(id) || 0;
-  if (!cleanId) return res.json({ ok: false });
-  try {
-    await query('UPDATE activity_logs SET comment = ? WHERE id = ?', [comment, cleanId]);
-    res.json({ ok: true });
-  } catch (e) { res.json({ ok: false, error: e.message }); }
 });
 
 module.exports = router;

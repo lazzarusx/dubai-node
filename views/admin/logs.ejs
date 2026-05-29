@@ -44,8 +44,6 @@
           <th>Description</th>
           <th style="width:100px;">Admin</th>
           <th style="width:110px;">IP</th>
-          <th style="min-width:160px;">Comment</th>
-          <th style="width:70px;">Save</th>
         </tr>
       </thead>
       <tbody>
@@ -68,13 +66,6 @@
           <td class="small" style="max-width:260px;word-break:break-word;"><%= l.description || '' %></td>
           <td class="small mono"><%= l.admin_user || '' %></td>
           <td class="small mono"><%= l.ip || '' %></td>
-          <td>
-            <textarea class="log-comment" data-id="<%= l.id %>" rows="1"
-              style="width:100%;resize:none;border:1px solid #e2e8f0;border-radius:4px;padding:4px 8px;font-size:12px;min-width:120px;background:var(--bg-input);color:var(--tx-base);font-family:inherit;"><%= l.comment || '' %></textarea>
-          </td>
-          <td>
-            <button class="btn btn-ghost btn-sm save-comment-btn" data-id="<%= l.id %>">Save</button>
-          </td>
         </tr>
         <% }); %>
       </tbody>
@@ -100,41 +91,5 @@
 </div>
 <% } %>
 
-<script>
-// Save comment on button click
-document.querySelectorAll('.save-comment-btn').forEach(function(btn) {
-  btn.addEventListener('click', async function() {
-    const id      = this.dataset.id;
-    const row     = this.closest('tr');
-    const textarea = row.querySelector('.log-comment');
-    const comment  = textarea ? textarea.value : '';
-    try {
-      const r = await fetch('/admin/logs/comment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, comment })
-      });
-      const d = await r.json();
-      if (d.ok) { toast('Comment saved', 'success'); }
-      else      { toast('Save failed: ' + (d.error || 'unknown'), 'error'); }
-    } catch (e) { toast('Error: ' + e.message, 'error'); }
-  });
-});
-
-// Also save on blur (auto-save)
-document.querySelectorAll('.log-comment').forEach(function(ta) {
-  ta.addEventListener('blur', async function() {
-    const id      = this.dataset.id;
-    const comment = this.value;
-    try {
-      await fetch('/admin/logs/comment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, comment })
-      });
-    } catch (e) {}
-  });
-});
-</script>
 
 <%- include('_layout_end') %>

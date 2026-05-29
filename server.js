@@ -50,6 +50,9 @@ app.use('/admin', adminRouter);
 pool.query('ALTER TABLE payments ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP DEFAULT NULL')
   .catch(e => console.log('Migration note:', e.message));
 
+pool.query("ALTER TABLE payments ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''")
+  .catch(e => console.log('Migration note (comment):', e.message));
+
 ensureActivityLogsTable().catch(console.error);
 
 // 404
