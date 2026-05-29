@@ -48,24 +48,32 @@
         <div class="form-group">
           <label>Discount Countdown End Time</label>
           <input type="datetime-local" name="discount_ends_at"
-                 value="<%= discountEndsAt ? discountEndsAt.replace('Z','').slice(0,16) : '' %>"
+                 value="<%= discountEndsAt ? (()=>{ const d=new Date(discountEndsAt); d.setHours(d.getHours()+4); return d.toISOString().slice(0,16); })() : '' %>"
                  style="font-family:monospace;">
-          <div class="field-hint">Shows a live countdown timer on the home &amp; fines pages. Leave blank to hide the timer. Time is in UTC — Dubai (GST) = UTC+4.</div>
+          <div class="field-hint">Enter the deadline in <strong>Dubai local time</strong> (matches the clock on the right). Leave blank to disable timer.</div>
         </div>
-        <div class="form-group" style="display:flex;align-items:flex-end;">
-          <div style="font-size:12px;color:#6b7280;padding-bottom:8px;line-height:1.6;">
+        <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:2px;">
+          <div style="font-size:12px;color:var(--tx-muted);padding-bottom:8px;line-height:1.8;">
             Current Dubai time:<br>
-            <strong id="dubai-now" style="font-family:monospace;font-size:13px;color:#0f172a;"></strong>
+            <strong id="dubai-now" style="font-family:monospace;font-size:14px;color:var(--tx-base);"></strong>
             <script>
               (function tick(){
-                var d=new Date();
                 var el=document.getElementById('dubai-now');
-                if(el) el.textContent=d.toLocaleString('en-AE',{timeZone:'Asia/Dubai',hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+                if(el) el.textContent=new Date().toLocaleString('en-AE',{timeZone:'Asia/Dubai',hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
                 setTimeout(tick,1000);
               })();
             </script>
           </div>
         </div>
+      </div>
+
+      <div class="form-group" style="margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" name="discount_timer_active" value="1" <%= discountTimerActive==='1' ? 'checked' : '' %>
+                 style="width:16px;height:16px;accent-color:#006837;">
+          <span>Show countdown timer on public pages</span>
+        </label>
+        <div class="field-hint">Uncheck to hide the timer without clearing the end time. Re-check to re-enable it.</div>
       </div>
 
       <div class="form-actions">

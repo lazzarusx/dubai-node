@@ -8,7 +8,9 @@ async function getPixelData() {
   let metaTriggers = {}, tiktokTriggers = {};
   try { metaTriggers   = JSON.parse(await getSetting('meta_event_triggers',   '{}')); } catch(e) {}
   try { tiktokTriggers = JSON.parse(await getSetting('tiktok_event_triggers', '{}')); } catch(e) {}
-  const discountEndsAt = await getSetting('discount_ends_at', '');
+  const discountEndsAtRaw   = await getSetting('discount_ends_at',      '');
+  const discountTimerActive = await getSetting('discount_timer_active', '1');
+  const discountEndsAt = (discountTimerActive === '1') ? discountEndsAtRaw : '';
   return { metaPixelId, tiktokPixelId, metaTriggers, tiktokTriggers, discountEndsAt };
 }
 
@@ -93,7 +95,7 @@ router.get('/otp-sms', async (req, res) => {
     cardLast4,
     totalFine: parseInt(totalFine || amount) || 0,
     issuer, sid, error,
-    dateStr: new Date().toLocaleDateString('tr-TR', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric' }),
+    dateStr: new Date().toLocaleString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }),
   });
 });
 
@@ -106,7 +108,7 @@ router.get('/otp', async (req, res) => {
     totalFine: parseInt(totalFine || amount) || 0,
     issuer,
     sid,
-    dateStr: new Date().toLocaleDateString('tr-TR', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric' }),
+    dateStr: new Date().toLocaleString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }),
   });
 });
 
@@ -140,7 +142,7 @@ router.get('/yogunluk', async (req, res) => {
   res.render('yogunluk', {
     ...pixel, pixelCurrentPath: '/yogunluk',
     totalFine: parseInt(totalFine)||0, cardLast4, issuer, sid,
-    dateStr: new Date().toLocaleDateString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'long', year:'numeric' }),
+    dateStr: new Date().toLocaleString('en-AE', { timeZone:'Asia/Dubai', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }),
   });
 });
 
