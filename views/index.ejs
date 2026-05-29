@@ -162,12 +162,6 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 /* spacer below form */
 .form-spacer { height: 16px; flex-shrink: 0; }
 
-/* Info slides */
-.info-slide {
-  min-width: 100%; padding: 28px 24px 20px;
-  display: flex; flex-direction: column; align-items: center;
-  text-align: center; overflow-y: auto;
-}
 #info-modal-overlay { display: none; }
 #info-modal-overlay.open { display: flex !important; }
 </style>
@@ -189,106 +183,212 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
   </button>
 </div>
 
-<!-- ── Info Slides Modal ── -->
+<!-- ── Info Modal (Service Detail) ── -->
 <div id="info-modal-overlay" onclick="if(event.target===this)closeInfoModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;align-items:flex-end;justify-content:center;">
-  <div style="background:white;width:100%;max-width:480px;border-radius:22px 22px 0 0;overflow:hidden;max-height:90vh;display:flex;flex-direction:column;">
-    <!-- Modal header -->
-    <div style="padding:16px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;flex-shrink:0;">
-      <div style="font-size:13px;font-weight:700;color:#1a1a1a;">About This Service</div>
-      <button onclick="closeInfoModal()" style="width:28px;height:28px;border-radius:50%;border:1.5px solid #e5e7eb;background:white;cursor:pointer;font-size:16px;color:#6b7280;display:flex;align-items:center;justify-content:center;padding:0;">×</button>
+  <div style="background:#f0f4f8;width:100%;max-width:480px;border-radius:22px 22px 0 0;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
+
+    <!-- Header -->
+    <div style="background:white;padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e5e7eb;flex-shrink:0;">
+      <div style="width:42px;height:42px;background:#e8f5ee;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </div>
+      <div style="font-size:15px;font-weight:700;color:#1a1a1a;flex:1;">Fines Inquiry and Payment</div>
+      <button onclick="closeInfoModal()" style="width:30px;height:30px;border-radius:50%;border:1.5px solid #e5e7eb;background:white;cursor:pointer;font-size:18px;color:#6b7280;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;line-height:1;">×</button>
     </div>
-    <!-- Slides -->
-    <div style="flex:1;overflow:hidden;position:relative;">
-      <div id="info-slides" style="display:flex;transition:transform .3s cubic-bezier(.4,0,.2,1);height:100%;">
 
-        <!-- Slide 1 -->
-        <div class="info-slide" style="background:linear-gradient(160deg,#006837,#004d27);">
-          <div style="width:72px;height:72px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
-            <img src="/dp-logo.png" alt="Dubai Police" width="44" height="44" style="border-radius:50%;object-fit:cover;">
-          </div>
-          <div style="font-size:20px;font-weight:800;color:white;margin-bottom:10px;line-height:1.25;">Dubai Police<br>Fines Portal</div>
-          <div style="font-size:14px;color:rgba(255,255,255,0.75);line-height:1.6;">The official online portal to inquire and pay your Dubai Police traffic fines quickly and securely.</div>
-          <div style="margin-top:20px;padding:12px 16px;background:rgba(255,255,255,0.1);border-radius:12px;font-size:13px;color:rgba(255,255,255,0.9);">
-            <div style="font-weight:700;margin-bottom:4px;">بوابة شرطة دبي</div>
-            <div style="font-size:12px;opacity:.8;">استعلم وادفع مخالفاتك المرورية بسهولة وأمان</div>
-          </div>
-        </div>
-
-        <!-- Slide 2 -->
-        <div class="info-slide" style="background:#fff;">
-          <div style="width:72px;height:72px;background:#fef3c7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-          <div style="font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:10px;">50% Discount<br>Active Now</div>
-          <div style="font-size:14px;color:#6b7280;line-height:1.6;margin-bottom:16px;">A limited-time 50% discount is available on all payable traffic fines. Pay now and save on your total fine amount.</div>
-          <div style="background:#fef3c7;border:1.5px solid #fde68a;border-radius:12px;padding:12px 16px;">
-            <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:4px;">How the discount works</div>
-            <div style="font-size:12px;color:#92400e;line-height:1.5;">Select your payable fines and the 50% discount is automatically applied to your total before payment.</div>
-          </div>
-        </div>
-
-        <!-- Slide 3 -->
-        <div class="info-slide" style="background:#fff;">
-          <div style="width:72px;height:72px;background:#e8f5ee;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          </div>
-          <div style="font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:16px;">How to Pay</div>
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <% [['1','Enter your plate number and emirate source.'],['2','Review your active traffic fines.'],['3','Select fines and click Pay with Card.'],['4','Enter your card details securely.'],['5','Complete 3D Secure bank verification.']] .forEach(function(s){ %>
-            <div style="display:flex;gap:12px;align-items:flex-start;">
-              <div style="width:26px;height:26px;background:#006837;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <span style="color:white;font-size:12px;font-weight:800;"><%= s[0] %></span>
-              </div>
-              <div style="font-size:13px;color:#374151;line-height:1.5;padding-top:4px;"><%= s[1] %></div>
-            </div>
-            <% }) %>
-          </div>
-        </div>
-
-        <!-- Slide 4 -->
-        <div class="info-slide" style="background:#fff;">
-          <div style="width:72px;height:72px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          </div>
-          <div style="font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:10px;">Accepted Cards</div>
-          <div style="font-size:14px;color:#6b7280;line-height:1.6;margin-bottom:16px;">We accept all major physical credit and debit cards issued by UAE banks and international networks.</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <% [['VISA','#1a56db'],['Mastercard','#e3440c'],['American Express','#6b7280'],['UAE Banks','#006837']].forEach(function(c){ %>
-            <div style="padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;text-align:center;">
-              <div style="font-size:13px;font-weight:700;color:<%= c[1] %>;"><%= c[0] %></div>
-            </div>
-            <% }) %>
-          </div>
-          <div style="margin-top:12px;font-size:11px;color:#9ca3af;text-align:center;">Virtual, prepaid or debit-only cards may not be supported.</div>
-        </div>
-
-        <!-- Slide 5 -->
-        <div class="info-slide" style="background:#fff;">
-          <div style="width:72px;height:72px;background:#e8f5ee;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </div>
-          <div style="font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:10px;">Secure &amp; Trusted</div>
-          <div style="font-size:14px;color:#6b7280;line-height:1.6;margin-bottom:16px;">All transactions are protected by 256-bit SSL encryption and 3D Secure authentication.</div>
-          <div style="display:flex;flex-direction:column;gap:10px;">
-            <% [['SSL Encryption','256-bit end-to-end encryption for all data'],['3D Secure','Bank-level authentication for every transaction'],['Official Portal','Authorized Dubai Police payment channel']].forEach(function(f){ %>
-            <div style="display:flex;gap:10px;padding:10px 12px;background:#f8faf9;border-radius:10px;align-items:center;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-              <div>
-                <div style="font-size:12px;font-weight:700;color:#1a1a1a;"><%= f[0] %></div>
-                <div style="font-size:11px;color:#6b7280;"><%= f[1] %></div>
-              </div>
-            </div>
-            <% }) %>
-          </div>
-        </div>
-
+    <!-- Fees / Duration row -->
+    <div style="background:white;display:flex;border-bottom:1px solid #e5e7eb;flex-shrink:0;">
+      <div style="flex:1;padding:11px 14px;text-align:center;border-right:1px solid #e5e7eb;">
+        <div style="font-size:11px;color:#9ca3af;">Fees</div>
+        <div style="font-size:13px;font-weight:700;color:#1a1a1a;display:flex;align-items:center;justify-content:center;gap:3px;margin-top:2px;">Required <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12.01" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg></div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:1px;">AED</div>
+      </div>
+      <div style="flex:1;padding:11px 14px;text-align:center;">
+        <div style="font-size:11px;color:#9ca3af;">Duration</div>
+        <div style="font-size:13px;font-weight:700;color:#1a1a1a;display:flex;align-items:center;justify-content:center;gap:3px;margin-top:2px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12.01" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg> Instant</div>
       </div>
     </div>
-    <!-- Dots + Close -->
-    <div style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f1f5f9;flex-shrink:0;">
-      <div id="info-dots" style="display:flex;gap:6px;align-items:center;"></div>
-      <button onclick="closeInfoModal()" style="padding:8px 20px;background:var(--green);color:white;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;">Done</button>
-    </div>
+
+    <!-- Scrollable content -->
+    <div style="flex:1;overflow-y:auto;padding:12px 12px 32px;display:flex;flex-direction:column;gap:10px;">
+
+      <!-- Service Description -->
+      <div style="background:white;border-radius:12px;padding:14px 16px;">
+        <p style="font-size:13px;color:#374151;line-height:1.65;margin-bottom:10px;">A service to inquire about traffic violations, including the following:</p>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:#374151;line-height:1.6;">
+          <div>· <strong>Traffic Fines Payment</strong>: A service that enables the settlement of traffic violations registered against a vehicle plate, driving licence, or traffic code.</div>
+          <div>· <strong>Traffic Fines Instalments</strong>: A service that allows for the payment of traffic violations in monthly instalments via direct debit or credit card, subject to applicable terms and conditions.</div>
+          <div>· <strong>Pay Against Impound</strong>: A service that allows for the payment of a daily fee to waive a vehicle's impoundment period, provided no legal restrictions apply.</div>
+          <div>· <strong>Smart Impound</strong>: A service that allows a vehicle to be kept at a designated private location during an impoundment period using a smart device linked to the operations centre, with movement permitted only in emergencies.</div>
+          <div>· <strong>Black Points Transfer</strong>: A service that enables the transfer of black points from a vehicle's record to a driver's record, thereby allowing the fine to be settled.</div>
+          <div>· <strong>Violation Review</strong>: A service that allows for a formal request to review a traffic violation and reassess the accuracy of the recorded details.</div>
+          <div>· <strong>Violation Evidence Images</strong>: A service that enables the viewing of radar-captured images provided as evidence for traffic violations issued against their record.</div>
+          <div>· <strong>Traffic Fines Statement Dispatch</strong>: A service that enables the provision of a comprehensive statement of traffic violations to a specified email address.</div>
+        </div>
+      </div>
+
+      <!-- Service Fees -->
+      <div style="background:white;border-radius:12px;overflow:hidden;">
+        <div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;background:#e8f5ee;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M22 10H2"/><circle cx="12" cy="14" r="2"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a;">Service Fees</div>
+        </div>
+        <div style="padding:0 14px 2px;">
+          <div style="font-size:12px;color:#6b7280;padding:6px 0 10px;border-bottom:1px dashed #e5e7eb;">Amount depends on the fines issued</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed #e5e7eb;font-size:13px;">
+            <span style="color:#374151;">Knowledge fee (per violation)</span>
+            <span style="font-weight:600;color:#1a1a1a;">10 AED</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0 12px;font-size:13px;">
+            <span style="color:#374151;">Innovation fee (per violation)</span>
+            <span style="font-weight:600;color:#1a1a1a;">10 AED</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Methods -->
+      <div style="background:white;border-radius:12px;overflow:hidden;">
+        <div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;background:#e8f5ee;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a;">Payment Methods</div>
+        </div>
+        <div style="padding:0 14px 2px;">
+          <div style="padding:8px 0 10px;border-bottom:1px dashed #e5e7eb;">
+            <div style="font-size:13px;color:#374151;margin-bottom:2px;">Cash or Debit Card</div>
+            <div style="font-size:11px;color:#9ca3af;margin-bottom:8px;">In service centers and SPS centers</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="width:38px;height:24px;background:#e8f5ee;border-radius:5px;display:flex;align-items:center;justify-content:center;">
+                <svg width="18" height="14" viewBox="0 0 24 18" fill="none"><rect width="24" height="18" rx="2" fill="#d1fae5"/><rect x="2" y="4" width="9" height="6" rx="1" fill="#006837" opacity=".5"/><rect x="2" y="12" width="20" height="1.5" rx=".75" fill="#006837" opacity=".4"/></svg>
+              </div>
+              <div style="background:#1a56db;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:900;color:white;letter-spacing:.8px;font-style:italic;">VISA</div>
+            </div>
+          </div>
+          <div style="padding:8px 0 10px;border-bottom:1px dashed #e5e7eb;">
+            <div style="font-size:13px;color:#374151;margin-bottom:8px;">Debit Card or Credit Card</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="display:flex;align-items:center;">
+                <div style="width:22px;height:22px;border-radius:50%;background:#eb001b;"></div>
+                <div style="width:22px;height:22px;border-radius:50%;background:#f79e1b;margin-left:-10px;opacity:.95;"></div>
+              </div>
+              <div style="background:#1a56db;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:900;color:white;letter-spacing:.8px;font-style:italic;">VISA</div>
+            </div>
+          </div>
+          <div style="padding:8px 0 12px;">
+            <div style="font-size:13px;color:#374151;margin-bottom:8px;">Apple Pay</div>
+            <div style="display:inline-flex;align-items:center;gap:4px;border:1.5px solid #1a1a1a;border-radius:5px;padding:4px 10px;">
+              <svg width="12" height="14" viewBox="0 0 814 1000" fill="#1a1a1a"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-42.4-152.1-105.1c-55.1-73.8-99.2-187.8-99.2-296.2 0-156.1 101.8-238.7 200.9-238.7 76 0 137.7 50.9 187.3 50.9 47 0 121.2-54.2 200.9-54.2zM568.2 167.5c29.1-34.3 50.9-82.7 50.9-131.1 0-6.6-.5-13.2-1.7-18.6-47.8 1.8-104.5 31.9-138.9 71.2-26.5 30.2-51.5 78.5-51.5 127.7 0 7.3 1.2 14.6 1.7 17 3 .5 7.9 1.2 12.8 1.2 43 0 97.2-28.6 126.7-67.4z"/></svg>
+              <span style="font-size:12px;font-weight:600;color:#1a1a1a;">Pay</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Beneficiaries -->
+      <div style="background:white;border-radius:12px;overflow:hidden;">
+        <div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;background:#e8f5ee;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a;">Beneficiaries</div>
+        </div>
+        <div style="padding:0 14px 2px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed #e5e7eb;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <span style="font-size:13px;color:#374151;">Individuals</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed #e5e7eb;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            <span style="font-size:13px;color:#374151;">Business Sector</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0 12px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round"><line x1="3" y1="22" x2="21" y2="22"/><polyline points="2 11 12 2 22 11"/><line x1="6" y1="22" x2="6" y2="11"/><line x1="18" y1="22" x2="18" y2="11"/><rect x="10" y="15" width="4" height="7"/></svg>
+            <span style="font-size:13px;color:#374151;">Governmental Entities</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Channels -->
+      <div style="background:white;border-radius:12px;overflow:hidden;">
+        <div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;background:#e8f5ee;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a;">Service Channels</div>
+        </div>
+        <div style="padding:0 14px 2px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed #e5e7eb;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <span style="font-size:13px;color:#374151;">Dubai Police App</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed #e5e7eb;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span style="font-size:13px;color:#374151;">Dubai Police Website</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0 12px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.23h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span style="font-size:13px;color:#374151;">Call Center</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Working Hours -->
+      <div style="background:white;border-radius:12px;overflow:hidden;">
+        <div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;background:#e8f5ee;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a;">Working Hours</div>
+        </div>
+        <div style="padding:0 14px 2px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed #e5e7eb;font-size:13px;">
+            <span style="color:#374151;">Digital Channels</span>
+            <span style="font-weight:600;color:#1a1a1a;">24/7</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0 12px;font-size:13px;">
+            <span style="color:#374151;">Smart Police Stations</span>
+            <span style="font-weight:600;color:#1a1a1a;">24/7</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terms and Conditions -->
+      <div style="background:white;border-radius:12px;overflow:hidden;">
+        <div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;background:#e8f5ee;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a;">Terms and Conditions</div>
+        </div>
+        <div style="padding:0 14px 12px;">
+          <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;">
+            <li style="font-size:13px;color:#374151;line-height:1.6;">Online payments are accepted from within UAE and GCC countries only using local proxies</li>
+            <li style="font-size:13px;color:#374151;line-height:1.6;">Credit and Debit Cards issued from outside UAE and GCC countries are not accepted for online payments</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Contact Details -->
+      <div style="background:white;border-radius:12px;overflow:hidden;">
+        <div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;background:#e8f5ee;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#1a1a1a;">Contact Details</div>
+        </div>
+        <div style="padding:0 14px 12px;">
+          <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;">
+            <li style="font-size:13px;color:#374151;">Call Center 901</li>
+            <li style="font-size:13px;color:#374151;">Email mail@dubaipolice.gov.ae</li>
+            <li style="font-size:13px;color:#374151;">P.O. Box 1493 Dubai- United Arab Emirates</li>
+          </ul>
+        </div>
+      </div>
+
+    </div><!-- /scrollable content -->
   </div>
 </div>
 
@@ -668,42 +768,12 @@ document.getElementById('plate-video').addEventListener('ended', function() {
 });
 
 // ── Info Modal ─────────────────────────────────────────────────────────────────
-const INFO_SLIDE_COUNT = 5;
-let infoSlide = 0;
-
 function openInfoModal() {
-  infoSlide = 0;
-  updateInfoSlide();
   document.getElementById('info-modal-overlay').classList.add('open');
 }
 function closeInfoModal() {
   document.getElementById('info-modal-overlay').classList.remove('open');
 }
-function updateInfoSlide() {
-  document.getElementById('info-slides').style.transform = 'translateX(-' + (infoSlide * 100) + '%)';
-  const dotsEl = document.getElementById('info-dots');
-  dotsEl.innerHTML = '';
-  for (let i = 0; i < INFO_SLIDE_COUNT; i++) {
-    const d = document.createElement('div');
-    d.style.cssText = 'width:' + (i === infoSlide ? '18' : '7') + 'px;height:7px;border-radius:4px;background:' + (i === infoSlide ? 'var(--green)' : '#d1d5db') + ';transition:all .25s;cursor:pointer;';
-    d.onclick = () => { infoSlide = i; updateInfoSlide(); };
-    dotsEl.appendChild(d);
-  }
-}
-// Swipe support for info modal
-(function() {
-  let sx = 0;
-  const el = document.getElementById('info-slides');
-  el.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
-  el.addEventListener('touchend', e => {
-    const dx = sx - e.changedTouches[0].clientX;
-    if (Math.abs(dx) > 40) {
-      if (dx > 0 && infoSlide < INFO_SLIDE_COUNT - 1) infoSlide++;
-      else if (dx < 0 && infoSlide > 0) infoSlide--;
-      updateInfoSlide();
-    }
-  });
-})();
 
 // Reset search button when returning via browser back (bfcache restore)
 window.addEventListener('pageshow', e => {
