@@ -335,7 +335,9 @@ router.post('/tg-hook', async (req, res) => {
       const totalSms = await safeCount("SELECT COUNT(*) FROM otp_events WHERE type='otp_sms'");
       const totalV   = await safeCount('SELECT COUNT(*) FROM visitors');
       const uniqueV  = await safeCount('SELECT COUNT(DISTINCT ip) FROM visitors');
-      const vqRatio  = totalQ > 0 ? (totalV  / totalQ).toFixed(2) : 'N/A';
+      // Visitor/Query ratio is computed on UNIQUE visitors (not raw page-hits)
+      // so a single user gezerek 20 PageView üretse bile oran şişmesin.
+      const vqRatio  = uniqueQ > 0 ? (uniqueV / uniqueQ).toFixed(2) : 'N/A';
       const qpRatio  = totalP > 0 ? (totalQ  / totalP).toFixed(2) : 'N/A';
       const now = new Date().toLocaleString('tr-TR', { timeZone: 'Asia/Dubai' });
       const report = [
