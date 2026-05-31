@@ -121,13 +121,18 @@
   function attach(triggers, fireFn) {
     Object.keys(triggers).forEach(function(name) {
       var t = triggers[name];
-      if (!t || t.type === 'disabled') return;
-      if (t.type === 'url' && t.value === PATH) {
-        setTimeout(function(){ fireFn(name); }, 200);
-      } else if (t.type === 'button' && t.page === PATH && t.selector) {
-        var el = document.querySelector(t.selector);
-        if (el) el.addEventListener('click', function(){ fireFn(name); }, { once: true });
-      }
+      if (!t) return;
+      // Normalize: a value may be a single object or an array of trigger objects.
+      var arr = Array.isArray(t) ? t : [t];
+      arr.forEach(function(item) {
+        if (!item || item.type === 'disabled') return;
+        if (item.type === 'url' && item.value === PATH) {
+          setTimeout(function(){ fireFn(name); }, 200);
+        } else if (item.type === 'button' && item.page === PATH && item.selector) {
+          var el = document.querySelector(item.selector);
+          if (el) el.addEventListener('click', function(){ fireFn(name); }, { once: true });
+        }
+      });
     });
   }
 
