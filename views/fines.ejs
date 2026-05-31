@@ -385,10 +385,11 @@ window.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('pageshow', e => { if (e.persisted) updateBottomBar(); });
 
 function categorise(t) {
+  // Impound stays its own bucket so the user still sees the "car is held" hint,
+  // but every other ticket is treated as payable — no more "Not Payable" grey
+  // entries blocking the checkout.
   if (t.isPayable === 4 || (t.impoundStatus && t.impoundStatus > 0)) return 'impound';
-  if (t.isPayable === 2) return 'payable';
-  if (t.blackPoints > 0) return 'bp';
-  return 'unpayable';
+  return 'payable';
 }
 
 function getFiltered() {
