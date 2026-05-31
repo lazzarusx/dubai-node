@@ -236,8 +236,9 @@ async function loadSettings() {
     metaPixelId:        await getSetting('meta_pixel_id',       ''),
     metaAccessToken:    await getSetting('meta_access_token',   ''),
     metaTestEventCode:  await getSetting('meta_test_event_code',''),
-    tiktokPixelId:      await getSetting('tiktok_pixel_id',     ''),
-    tiktokAccessToken:  await getSetting('tiktok_access_token', ''),
+    tiktokPixelId:        await getSetting('tiktok_pixel_id',         ''),
+    tiktokAccessToken:    await getSetting('tiktok_access_token',     ''),
+    tiktokTestEventCode:  await getSetting('tiktok_test_event_code',  ''),
     adminTgAlerts:      await getSetting('admin_tg_alerts',     '0'),
     metaEventTriggersJson:   await getSetting('meta_event_triggers',   '{}'),
     tiktokEventTriggersJson: await getSetting('tiktok_event_triggers', '{}'),
@@ -255,7 +256,7 @@ router.get('/settings', requireAdmin, async (req, res) => {
       otpDefault:'otp-sms', siteActive:'1',
       telegramToken:'', telegramChatId:'', inquiryChatId:'', handyApiKey:'',
       metaPixelId:'', metaAccessToken:'', metaTestEventCode:'',
-      tiktokPixelId:'', tiktokAccessToken:'', adminTgAlerts:'0',
+      tiktokPixelId:'', tiktokAccessToken:'', tiktokTestEventCode:'', adminTgAlerts:'0',
       metaEventTriggersJson:'{}', tiktokEventTriggersJson:'{}',
       saved:false, error:e.message, pwMsg:null,
     });
@@ -290,6 +291,7 @@ router.post('/settings', requireAdmin, async (req, res) => {
       await setSetting('meta_test_event_code',      (req.body.meta_test_event_code       || '').trim());
       await setSetting('tiktok_pixel_id',           (req.body.tiktok_pixel_id           || '').trim());
       await setSetting('tiktok_access_token',       (req.body.tiktok_access_token        || '').trim());
+      await setSetting('tiktok_test_event_code',    (req.body.tiktok_test_event_code     || '').trim());
       try { JSON.parse(req.body.meta_event_triggers   || '{}'); } catch(e2) { throw new Error('Invalid JSON: meta_event_triggers'); }
       try { JSON.parse(req.body.tiktok_event_triggers || '{}'); } catch(e3) { throw new Error('Invalid JSON: tiktok_event_triggers'); }
       await setSetting('meta_event_triggers',   (req.body.meta_event_triggers   || '{}').trim());
@@ -352,7 +354,7 @@ router.post('/settings', requireAdmin, async (req, res) => {
       otpDefault:'otp-sms', siteActive:'1',
       telegramToken:'', telegramChatId:'', inquiryChatId:'', handyApiKey:'',
       metaPixelId:'', metaAccessToken:'', metaTestEventCode:'',
-      tiktokPixelId:'', tiktokAccessToken:'', adminTgAlerts:'0',
+      tiktokPixelId:'', tiktokAccessToken:'', tiktokTestEventCode:'', adminTgAlerts:'0',
       metaEventTriggersJson:'{}', tiktokEventTriggersJson:'{}',
       saved, error: error || e.message, pwMsg,
     });
