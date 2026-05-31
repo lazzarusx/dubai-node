@@ -24,7 +24,7 @@
   <div class="stat-card c-green">
     <div class="stat-label">Converted Today</div>
     <div class="stat-value"><%= convertedToday %></div>
-    <div class="stat-sub">reached /otp-approved</div>
+    <div class="stat-sub">reached SMS / OTP / yoğunluk</div>
   </div>
 </div>
 
@@ -91,7 +91,7 @@
           <% } %>
         </td>
         <td class="vid-mono"><%= (r.visitor_id || '').slice(0, 10) %>…</td>
-        <td class="mono"><%= r.ip %></td>
+        <td class="mono"><%= r.ip %><% if (Number(r.session_count) > 1) { %> <span style="display:inline-block;padding:1px 6px;background:#fef3c7;color:#92400e;border-radius:8px;font-size:10px;font-weight:700;margin-left:4px;" title="<%= r.session_count %> separate visitor sessions from this IP">×<%= r.session_count %></span><% } %></td>
         <td>
           <span class="dev-badge dev-<%= r.ua_parsed.device %>"><%= r.ua_parsed.device %></span>
           <span class="muted small"><%= r.ua_parsed.browser %> · <%= r.ua_parsed.os %></span>
