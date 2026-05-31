@@ -141,6 +141,11 @@
           <input type="text" name="tiktok_access_token" value="<%= tiktokAccessToken %>" placeholder="xxxxxxxx..." class="mono" autocomplete="off">
           <div class="field-hint">Server-side Events API token for CAPI.</div>
         </div>
+        <div class="form-group">
+          <label>TikTok Test Event Code (optional)</label>
+          <input type="text" name="tiktok_test_event_code" value="<%= tiktokTestEventCode %>" placeholder="TEST12345" class="mono" autocomplete="off">
+          <div class="field-hint">Leave empty in production. Use during testing to route events to TikTok Events Manager → Test Events.</div>
+        </div>
       </div>
 
       <!-- TikTok event triggers table -->
