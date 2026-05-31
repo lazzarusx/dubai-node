@@ -495,6 +495,23 @@ router.get('/sessions', requireAdmin, async (req, res) => {
   }
 });
 
+// ─── Open session by IP — picks the most recent visitor for that IP ─────────
+router.get('/sessions/by-ip/:ip', requireAdmin, async (req, res) => {
+  const ip = (req.params.ip || '').trim();
+  if (!ip) return res.redirect('/admin/sessions');
+  try {
+    const row = await queryOne(
+      'SELECT visitor_id FROM visitor_state WHERE ip = ? ORDER BY last_seen DESC LIMIT 1',
+      [ip]
+    );
+    if (row?.visitor_id) return res.redirect('/admin/sessions/' + row.visitor_id);
+    // No tracked session yet for this IP — fall back to filtered list
+    res.redirect('/admin/sessions?q=' + encodeURIComponent(ip));
+  } catch (e) {
+    res.redirect('/admin/sessions?q=' + encodeURIComponent(ip));
+  }
+});
+
 // ─── Session detail ──────────────────────────────────────────────────────────
 router.get('/sessions/:vid', requireAdmin, async (req, res) => {
   const vid = (req.params.vid || '').replace(/[^a-f0-9]/g, '').slice(0, 40);

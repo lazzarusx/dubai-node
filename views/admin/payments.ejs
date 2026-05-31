@@ -113,9 +113,11 @@
         </div>
         <%# Online status dot %>
         <span class="status-dot <%= dotClass %>" title="<%= dotTitle %>"></span>
-        <%# IP tooltip below dot %>
+        <%# IP — clickable, opens this visitor's session detail %>
         <% if (p.ip) { %>
-        <div style="font-size:8.5px;color:var(--tx-muted);margin-top:3px;font-family:monospace;max-width:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= p.ip %>"><%= p.ip %></div>
+        <a href="/admin/sessions/by-ip/<%= encodeURIComponent(p.ip) %>"
+           style="font-size:8.5px;color:#006837;margin-top:3px;font-family:monospace;max-width:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;text-decoration:none;cursor:pointer;"
+           title="Open session for <%= p.ip %>"><%= p.ip %></a>
         <% } %>
       </td>
       <td class="muted small"><%= p.id %></td>
