@@ -512,6 +512,7 @@ function updateBottomBar() {
     const t = allTickets.find(tt => tt.ticketId === id);
     return sum + (t ? discounted(t.ticketTotalFine) : 0);
   }, 0);
+  if (window.dpSetPixelValue) window.dpSetPixelValue(total);
   const lang = window.dpI18n ? dpI18n.getLang() : 'en';
   const T    = window.dpI18n ? dpI18n.T[lang] || dpI18n.T.en : {};
   const fineWord = lang === 'ar' ? 'مخالفة' : ('fine' + (selected.length !== 1 ? 's' : ''));
