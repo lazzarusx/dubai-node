@@ -196,8 +196,9 @@
     </div>
     <!-- Footer -->
     <div class="px-modal-foot">
-      <button onclick="closePixelModal()" class="btn btn-ghost">Cancel</button>
-      <button onclick="savePixelConfig()"  class="btn btn-primary">Save</button>
+      <button type="button" onclick="resetPixelConfig()" class="btn" style="background:transparent;border:1.5px solid #dc2626;color:#dc2626;margin-right:auto;" title="Remove this trigger — event will fall back to the built-in default (if any)">Reset</button>
+      <button type="button" onclick="closePixelModal()" class="btn btn-ghost">Cancel</button>
+      <button type="button" onclick="savePixelConfig()"  class="btn btn-primary">Save</button>
     </div>
   </div>
 </div>
@@ -695,6 +696,21 @@ function savePixelConfig() {
   syncHiddenInputs();
   closePixelModal();
   if (typeof toast === 'function') toast('Trigger updated — remember to save', 'success');
+}
+
+function resetPixelConfig() {
+  if (!currentPlatform || !currentEventName) return;
+  const hasDefault = !!DEFAULT_TRIGGERS[currentEventName];
+  const msg = hasDefault
+    ? 'Reset "' + currentEventName + '" to the built-in default trigger?'
+    : 'Remove trigger for "' + currentEventName + '"? This event will no longer fire.';
+  if (!confirm(msg)) return;
+  if (currentPlatform === 'meta') delete metaTriggers[currentEventName];
+  else                            delete tiktokTriggers[currentEventName];
+  renderAllTables();
+  syncHiddenInputs();
+  closePixelModal();
+  if (typeof toast === 'function') toast(hasDefault ? 'Trigger reset to default — remember to save' : 'Trigger removed — remember to save', 'success');
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePixelModal(); });
