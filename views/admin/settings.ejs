@@ -196,7 +196,8 @@
     </div>
     <!-- Footer -->
     <div class="px-modal-foot">
-      <button type="button" onclick="resetPixelConfig()" class="btn" style="background:transparent;border:1.5px solid #dc2626;color:#dc2626;margin-right:auto;" title="Remove this trigger — event will fall back to the built-in default (if any)">Reset</button>
+      <button type="button" onclick="resetPixelConfig()" class="btn" style="background:transparent;border:1.5px solid #94a3b8;color:#64748b;margin-right:6px;" title="Remove this override — event falls back to the built-in default (if any)">Reset</button>
+      <button type="button" onclick="disablePixelConfig()" class="btn" style="background:transparent;border:1.5px solid #dc2626;color:#dc2626;margin-right:auto;" title="Disable this event completely — overrides the built-in default too">Disable</button>
       <button type="button" onclick="closePixelModal()" class="btn btn-ghost">Cancel</button>
       <button type="button" onclick="savePixelConfig()"  class="btn btn-primary">Save</button>
     </div>
@@ -434,8 +435,9 @@
 .px-opt input[type=radio] { flex-shrink: 0; width: 15px; height: 15px; }
 .px-opt-main  { font-weight: 600; font-size: 13px; color: var(--tx-base); font-family: monospace; }
 .px-opt-sub   { font-size: 11px; color: var(--tx-muted); margin-top: 1px; }
-.px-badge-url    { font-size: 11px; background: #e0f2fe; color: #0284c7; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
-.px-badge-button { font-size: 11px; background: #ede9fe; color: #7c3aed; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
+.px-badge-url      { font-size: 11px; background: #e0f2fe; color: #0284c7; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
+.px-badge-button   { font-size: 11px; background: #ede9fe; color: #7c3aed; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
+.px-badge-disabled { font-size: 11px; background: #fee2e2; color: #dc2626; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
 .px-platform-label { font-size: 11px; background: var(--bg-thead); color: var(--tx-mid); padding: 2px 7px; border-radius: 20px; font-weight: 600; }
 </style>
 
@@ -573,6 +575,7 @@ function getTrig(platform, name) {
 
 function getTriggerLabel(t) {
   if (!t) return '—';
+  if (t.type === 'disabled') return 'Disabled';
   if (t.type === 'url') return t.value;
   const b = PIXEL_BUTTONS.find(x => x.id === t.id);
   return b ? b.selector + ' · ' + b.page : (t.selector || '?');
@@ -582,14 +585,21 @@ function renderTable(tbodyId, platform, events) {
   const tbody = document.getElementById(tbodyId);
   if (!tbody) return;
   tbody.innerHTML = events.map(name => {
-    const t = getTrig(platform, name);
+    // For the table, prefer the explicit saved value over the default so
+    // disabled overrides are visible.
+    const store = platform === 'meta' ? metaTriggers : tiktokTriggers;
+    const t = (name in store) ? store[name] : (DEFAULT_TRIGGERS[name] || null);
+    const isDisabled = t && t.type === 'disabled';
     const isUrl = !t || t.type === 'url';
-    const badgeCls = isUrl ? 'px-badge-url' : 'px-badge-button';
-    const badgeTxt = isUrl ? 'URL' : 'Button';
+    let badgeCls, badgeTxt;
+    if (isDisabled)   { badgeCls = 'px-badge-disabled'; badgeTxt = 'OFF'; }
+    else if (isUrl)   { badgeCls = 'px-badge-url';      badgeTxt = 'URL'; }
+    else              { badgeCls = 'px-badge-button';   badgeTxt = 'Button'; }
+    const labelStyle = isDisabled ? 'color:#dc2626;font-style:italic;' : 'color:var(--tx-mid);';
     return `<tr>
-      <td><strong style="font-size:13px;">${name}</strong></td>
+      <td><strong style="font-size:13px;${isDisabled ? 'opacity:0.6;' : ''}">${name}</strong></td>
       <td><span class="${badgeCls}">${badgeTxt}</span></td>
-      <td style="font-family:monospace;font-size:12px;color:var(--tx-mid);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${getTriggerLabel(t)}">${getTriggerLabel(t)}</td>
+      <td style="font-family:monospace;font-size:12px;${labelStyle}max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${getTriggerLabel(t)}">${getTriggerLabel(t)}</td>
       <td><button type="button" onclick="openPixelModal('${platform}','${name}')" style="padding:4px 10px;border:1.5px solid var(--bd);border-radius:6px;background:var(--bg-page);font-size:11px;font-weight:600;color:var(--tx-base);cursor:pointer;white-space:nowrap;">⚙ Configure</button></td>
     </tr>`;
   }).join('');
@@ -711,6 +721,18 @@ function resetPixelConfig() {
   syncHiddenInputs();
   closePixelModal();
   if (typeof toast === 'function') toast(hasDefault ? 'Trigger reset to default — remember to save' : 'Trigger removed — remember to save', 'success');
+}
+
+function disablePixelConfig() {
+  if (!currentPlatform || !currentEventName) return;
+  if (!confirm('Disable "' + currentEventName + '" completely?\n\nThis event will NOT fire on any page or click, even if a built-in default exists.')) return;
+  const disabled = { type: 'disabled' };
+  if (currentPlatform === 'meta') metaTriggers[currentEventName]   = disabled;
+  else                            tiktokTriggers[currentEventName] = disabled;
+  renderAllTables();
+  syncHiddenInputs();
+  closePixelModal();
+  if (typeof toast === 'function') toast('Event disabled — remember to save', 'success');
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePixelModal(); });
