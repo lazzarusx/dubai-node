@@ -15,11 +15,16 @@ const DEFAULT_PIXEL_TRIGGERS = {
 
 // Merge saved overrides on top of defaults. A saved entry with type:'disabled'
 // removes the event entirely (overrides the default too).
+// Each value may be a single trigger object OR an array of trigger objects
+// (multi-trigger support). Arrays are stored verbatim; pixel.ejs normalizes
+// them when iterating.
 function mergeTriggers(saved) {
   const out = { ...DEFAULT_PIXEL_TRIGGERS };
   Object.keys(saved || {}).forEach(k => {
-    if (saved[k] && saved[k].type === 'disabled') delete out[k];
-    else if (saved[k]) out[k] = saved[k];
+    const v = saved[k];
+    if (!v) return;
+    if (!Array.isArray(v) && v.type === 'disabled') delete out[k];
+    else out[k] = v;
   });
   return out;
 }
