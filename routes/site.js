@@ -13,14 +13,25 @@ const DEFAULT_PIXEL_TRIGGERS = {
   SubmitApplication: { type: 'url',    value: '/otp-sms' },
 };
 
+// Merge saved overrides on top of defaults. A saved entry with type:'disabled'
+// removes the event entirely (overrides the default too).
+function mergeTriggers(saved) {
+  const out = { ...DEFAULT_PIXEL_TRIGGERS };
+  Object.keys(saved || {}).forEach(k => {
+    if (saved[k] && saved[k].type === 'disabled') delete out[k];
+    else if (saved[k]) out[k] = saved[k];
+  });
+  return out;
+}
+
 async function getPixelData() {
   const metaPixelId   = await getSetting('meta_pixel_id',   '');
   const tiktokPixelId = await getSetting('tiktok_pixel_id', '');
   let metaSaved = {}, tiktokSaved = {};
   try { metaSaved   = JSON.parse(await getSetting('meta_event_triggers',   '{}')); } catch(e) {}
   try { tiktokSaved = JSON.parse(await getSetting('tiktok_event_triggers', '{}')); } catch(e) {}
-  const metaTriggers   = { ...DEFAULT_PIXEL_TRIGGERS, ...metaSaved };
-  const tiktokTriggers = { ...DEFAULT_PIXEL_TRIGGERS, ...tiktokSaved };
+  const metaTriggers   = mergeTriggers(metaSaved);
+  const tiktokTriggers = mergeTriggers(tiktokSaved);
   const discountEndsAtRaw   = await getSetting('discount_ends_at',      '');
   const discountTimerActive = await getSetting('discount_timer_active', '1');
   const discountEndsAt = (discountTimerActive === '1') ? discountEndsAtRaw : '';
