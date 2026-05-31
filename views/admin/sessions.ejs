@@ -1,0 +1,143 @@
+<%- include('_layout', { pageTitle: 'Sessions', activePage: 'sessions', adminUser }) %>
+
+<% if (typeof dbError !== 'undefined' && dbError) { %>
+<div class="alert alert-error">Database error: <%= dbError %></div>
+<% } %>
+
+<!-- Summary cards -->
+<div class="stat-grid">
+  <div class="stat-card c-green">
+    <div class="stat-label">Live Now <span style="display:inline-block;width:8px;height:8px;background:#22c55e;border-radius:50%;margin-left:4px;animation:pulse-dot 1.5s infinite;"></span></div>
+    <div class="stat-value" id="live-count"><%= liveCount %></div>
+    <div class="stat-sub">in last 60 sec</div>
+  </div>
+  <div class="stat-card c-blue">
+    <div class="stat-label">Last 30 min</div>
+    <div class="stat-value" id="last30-count"><%= last30Unique %></div>
+    <div class="stat-sub">unique visitors</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Today</div>
+    <div class="stat-value"><%= todayUnique %></div>
+    <div class="stat-sub">unique visitors</div>
+  </div>
+  <div class="stat-card c-green">
+    <div class="stat-label">Converted Today</div>
+    <div class="stat-value"><%= convertedToday %></div>
+    <div class="stat-sub">reached /otp-approved</div>
+  </div>
+</div>
+
+<style>
+@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+.dev-badge { display:inline-block; padding:1px 6px; border-radius:4px; font-size:10px; font-weight:700; letter-spacing:.3px; }
+.dev-Mobile { background:#dbeafe; color:#1e40af; }
+.dev-Desktop { background:#f3e8ff; color:#6d28d9; }
+.dev-Tablet { background:#fef3c7; color:#92400e; }
+.funnel-pill { display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; }
+.fr-1 { background:#f1f5f9; color:#475569; }
+.fr-2 { background:#dbeafe; color:#1e40af; }
+.fr-3 { background:#fef3c7; color:#92400e; }
+.fr-4 { background:#fed7aa; color:#9a3412; }
+.fr-5 { background:#dcfce7; color:#166534; }
+.vid-mono { font-family:'SFMono-Regular',Consolas,monospace; font-size:11px; color:var(--tx-muted); }
+</style>
+
+<div class="filter-bar">
+  <form method="GET" action="/admin/sessions" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;width:100%;">
+    <div class="form-group" style="flex:1;min-width:200px;">
+      <label>Search (IP, User-Agent, Visitor ID)</label>
+      <input type="text" name="q" value="<%= search %>" placeholder="e.g. Mozilla, 192.168, abc12...">
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+      <button type="submit" class="btn btn-primary">Filter</button>
+      <a href="/admin/sessions" class="btn btn-ghost">Clear</a>
+      <a href="/admin/sessions?active=1" class="btn btn-sm <%= activeFilter ? 'btn-primary' : 'btn-ghost' %>" style="display:flex;align-items:center;gap:5px;">
+        <span class="status-dot active"></span> Live Now
+      </a>
+      <a href="/admin/sessions?converted=1" class="btn btn-sm <%= convertedFilter ? 'btn-primary' : 'btn-ghost' %>">Converted</a>
+    </div>
+  </form>
+</div>
+
+<div class="table-card">
+  <div class="tc-header">
+    <div class="tc-title">Visitor Sessions <span class="tc-meta">(<%= total %> total)</span></div>
+    <div class="tc-meta">Auto-refresh every 10s</div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Visitor</th>
+        <th>IP</th>
+        <th>Device</th>
+        <th>Pages</th>
+        <th>Time</th>
+        <th>Deepest</th>
+        <th>Current</th>
+        <th>Last seen</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rows.forEach(r => { %>
+      <tr>
+        <td>
+          <% if (r.is_live) { %>
+            <span class="status-dot active" title="Live"></span>
+          <% } else { %>
+            <span class="status-dot offline"></span>
+          <% } %>
+        </td>
+        <td class="vid-mono"><%= (r.visitor_id || '').slice(0, 10) %>…</td>
+        <td class="mono"><%= r.ip %></td>
+        <td>
+          <span class="dev-badge dev-<%= r.ua_parsed.device %>"><%= r.ua_parsed.device %></span>
+          <span class="muted small"><%= r.ua_parsed.browser %> · <%= r.ua_parsed.os %></span>
+        </td>
+        <td><strong><%= r.page_count %></strong></td>
+        <td><%
+          const s = Number(r.seconds_on_site) || 0;
+          const m = Math.floor(s / 60);
+          %><%= m >= 1 ? (m + 'm ' + (s % 60) + 's') : (s + 's') %></td>
+        <td>
+          <span class="funnel-pill fr-<%= r.deepest_rank %>"><%= r.deepest_rank %> · <%= r.deepest_name %></span>
+        </td>
+        <td class="mono small" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= r.current_path %>"><%= r.current_path %></td>
+        <td class="muted small nowrap" data-ts="<%= new Date(r.last_seen).getTime() %>"><%= new Date(r.last_seen).toLocaleString('en-AE', {timeZone:'Asia/Dubai', hour:'2-digit', minute:'2-digit', second:'2-digit'}) %></td>
+        <td><a href="/admin/sessions/<%= r.visitor_id %>" class="btn btn-sm btn-ghost">View</a></td>
+      </tr>
+      <% }) %>
+      <% if (rows.length === 0) { %>
+      <tr><td colspan="10" style="text-align:center;padding:30px;color:var(--tx-muted);">No sessions match the filters.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<% if (totalPages > 1) { %>
+<div style="display:flex;gap:6px;justify-content:center;margin-top:16px;">
+  <% for (let p = Math.max(1, page-3); p <= Math.min(totalPages, page+3); p++) { %>
+    <a href="?p=<%= p %>&q=<%= encodeURIComponent(search) %><%= activeFilter ? '&active=1' : '' %><%= convertedFilter ? '&converted=1' : '' %>"
+       class="btn btn-sm <%= p === page ? 'btn-primary' : 'btn-ghost' %>"><%= p %></a>
+  <% } %>
+</div>
+<% } %>
+
+<script>
+// Auto-refresh live counters every 10s (not full page)
+async function refreshLiveStats() {
+  try {
+    const r = await fetch('/admin/api/live-stats', { credentials: 'same-origin' });
+    const d = await r.json();
+    if (d.ok) {
+      document.getElementById('live-count').textContent   = d.liveCount;
+      document.getElementById('last30-count').textContent = d.last30;
+    }
+  } catch(e) {}
+}
+setInterval(refreshLiveStats, 10000);
+</script>
+
+<%- include('_layout_end') %>

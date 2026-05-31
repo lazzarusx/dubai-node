@@ -1,7 +1,26 @@
 const express  = require('express');
 const bcrypt   = require('bcryptjs');
 const router   = express.Router();
-const { query, queryOne, getSetting, setSetting, clientIp, logActivity, ensureActivityLogsTable } = require('../db');
+const { pool, query, queryOne, getSetting, setSetting, clientIp, logActivity, ensureActivityLogsTable, FUNNEL_STEPS, pathRank, rankName } = require('../db');
+
+// ─── User-Agent parsing (lightweight) ─────────────────────────────────────────
+function parseUA(ua) {
+  ua = ua || '';
+  let device = 'Desktop', browser = '?', os = '?';
+  if (/Mobile|iPhone|iPod|Android.*Mobile/i.test(ua)) device = 'Mobile';
+  else if (/iPad|Tablet/i.test(ua))                   device = 'Tablet';
+  if (/iPhone|iPad|iPod/i.test(ua))      os = 'iOS';
+  else if (/Android/i.test(ua))           os = 'Android';
+  else if (/Windows/i.test(ua))           os = 'Windows';
+  else if (/Mac OS X|Macintosh/i.test(ua)) os = 'macOS';
+  else if (/Linux/i.test(ua))             os = 'Linux';
+  if      (/Edg\//i.test(ua))                  browser = 'Edge';
+  else if (/OPR\/|Opera/i.test(ua))            browser = 'Opera';
+  else if (/Chrome\//i.test(ua) && !/Edg|OPR/.test(ua)) browser = 'Chrome';
+  else if (/Firefox\//i.test(ua))              browser = 'Firefox';
+  else if (/Safari\//i.test(ua) && !/Chrome|Edg/.test(ua)) browser = 'Safari';
+  return { device, browser, os };
+}
 
 function requireAdmin(req, res, next) {
   if (req.session.adminLoggedIn) return next();
@@ -224,6 +243,20 @@ router.get('/inquiries', requireAdmin, async (req, res) => {
   }
 });
 
+// ─── Delete inquiry ──────────────────────────────────────────────────────────
+router.post('/inquiries/:id/delete', requireAdmin, async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id || isNaN(id)) return res.json({ ok: false, error: 'Invalid id' });
+  try {
+    await query('DELETE FROM inquiries WHERE id = ?', [id]);
+    logActivity('inquiry_delete', 'Inquiry deleted (id: ' + id + ')',
+                req.session.adminUser, clientIp(req), req.headers['user-agent'] || '').catch(() => {});
+    res.json({ ok: true });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+
 // ─── Settings helpers ─────────────────────────────────────────────────────────
 async function loadSettings() {
   return {
@@ -362,6 +395,180 @@ router.post('/settings', requireAdmin, async (req, res) => {
   if (pwMsg) { qs.set('pwmsg', pwMsg.type); qs.set('pwtext', pwMsg.text); }
   const q = qs.toString();
   res.redirect('/admin/settings' + (q ? '?' + q : ''));
+});
+
+// ─── Sessions list ───────────────────────────────────────────────────────────
+router.get('/sessions', requireAdmin, async (req, res) => {
+  const search       = (req.query.q || '').trim();
+  const activeFilter = req.query.active === '1';
+  const convertedFilter = req.query.converted === '1';
+  const page         = Math.max(1, parseInt(req.query.p) || 1);
+  const perPage      = 30;
+  const offset       = (page - 1) * perPage;
+
+  try {
+    let where = '1=1', params = [];
+    if (search) {
+      where += ' AND (vs.ip ILIKE ? OR vs.user_agent ILIKE ? OR vs.visitor_id ILIKE ?)';
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+    if (activeFilter)    where += " AND vs.last_seen > NOW() - INTERVAL '60 seconds'";
+    if (convertedFilter) where += " AND vs.deepest_path = '/otp-approved'";
+
+    const total = Number((await query(`SELECT COUNT(*) FROM visitor_state vs WHERE ${where}`, params))[0]?.count || 0);
+    const rows  = await query(`
+      SELECT vs.*,
+        EXTRACT(EPOCH FROM (vs.last_seen - vs.first_seen))::int AS seconds_on_site,
+        (SELECT COUNT(*) FROM payments  p WHERE p.ip = vs.ip) AS payment_count,
+        (SELECT COUNT(*) FROM inquiries i WHERE i.ip = vs.ip) AS inquiry_count
+      FROM visitor_state vs
+      WHERE ${where}
+      ORDER BY vs.last_seen DESC
+      LIMIT ${perPage} OFFSET ${offset}
+    `, params);
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+
+    // Summary counters (top of page)
+    const liveCount    = Number((await query(`SELECT COUNT(*) FROM visitor_state WHERE last_seen > NOW() - INTERVAL '60 seconds'`))[0]?.count || 0);
+    const last30Unique = Number((await query(`SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_id,''), ip)) FROM visitors WHERE created_at > NOW() - INTERVAL '30 minutes'`))[0]?.count || 0);
+    const todayUnique  = Number((await query(`SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_id,''), ip)) FROM visitors WHERE DATE(created_at AT TIME ZONE 'Asia/Dubai') = DATE(NOW() AT TIME ZONE 'Asia/Dubai')`))[0]?.count || 0);
+    const convertedToday = Number((await query(`SELECT COUNT(*) FROM visitor_state WHERE deepest_path='/otp-approved' AND DATE(last_seen AT TIME ZONE 'Asia/Dubai') = DATE(NOW() AT TIME ZONE 'Asia/Dubai')`))[0]?.count || 0);
+
+    rows.forEach(r => {
+      r.ua_parsed   = parseUA(r.user_agent);
+      r.deepest_rank = pathRank(r.deepest_path);
+      r.deepest_name = rankName(r.deepest_rank);
+      r.is_live      = r.last_seen && (Date.now() - new Date(r.last_seen).getTime() < 60000);
+    });
+
+    res.render('admin/sessions', {
+      adminUser: req.session.adminUser,
+      rows, total, totalPages, page, search, activeFilter, convertedFilter,
+      liveCount, last30Unique, todayUnique, convertedToday,
+    });
+  } catch (e) {
+    res.render('admin/sessions', {
+      adminUser: req.session.adminUser, dbError: e.message,
+      rows: [], total: 0, totalPages: 1, page: 1, search, activeFilter, convertedFilter,
+      liveCount: 0, last30Unique: 0, todayUnique: 0, convertedToday: 0,
+    });
+  }
+});
+
+// ─── Session detail ──────────────────────────────────────────────────────────
+router.get('/sessions/:vid', requireAdmin, async (req, res) => {
+  const vid = (req.params.vid || '').replace(/[^a-f0-9]/g, '').slice(0, 40);
+  try {
+    const state = await queryOne('SELECT * FROM visitor_state WHERE visitor_id = ? LIMIT 1', [vid]);
+    if (!state) return res.status(404).render('admin/session-detail', { adminUser: req.session.adminUser, state: null, timeline: [], inquiries: [], payments: [] });
+
+    const hits = await query('SELECT id, path, created_at FROM visitors WHERE visitor_id = ? ORDER BY created_at ASC LIMIT 500', [vid]);
+    const nowMs = Date.now();
+    const stateLastMs = new Date(state.last_seen).getTime();
+    const timeline = hits.map((h, i) => {
+      const next = hits[i+1];
+      const endMs = next ? new Date(next.created_at).getTime() : Math.min(stateLastMs, nowMs);
+      const startMs = new Date(h.created_at).getTime();
+      let seconds = Math.max(0, Math.round((endMs - startMs) / 1000));
+      if (seconds > 600) seconds = 600;             // cap idle per page at 10 min
+      return {
+        path: h.path, at: h.created_at, seconds,
+        rank: pathRank(h.path), name: rankName(pathRank(h.path)),
+        is_last: !next,
+      };
+    });
+    const totalSec = timeline.reduce((s, t) => s + t.seconds, 0);
+
+    const inquiries = await query('SELECT * FROM inquiries WHERE ip = ? ORDER BY created_at DESC LIMIT 20', [state.ip]);
+    const payments  = await query('SELECT * FROM payments  WHERE ip = ? ORDER BY created_at DESC LIMIT 20', [state.ip]);
+
+    state.ua_parsed    = parseUA(state.user_agent);
+    state.deepest_rank = pathRank(state.deepest_path);
+    state.deepest_name = rankName(state.deepest_rank);
+    state.is_live      = (nowMs - stateLastMs) < 60000;
+
+    res.render('admin/session-detail', {
+      adminUser: req.session.adminUser, state, timeline, totalSec, inquiries, payments,
+    });
+  } catch (e) {
+    res.render('admin/session-detail', { adminUser: req.session.adminUser, state: null, timeline: [], inquiries: [], payments: [], dbError: e.message });
+  }
+});
+
+// ─── Funnel report ───────────────────────────────────────────────────────────
+router.get('/funnel', requireAdmin, async (req, res) => {
+  const range = req.query.range || '24h';
+  let intervalSql = "INTERVAL '24 hours'";
+  if (range === '7d')  intervalSql = "INTERVAL '7 days'";
+  if (range === '30d') intervalSql = "INTERVAL '30 days'";
+  if (range === '1h')  intervalSql = "INTERVAL '1 hour'";
+
+  try {
+    // For each funnel rank, count distinct visitors who reached >= that rank
+    const counts = {};
+    for (const step of FUNNEL_STEPS) {
+      const pathList = step.paths.map(p => `'${p}'`).join(',');
+      const r = await query(`
+        SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_id,''), ip)) AS c
+        FROM visitors
+        WHERE path IN (${pathList})
+          AND created_at > NOW() - ${intervalSql}
+      `);
+      counts[step.rank] = Number(r[0]?.count || 0);
+    }
+    const funnel = FUNNEL_STEPS.map(s => ({ ...s, count: counts[s.rank] || 0 }));
+    const top = funnel[0]?.count || 0;
+    funnel.forEach((s, i) => {
+      s.pct_total = top ? Math.round((s.count / top) * 1000) / 10 : 0;
+      const prev = funnel[i-1];
+      s.pct_step = (prev && prev.count) ? Math.round((s.count / prev.count) * 1000) / 10 : 100;
+    });
+
+    // Top referrers
+    const referrers = await query(`
+      SELECT referrer, COUNT(DISTINCT COALESCE(NULLIF(visitor_id,''), ip)) AS visitors
+      FROM visitors WHERE created_at > NOW() - ${intervalSql} AND referrer <> ''
+      GROUP BY referrer ORDER BY visitors DESC LIMIT 10
+    `);
+
+    // Device breakdown
+    const uaRows = await query(`
+      SELECT user_agent, COUNT(DISTINCT COALESCE(NULLIF(visitor_id,''), ip)) AS visitors
+      FROM visitors WHERE created_at > NOW() - ${intervalSql} AND user_agent <> ''
+      GROUP BY user_agent
+    `);
+    const devices = { Desktop: 0, Mobile: 0, Tablet: 0 };
+    const browsers = {};
+    uaRows.forEach(r => {
+      const p = parseUA(r.user_agent);
+      devices[p.device] = (devices[p.device] || 0) + Number(r.visitors);
+      browsers[p.browser] = (browsers[p.browser] || 0) + Number(r.visitors);
+    });
+
+    res.render('admin/funnel', {
+      adminUser: req.session.adminUser, range, funnel, referrers, devices, browsers,
+    });
+  } catch (e) {
+    res.render('admin/funnel', {
+      adminUser: req.session.adminUser, range, funnel: [], referrers: [], devices: {}, browsers: {}, dbError: e.message
+    });
+  }
+});
+
+// ─── Live stats API (polled by dashboard widget) ─────────────────────────────
+router.get('/api/live-stats', requireAdmin, async (req, res) => {
+  try {
+    const liveCount = Number((await query(`SELECT COUNT(*) FROM visitor_state WHERE last_seen > NOW() - INTERVAL '60 seconds'`))[0]?.count || 0);
+    const last30    = Number((await query(`SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_id,''), ip)) FROM visitors WHERE created_at > NOW() - INTERVAL '30 minutes'`))[0]?.count || 0);
+    const activeList = await query(`
+      SELECT visitor_id, ip, current_path, last_seen, deepest_path
+      FROM visitor_state WHERE last_seen > NOW() - INTERVAL '60 seconds'
+      ORDER BY last_seen DESC LIMIT 30
+    `);
+    res.json({ ok: true, liveCount, last30, active: activeList });
+  } catch (e) {
+    res.json({ ok: false, liveCount: 0, last30: 0, active: [], error: e.message });
+  }
 });
 
 // ─── API helpers for frontend polling ────────────────────────────────────────

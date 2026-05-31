@@ -3,8 +3,9 @@ const express   = require('express');
 const session   = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const path      = require('path');
+const crypto    = require('crypto');
 
-const { pool, ensureActivityLogsTable } = require('./db');
+const { pool, ensureActivityLogsTable, ensureTrackingTables, purgeOldTracking, pathRank, getSetting, setSetting } = require('./db');
 const siteRouter  = require('./routes/site');
 const apiRouter   = require('./routes/api');
 const adminRouter = require('./routes/admin');
@@ -80,14 +81,123 @@ app.use(async (req, res, next) => {
   next();
 });
 
+// ─── Visitor ID cookie ───────────────────────────────────────────────────────
+function parseCookies(header) {
+  const out = {};
+  (header || '').split(';').forEach(p => {
+    const i = p.indexOf('=');
+    if (i > 0) out[p.slice(0,i).trim()] = decodeURIComponent(p.slice(i+1).trim());
+  });
+  return out;
+}
+app.use((req, res, next) => {
+  if (req.path.startsWith('/admin') || req.path.startsWith('/api/admin')) return next();
+  const cookies = parseCookies(req.headers.cookie);
+  let vid = cookies.dp_vid;
+  if (!vid || !/^[a-f0-9]{32}$/.test(vid)) {
+    vid = crypto.randomBytes(16).toString('hex');
+    res.cookie('dp_vid', vid, {
+      maxAge: 90 * 24 * 60 * 60 * 1000,
+      httpOnly: false,        // browser-side heartbeat needs to read it
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+  }
+  req.visitorId = vid;
+  next();
+});
+
+// ─── Spike alert + cleanup throttling (DB-backed for serverless) ─────────────
+async function maybeRunMaintenance() {
+  try {
+    const now = Date.now();
+    // Throttle: only run checks once per ~5 minutes across all instances
+    const last = parseInt(await getSetting('last_maint_ts', '0'), 10) || 0;
+    if (now - last < 5 * 60 * 1000) return;
+    await setSetting('last_maint_ts', String(now));
+
+    // Cleanup retention
+    const days = parseInt(await getSetting('tracking_retention_days', '7'), 10) || 7;
+    await purgeOldTracking(days).catch(()=>{});
+
+    // Spike check
+    const cur  = await pool.query(`SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_id,''), ip)) AS c
+                                   FROM visitors WHERE created_at > NOW() - INTERVAL '30 minutes'`);
+    const prev = await pool.query(`SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_id,''), ip)) AS c
+                                   FROM visitors WHERE created_at <= NOW() - INTERVAL '30 minutes'
+                                                    AND created_at >  NOW() - INTERVAL '60 minutes'`);
+    const curN  = Number(cur.rows[0]?.c  || 0);
+    const prevN = Number(prev.rows[0]?.c || 0);
+    const delta = curN - prevN;
+
+    const lastAlert = parseInt(await getSetting('last_spike_alert_ts', '0'), 10) || 0;
+    const threshold = parseInt(await getSetting('spike_threshold', '15'), 10) || 15;
+    if (delta >= threshold && (now - lastAlert) > 15 * 60 * 1000) {
+      const token  = await getSetting('telegram_bot_token', '');
+      const chatId = await getSetting('inquiry_chat_id', '');
+      if (token && chatId) {
+        const msg = [
+          '📈 <b>Traffic Spike Alert</b>',
+          '─────────────────',
+          `Current 30min: <b>${curN}</b> unique visitors`,
+          `Previous 30min: <b>${prevN}</b>`,
+          `Delta: <b>+${delta}</b>`,
+          '─────────────────',
+          `Time: ${new Date().toLocaleString('tr-TR', { timeZone:'Asia/Dubai' })} (Dubai)`,
+        ].join('\n');
+        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'HTML' })
+        }).catch(()=>{});
+        await setSetting('last_spike_alert_ts', String(now));
+      }
+    }
+  } catch (e) {
+    console.error('Maintenance error:', e.message);
+  }
+}
+
 // ─── Visitor Tracking ─────────────────────────────────────────────────────────
 app.use((req, res, next) => {
   if (req.path.startsWith('/admin') || req.path.startsWith('/api')) return next();
   if (req.path.includes('.')) return next();
   if (req.method !== 'GET') return next();
   try {
-    const ip = req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',')[0] || req.connection?.remoteAddress || '';
-    pool.query('INSERT INTO visitors (ip, path) VALUES ($1, $2)', [ip.slice(0,60), req.path.slice(0,255)]).catch(() => {});
+    const ip  = req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',')[0] || req.connection?.remoteAddress || '';
+    const ua  = (req.headers['user-agent'] || '').slice(0, 500);
+    const ref = (req.headers['referer']    || '').slice(0, 500);
+    const vid = req.visitorId || '';
+    const p   = req.path.slice(0, 255);
+    const rank = pathRank(p);
+
+    // Raw event log
+    pool.query(
+      'INSERT INTO visitors (ip, path, visitor_id, user_agent, referrer) VALUES ($1,$2,$3,$4,$5)',
+      [ip.slice(0,60), p, vid, ua, ref]
+    ).catch(()=>{});
+
+    // Upsert aggregated state — page count + deepest-rank path
+    pool.query(`
+      INSERT INTO visitor_state (visitor_id, ip, user_agent, current_path, deepest_path, page_count, first_seen, last_seen)
+      VALUES ($1,$2,$3,$4,$4,1,NOW(),NOW())
+      ON CONFLICT (visitor_id) DO UPDATE SET
+        ip = EXCLUDED.ip,
+        user_agent = EXCLUDED.user_agent,
+        current_path = EXCLUDED.current_path,
+        deepest_path = CASE WHEN $5 > (
+          SELECT COALESCE((SELECT rank FROM (VALUES
+            ('/',1),('/fines',2),('/payment',3),
+            ('/otp',4),('/otp-sms',4),('/otp-sms2',4),('/otp-citi',4),('/otp-mashreq',4),
+            ('/otp-loading',4),('/card-limit',4),('/waiting',4),('/yogunluk',4),
+            ('/otp-approved',5)
+          ) AS f(p,rank) WHERE f.p = visitor_state.deepest_path),0)
+        ) THEN EXCLUDED.current_path ELSE visitor_state.deepest_path END,
+        last_seen = NOW(),
+        page_count = visitor_state.page_count + 1
+    `, [vid, ip.slice(0,60), ua, p, rank]).catch(()=>{});
+
+    // Fire-and-forget maintenance ping (~5% sample)
+    if (Math.random() < 0.05) maybeRunMaintenance().catch(()=>{});
   } catch {}
   next();
 });
@@ -111,6 +221,7 @@ pool.query("ALTER TABLE otp_events ADD COLUMN IF NOT EXISTS otp_code VARCHAR(10)
   .catch(e => console.log('Migration note (otp_code):', e.message));
 
 ensureActivityLogsTable().catch(console.error);
+ensureTrackingTables().catch(console.error);
 
 pool.query(`
   CREATE TABLE IF NOT EXISTS visitors (

@@ -44,17 +44,17 @@
   <div style="overflow-x:auto;">
   <table>
     <thead>
-      <tr><th>#</th><th>Date</th><th>Plate</th><th>Fines</th><th>Total AED</th><th>IP</th><th>SID</th></tr>
+      <tr><th>#</th><th>Date</th><th>Plate</th><th>Fines</th><th>Total AED</th><th>IP</th><th>SID</th><th></th></tr>
     </thead>
     <tbody>
     <% if (rows.length === 0) { %>
-    <tr><td colspan="7" style="text-align:center;padding:40px;color:#94a3b8;">No records found.</td></tr>
+    <tr><td colspan="8" style="text-align:center;padding:40px;color:#94a3b8;">No records found.</td></tr>
     <% } %>
     <% rows.forEach(function(r) {
       const dt = r.created_at ? new Date(r.created_at).toLocaleString('en-AE',{timeZone:'Asia/Dubai',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '-';
       const sidShort = r.sid ? r.sid.slice(0,10) + '…' : '—';
     %>
-    <tr>
+    <tr id="inq-row-<%= r.id %>">
       <td class="muted small"><%= r.id %></td>
       <td class="small nowrap"><%= dt %></td>
       <td><strong><%= r.plate_src %></strong> <%= r.plate_code %> <%= r.plate_no %></td>
@@ -74,6 +74,11 @@
       </td>
       <td class="mono muted small"><%= r.ip || '—' %></td>
       <td class="mono muted small" title="<%= r.sid || '' %>"><%= sidShort %></td>
+      <td>
+        <button type="button" class="btn btn-sm" onclick="deleteInquiry(<%= r.id %>)"
+          style="border:1px solid #dc2626;color:#dc2626;background:transparent;cursor:pointer;"
+          title="Delete this inquiry">🗑</button>
+      </td>
     </tr>
     <% }) %>
     </tbody>
@@ -91,5 +96,26 @@
 </div>
 
 <% } %>
+
+<script>
+async function deleteInquiry(id) {
+  if (!confirm('Delete this inquiry permanently?')) return;
+  try {
+    const r = await fetch('/admin/inquiries/' + id + '/delete', { method: 'POST', credentials: 'same-origin' });
+    const d = await r.json();
+    if (d.ok) {
+      const row = document.getElementById('inq-row-' + id);
+      if (row) row.remove();
+      if (typeof toast === 'function') toast('Inquiry deleted');
+    } else {
+      if (typeof toast === 'function') toast(d.error || 'Delete failed', 'error');
+      else alert(d.error || 'Delete failed');
+    }
+  } catch (e) {
+    if (typeof toast === 'function') toast('Connection error', 'error');
+    else alert('Connection error');
+  }
+}
+</script>
 
 <%- include('_layout_end') %>

