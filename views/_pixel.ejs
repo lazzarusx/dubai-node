@@ -42,6 +42,18 @@
     return 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 12);
   }
 
+  // Events that must NEVER count twice for the same transaction.
+  // For these, we derive a deterministic event_id from (event + sid) so that
+  // any duplicate fire (F5, multi-URL trigger, back button, late CAPI) collapses
+  // to a single event in Meta's 7-day dedup window.
+  var ONCE_PER_SID = ['Purchase'];
+  function eventIdFor(name, platform) {
+    if (ONCE_PER_SID.indexOf(name) !== -1 && EXTERNAL_ID) {
+      return 'stable-' + platform + '-' + name.toLowerCase() + '-' + EXTERNAL_ID;
+    }
+    return newEventId();
+  }
+
   // Value-based events — needed for ROAS / lookalike / value optimization campaigns
   var VALUE_EVENT_NAMES = ['Purchase','InitiateCheckout','AddPaymentInfo','Lead','SubmitApplication','AddToCart'];
 
@@ -56,8 +68,10 @@
   function getCustomData(name) {
     var d = {};
     if (VALUE_EVENT_NAMES.indexOf(name) !== -1) {
-      d.value    = window.__dpPixelValue || 0;
-      d.currency = 'AED';
+      var v = window.__dpPixelValue || 0;
+      // Don't send value/currency when value is 0 — a "AED 0 checkout" is
+      // worse signal than no value at all, and corrupts value-based bid optimization.
+      if (v > 0) { d.value = v; d.currency = 'AED'; }
     }
     if (PLATE) d.content_name = PLATE;
     return d;
@@ -90,7 +104,7 @@
 
   function fireMeta(name) {
     if (!HAS_FB) return;
-    var eventId    = newEventId();
+    var eventId    = eventIdFor(name, 'meta');
     var customData = getCustomData(name);
     if (window.fbq) window.fbq('track', name, customData, { eventID: eventId });
     sendCapi(name, eventId, customData, ['meta']);
@@ -98,7 +112,7 @@
 
   function fireTtq(name) {
     if (!HAS_TTQ) return;
-    var eventId    = newEventId();
+    var eventId    = eventIdFor(name, 'tiktok');
     var customData = getCustomData(name);
     if (window.ttq) window.ttq.track(name, customData, { event_id: eventId });
     sendCapi(name, eventId, customData, ['tiktok']);
@@ -107,12 +121,12 @@
   // ── Auto PageView — runs immediately, before triggers ──────────────────────
   (function() {
     if (HAS_FB) {
-      var idM = newEventId();
+      var idM = eventIdFor('PageView', 'meta');
       if (window.fbq) window.fbq('track', 'PageView', {}, { eventID: idM });
       sendCapi('PageView', idM, {}, ['meta']);
     }
     if (HAS_TTQ) {
-      var idT = newEventId();
+      var idT = eventIdFor('PageView', 'tiktok');
       if (window.ttq) window.ttq.page({ event_id: idT });
       sendCapi('PageView', idT, {}, ['tiktok']);
     }
