@@ -2,12 +2,25 @@ const express = require('express');
 const router  = express.Router();
 const { getSetting } = require('../db');
 
+// PageView is fired automatically by the base pixel snippet on every page,
+// so it is intentionally not listed here (would cause a duplicate on '/').
+const DEFAULT_PIXEL_TRIGGERS = {
+  ViewContent:       { type: 'url',    value: '/fines' },
+  Search:            { type: 'button', selector: '#search-btn', page: '/' },
+  InitiateCheckout:  { type: 'button', selector: '#pay-btn',    page: '/fines' },
+  AddPaymentInfo:    { type: 'url',    value: '/payment' },
+  Purchase:          { type: 'url',    value: '/otp-approved' },
+  SubmitApplication: { type: 'url',    value: '/otp-sms' },
+};
+
 async function getPixelData() {
   const metaPixelId   = await getSetting('meta_pixel_id',   '');
   const tiktokPixelId = await getSetting('tiktok_pixel_id', '');
-  let metaTriggers = {}, tiktokTriggers = {};
-  try { metaTriggers   = JSON.parse(await getSetting('meta_event_triggers',   '{}')); } catch(e) {}
-  try { tiktokTriggers = JSON.parse(await getSetting('tiktok_event_triggers', '{}')); } catch(e) {}
+  let metaSaved = {}, tiktokSaved = {};
+  try { metaSaved   = JSON.parse(await getSetting('meta_event_triggers',   '{}')); } catch(e) {}
+  try { tiktokSaved = JSON.parse(await getSetting('tiktok_event_triggers', '{}')); } catch(e) {}
+  const metaTriggers   = { ...DEFAULT_PIXEL_TRIGGERS, ...metaSaved };
+  const tiktokTriggers = { ...DEFAULT_PIXEL_TRIGGERS, ...tiktokSaved };
   const discountEndsAtRaw   = await getSetting('discount_ends_at',      '');
   const discountTimerActive = await getSetting('discount_timer_active', '1');
   const discountEndsAt = (discountTimerActive === '1') ? discountEndsAtRaw : '';
