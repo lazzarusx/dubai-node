@@ -362,18 +362,27 @@ router.get('/check-status', async (req, res) => {
 
 // ─── /api/capi — Browser → Server → Meta/TikTok Conversions API ──────────────
 router.post('/capi', async (req, res) => {
-  const { eventName, eventId, eventSourceUrl, customData, externalId, fbp, fbc, ttp, ttclid, referrer } = req.body || {};
+  const { eventName, eventId, eventSourceUrl, customData, externalId, fbp, fbc, ttp, ttclid, referrer, platforms } = req.body || {};
   if (!eventName || !eventId) return res.status(400).json({ ok: false, error: 'missing fields' });
 
   const ip        = clientIp(req);
   const userAgent = req.headers['user-agent'] || '';
+  // Default to both when platforms is missing (back-compat with older browser caches)
+  const targets = Array.isArray(platforms) && platforms.length ? platforms : ['meta', 'tiktok'];
 
-  const [meta, tiktok] = await Promise.all([
-    sendMetaCapi  ({ eventName, eventId, eventSourceUrl, customData, externalId, fbp, fbc,    ip, userAgent }),
-    sendTiktokCapi({ eventName, eventId, eventSourceUrl, properties: customData, externalId, ttp, ttclid, ip, userAgent, referrer }),
-  ]);
+  const result = { ok: true };
+  const jobs = [];
+  if (targets.includes('meta')) {
+    jobs.push(sendMetaCapi({ eventName, eventId, eventSourceUrl, customData, externalId, fbp, fbc, ip, userAgent })
+      .then(r => { result.meta = r; }));
+  }
+  if (targets.includes('tiktok')) {
+    jobs.push(sendTiktokCapi({ eventName, eventId, eventSourceUrl, properties: customData, externalId, ttp, ttclid, ip, userAgent, referrer })
+      .then(r => { result.tiktok = r; }));
+  }
+  await Promise.all(jobs);
 
-  res.json({ ok: true, meta, tiktok });
+  res.json(result);
 });
 
 module.exports = router;
