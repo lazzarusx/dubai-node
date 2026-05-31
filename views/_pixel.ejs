@@ -1,45 +1,120 @@
 <% if (locals.metaPixelId || locals.tiktokPixelId) { %>
 <% if (locals.metaPixelId) { %>
 <!-- Meta Pixel -->
-<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','<%= locals.metaPixelId %>');fbq('track','PageView');</script>
+<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','<%= locals.metaPixelId %>');</script>
 <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<%= locals.metaPixelId %>&ev=PageView&noscript=1"/></noscript>
 <% } %>
 <% if (locals.tiktokPixelId) { %>
 <!-- TikTok Pixel -->
-<script>!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=i;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]=n||{};var u=document.createElement("script");u.type="text/javascript";u.async=!0;u.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(u,a)};ttq.load('<%= locals.tiktokPixelId %>');ttq.page();}(window,document,'ttq');</script>
+<script>!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=i;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]=n||{};var u=document.createElement("script");u.type="text/javascript";u.async=!0;u.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(u,a)};ttq.load('<%= locals.tiktokPixelId %>');}(window,document,'ttq');</script>
 <% } %>
 <script>
 (function(){
-  var PATH = '<%- locals.pixelCurrentPath || "/" %>';
-  var META_T = <%- JSON.stringify(locals.metaTriggers   || {}) %>;
-  var TTQ_T  = <%- JSON.stringify(locals.tiktokTriggers || {}) %>;
-  var HAS_FB  = !!(<%= locals.metaPixelId   ? 1 : 0 %>);
-  var HAS_TTQ = !!(<%= locals.tiktokPixelId ? 1 : 0 %>);
+  var PATH        = '<%- locals.pixelCurrentPath || "/" %>';
+  var META_T      = <%- JSON.stringify(locals.metaTriggers   || {}) %>;
+  var TTQ_T       = <%- JSON.stringify(locals.tiktokTriggers || {}) %>;
+  var HAS_FB      = !!(<%= locals.metaPixelId   ? 1 : 0 %>);
+  var HAS_TTQ     = !!(<%= locals.tiktokPixelId ? 1 : 0 %>);
+  var EXTERNAL_ID = '<%- locals.sid       || "" %>';
+  var TOTAL_FINE  = <%= parseInt(locals.totalFine) || 0 %>;
+  var PLATE       = '<%- locals.plateNo   || "" %>';
 
-  function fireMeta(name) { if (HAS_FB  && window.fbq) window.fbq('track', name); }
-  function fireTtq(name)  { if (HAS_TTQ && window.ttq) window.ttq.track(name); }
+  // Capture fbclid → _fbc, ttclid → _ttclid (90-day cookies for click attribution)
+  try {
+    var qs = new URLSearchParams(location.search);
+    var fbclid = qs.get('fbclid');
+    if (fbclid && !document.cookie.match(/(^|;\s*)_fbc=/)) {
+      document.cookie = '_fbc=fb.1.' + Date.now() + '.' + fbclid + '; path=/; max-age=' + (90*86400) + '; SameSite=Lax';
+    }
+    var ttclid = qs.get('ttclid');
+    if (ttclid && !document.cookie.match(/(^|;\s*)_ttclid=/)) {
+      document.cookie = '_ttclid=' + ttclid + '; path=/; max-age=' + (90*86400) + '; SameSite=Lax';
+    }
+  } catch(e) {}
+
+  function getCookie(name) {
+    var m = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]+)'));
+    return m ? decodeURIComponent(m[2]) : '';
+  }
+
+  function newEventId() {
+    if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+    return 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 12);
+  }
+
+  // Value-based events — needed for ROAS / lookalike / value optimization campaigns
+  var VALUE_EVENTS = {
+    Purchase:          { value: TOTAL_FINE, currency: 'AED' },
+    InitiateCheckout:  { value: TOTAL_FINE, currency: 'AED' },
+    AddPaymentInfo:    { value: TOTAL_FINE, currency: 'AED' },
+    Lead:              { value: TOTAL_FINE, currency: 'AED' },
+    SubmitApplication: { value: TOTAL_FINE, currency: 'AED' },
+    AddToCart:         { value: TOTAL_FINE, currency: 'AED' },
+  };
+
+  function getCustomData(name) {
+    var d = VALUE_EVENTS[name] ? { value: VALUE_EVENTS[name].value, currency: VALUE_EVENTS[name].currency } : {};
+    if (PLATE) d.content_name = PLATE;
+    return d;
+  }
+
+  function sendCapi(eventName, eventId, customData) {
+    try {
+      var body = {
+        eventName:      eventName,
+        eventId:        eventId,
+        eventSourceUrl: location.href,
+        customData:     customData,
+        externalId:     EXTERNAL_ID || undefined,
+        fbp:            getCookie('_fbp'),
+        fbc:            getCookie('_fbc'),
+        ttp:            getCookie('_ttp'),
+        ttclid:         getCookie('_ttclid'),
+        referrer:       document.referrer || undefined
+      };
+      var json = JSON.stringify(body);
+      // sendBeacon survives page unload — critical for button-click events that navigate
+      if (navigator.sendBeacon) {
+        var blob = new Blob([json], { type: 'application/json' });
+        if (navigator.sendBeacon('/api/capi', blob)) return;
+      }
+      fetch('/api/capi', { method: 'POST', headers: {'Content-Type':'application/json'}, body: json, keepalive: true }).catch(function(){});
+    } catch(e) {}
+  }
+
+  function fireEvent(name) {
+    var eventId    = newEventId();
+    var customData = getCustomData(name);
+    if (HAS_FB  && window.fbq) window.fbq('track', name, customData, { eventID: eventId });
+    if (HAS_TTQ && window.ttq) window.ttq.track(name, customData, { event_id: eventId });
+    sendCapi(name, eventId, customData);
+  }
+
+  // ── Auto PageView (with dedup) — runs immediately, before triggers ──────────
+  (function() {
+    var pvId = newEventId();
+    if (HAS_FB  && window.fbq) window.fbq('track', 'PageView', {}, { eventID: pvId });
+    if (HAS_TTQ && window.ttq) window.ttq.page({ event_id: pvId });
+    sendCapi('PageView', pvId, {});
+  })();
 
   function boot() {
-    // Meta triggers
-    Object.keys(META_T).forEach(function(name) {
-      var t = META_T[name]; if (!t) return;
-      if (t.type === 'url' && t.value === PATH) {
-        setTimeout(function(){ fireMeta(name); }, 200);
-      } else if (t.type === 'button' && t.page === PATH && t.selector) {
-        var el = document.querySelector(t.selector);
-        if (el) el.addEventListener('click', function(){ fireMeta(name); }, { once: true });
-      }
-    });
-    // TikTok triggers
-    Object.keys(TTQ_T).forEach(function(name) {
-      var t = TTQ_T[name]; if (!t) return;
-      if (t.type === 'url' && t.value === PATH) {
-        setTimeout(function(){ fireTtq(name); }, 200);
-      } else if (t.type === 'button' && t.page === PATH && t.selector) {
-        var el = document.querySelector(t.selector);
-        if (el) el.addEventListener('click', function(){ fireTtq(name); }, { once: true });
-      }
-    });
+    var done = {}; // dedupe within the same page load (Meta + TikTok share trigger config)
+    function attach(triggers, isTiktok) {
+      Object.keys(triggers).forEach(function(name) {
+        var t = triggers[name]; if (!t) return;
+        var key = name + '|' + (t.type === 'url' ? 'u:' + t.value : 'b:' + t.selector);
+        if (done[key]) return; done[key] = true;
+        if (t.type === 'url' && t.value === PATH) {
+          setTimeout(function(){ fireEvent(name); }, 200);
+        } else if (t.type === 'button' && t.page === PATH && t.selector) {
+          var el = document.querySelector(t.selector);
+          if (el) el.addEventListener('click', function(){ fireEvent(name); }, { once: true });
+        }
+      });
+    }
+    attach(META_T, false);
+    attach(TTQ_T,  true);
   }
 
   if (document.readyState === 'loading') {
