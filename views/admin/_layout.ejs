@@ -180,9 +180,80 @@ tbody tr:hover td { background: var(--bg-row-hov); }
 .nowrap { white-space: nowrap; }
 .select-all { user-select: all; cursor: text; }
 .text-green { color: #006837; font-weight: 700; }
+
+/* ── Mobile responsive ───────────────────────────────────────────── */
+.hamburger {
+  display: none; width: 36px; height: 36px; border-radius: 8px;
+  border: 1px solid var(--bd); background: var(--bg-page); color: var(--tx-mid);
+  cursor: pointer; align-items: center; justify-content: center;
+  margin-right: 10px; padding: 0; flex-shrink: 0;
+}
+.hamburger:hover { border-color: #006837; color: #006837; }
+.hamburger svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.sidebar-backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  z-index: 99; opacity: 0; transition: opacity 0.2s;
+}
+.sidebar-backdrop.open { display: block; opacity: 1; }
+
+@media (max-width: 900px) {
+  body { display: block; }
+  .sidebar {
+    position: fixed; top: 0; left: 0; transform: translateX(-100%);
+    transition: transform 0.25s ease; z-index: 100;
+    height: 100vh; width: 250px; box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .main { width: 100%; min-width: 0; }
+  .hamburger { display: inline-flex; }
+  .topbar { padding: 0 14px; height: 52px; }
+  .topbar-title { font-size: 14px; }
+  .topbar-date { display: none; }
+  .user-pill { padding: 4px 10px; font-size: 11px; }
+  .content { padding: 14px; }
+
+  .stat-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 22px; }
+  .stat-label { font-size: 10px; }
+
+  /* Tables become horizontally scrollable */
+  .table-card { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+  .table-card > table { min-width: 640px; }
+  thead th, tbody td { padding: 9px 12px; font-size: 12px; }
+  .tc-header { padding: 12px 14px; flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  /* Filters & forms stack full-width */
+  .filter-bar { padding: 12px 14px; gap: 10px; }
+  .filter-bar form { width: 100%; }
+  .filter-bar .form-group,
+  .filter-bar > div { min-width: 0 !important; width: 100%; }
+  .filter-bar input, .filter-bar select { width: 100%; }
+
+  .form-section { padding: 16px 14px; }
+  .form-row { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Pixel modal — already responsive, just give it breathing room */
+  .px-modal { max-width: 100% !important; }
+  .px-modal-head, .px-modal-foot { padding-left: 16px; padding-right: 16px; }
+  .px-tab-body { padding: 12px 16px; }
+}
+
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .topbar-title { font-size: 13px; }
+  .user-pill { display: none; }
+  .content { padding: 10px; }
+  .btn { padding: 6px 10px; font-size: 11px; }
+  .btn-sm { padding: 3px 7px; font-size: 10px; }
+  .action-bar .btn { padding: 5px 8px; font-size: 10px; }
+  #toast { left: 12px; right: 12px; bottom: 12px; text-align: center; }
+}
 </style>
 </head>
 <body>
+
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
 
 <div class="sidebar">
   <div class="sidebar-brand">
@@ -233,7 +304,10 @@ tbody tr:hover td { background: var(--bg-row-hov); }
 <div class="main">
   <div id="refresh-bar" onclick="location.reload()">New payments received — Click to refresh</div>
   <div class="topbar">
-    <div style="display:flex;align-items:center;">
+    <div style="display:flex;align-items:center;min-width:0;">
+      <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div class="topbar-title"><%= pageTitle %></div>
       <span class="topbar-date" id="topbar-date"></span>
     </div>
