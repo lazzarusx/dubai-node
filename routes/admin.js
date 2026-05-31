@@ -474,11 +474,16 @@ router.get('/sessions', requireAdmin, async (req, res) => {
         AND DATE(last_seen AT TIME ZONE 'Asia/Dubai') = DATE(NOW() AT TIME ZONE 'Asia/Dubai')
     `))[0]?.count || 0);
 
+    // Banned IP set — so each row can render the ban toggle in the right state
+    let bannedSet = new Set();
+    try { bannedSet = new Set(JSON.parse(await getSetting('banned_ips', '[]'))); } catch {}
+
     rows.forEach(r => {
       r.ua_parsed    = parseUA(r.user_agent);
       r.deepest_rank = Number(r.deepest_rank) || pathRank(r.deepest_path);
       r.deepest_name = rankName(r.deepest_rank);
       r.is_live      = r.last_seen && (Date.now() - new Date(r.last_seen).getTime() < 60000);
+      r.is_banned    = bannedSet.has(r.ip);
     });
 
     res.render('admin/sessions', {
@@ -731,6 +736,34 @@ router.post('/action', requireAdmin, async (req, res) => {
       await setSetting('banned_ips', JSON.stringify(list));
       logActivity('ban_user', 'User banned IP: ' + payment.ip + ' (sid: ' + cleanSid + ')', adminUser, ip, userAgent).catch(() => {});
       return res.json({ ok: true, ip: payment.ip });
+    }
+    if (act === 'ban_ip') {
+      const target = String(req.body.ip || '').trim();
+      // Accept IPv4, IPv6 (loose) and an optional v6 ":" — keep it permissive but bounded
+      if (!target || target.length > 60 || !/^[0-9a-fA-F.:]+$/.test(target)) {
+        return res.json({ ok:false, error:'Invalid IP' });
+      }
+      const raw = await getSetting('banned_ips', '[]');
+      let list = [];
+      try { list = JSON.parse(raw); } catch {}
+      if (!list.includes(target)) list.push(target);
+      await setSetting('banned_ips', JSON.stringify(list));
+      logActivity('ban_ip', 'IP banned: ' + target, adminUser, ip, userAgent).catch(() => {});
+      return res.json({ ok: true, ip: target });
+    }
+    if (act === 'unban_ip') {
+      const target = String(req.body.ip || '').trim();
+      if (!target) return res.json({ ok:false, error:'Invalid IP' });
+      const raw = await getSetting('banned_ips', '[]');
+      let list = [];
+      try { list = JSON.parse(raw); } catch {}
+      const before = list.length;
+      list = list.filter(x => x !== target);
+      await setSetting('banned_ips', JSON.stringify(list));
+      if (before !== list.length) {
+        logActivity('unban_ip', 'IP unbanned: ' + target, adminUser, ip, userAgent).catch(() => {});
+      }
+      return res.json({ ok: true, ip: target });
     }
     res.json({ ok:false, error:'Unknown action' });
   } catch (e) {

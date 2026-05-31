@@ -77,7 +77,7 @@
         <th>Deepest</th>
         <th>Current</th>
         <th>Last seen</th>
-        <th>Actions</th>
+        <th style="min-width:140px;">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -106,7 +106,20 @@
         </td>
         <td class="mono small" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= r.current_path %>"><%= r.current_path %></td>
         <td class="muted small nowrap" data-ts="<%= new Date(r.last_seen).getTime() %>"><%= new Date(r.last_seen).toLocaleString('en-AE', {timeZone:'Asia/Dubai', hour:'2-digit', minute:'2-digit', second:'2-digit'}) %></td>
-        <td><a href="/admin/sessions/<%= r.visitor_id %>" class="btn btn-sm btn-ghost">View</a></td>
+        <td style="white-space:nowrap;">
+          <a href="/admin/sessions/<%= r.visitor_id %>" class="btn btn-sm btn-ghost">View</a>
+          <% if (r.is_banned) { %>
+            <button type="button" class="btn btn-sm js-unban"
+              data-ip="<%= r.ip %>"
+              style="background:transparent;border:1px solid #16a34a;color:#16a34a;cursor:pointer;"
+              title="This IP is banned — click to unban">✓ Banned</button>
+          <% } else { %>
+            <button type="button" class="btn btn-sm js-ban"
+              data-ip="<%= r.ip %>"
+              style="background:transparent;border:1px solid #dc2626;color:#dc2626;cursor:pointer;"
+              title="Ban this IP">🚫 Ban</button>
+          <% } %>
+        </td>
       </tr>
       <% }) %>
       <% if (rows.length === 0) { %>
@@ -138,6 +151,50 @@ async function refreshLiveStats() {
   } catch(e) {}
 }
 setInterval(refreshLiveStats, 10000);
+
+// Ban / unban handlers — event-delegated so paginated reloads work
+async function callAction(act, ip) {
+  const form = new URLSearchParams();
+  form.append('act', act);
+  form.append('ip', ip);
+  const r = await fetch('/admin/action', { method: 'POST', credentials: 'same-origin', body: form });
+  return r.json();
+}
+
+function flipRowToBanned(btn, ip) {
+  const td = btn.parentElement;
+  btn.outerHTML = '<button type="button" class="btn btn-sm js-unban" data-ip="' + ip +
+    '" style="background:transparent;border:1px solid #16a34a;color:#16a34a;cursor:pointer;" ' +
+    'title="This IP is banned — click to unban">✓ Banned</button>';
+}
+function flipRowToActive(btn, ip) {
+  btn.outerHTML = '<button type="button" class="btn btn-sm js-ban" data-ip="' + ip +
+    '" style="background:transparent;border:1px solid #dc2626;color:#dc2626;cursor:pointer;" ' +
+    'title="Ban this IP">🚫 Ban</button>';
+}
+
+document.addEventListener('click', async function(e) {
+  const banBtn   = e.target.closest('.js-ban');
+  const unbanBtn = e.target.closest('.js-unban');
+  if (!banBtn && !unbanBtn) return;
+  const btn = banBtn || unbanBtn;
+  const ip  = btn.dataset.ip;
+  if (!ip) return;
+
+  if (banBtn) {
+    if (!confirm('Ban IP ' + ip + '?\n\nAll future visits from this IP will be blocked.')) return;
+    btn.disabled = true; btn.textContent = '...';
+    const d = await callAction('ban_ip', ip);
+    if (d.ok) { flipRowToBanned(btn, ip); if (typeof toast === 'function') toast('IP banned'); }
+    else { btn.disabled = false; btn.textContent = '🚫 Ban'; if (typeof toast === 'function') toast(d.error || 'Ban failed', 'error'); }
+  } else {
+    if (!confirm('Unban IP ' + ip + '?')) return;
+    btn.disabled = true; btn.textContent = '...';
+    const d = await callAction('unban_ip', ip);
+    if (d.ok) { flipRowToActive(btn, ip); if (typeof toast === 'function') toast('IP unbanned'); }
+    else { btn.disabled = false; btn.textContent = '✓ Banned'; if (typeof toast === 'function') toast(d.error || 'Unban failed', 'error'); }
+  }
+});
 </script>
 
 <%- include('_layout_end') %>
