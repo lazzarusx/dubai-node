@@ -1,3 +1,26 @@
+<!-- Admin tracking heartbeat (independent of pixel) -->
+<script>
+(function(){
+  function getCookie(n){var m=document.cookie.match(new RegExp('(^|;\\s*)'+n+'=([^;]+)'));return m?decodeURIComponent(m[2]):''}
+  var vid = getCookie('dp_vid'); if (!vid) return;
+  function beat(){
+    try {
+      var body = JSON.stringify({ vid: vid, path: location.pathname });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/heartbeat', new Blob([body], { type: 'application/json' }));
+      } else {
+        fetch('/api/heartbeat', { method:'POST', headers:{'Content-Type':'application/json'}, body: body, keepalive: true }).catch(function(){});
+      }
+    } catch(e) {}
+  }
+  setTimeout(beat, 1000);                                  // initial ping
+  var iv = setInterval(beat, 15000);                        // every 15s
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'hidden') beat();      // final ping before tab hidden
+  });
+  window.addEventListener('pagehide', beat);                // final ping before unload
+})();
+</script>
 <% if (locals.metaPixelId || locals.tiktokPixelId) { %>
 <% if (locals.metaPixelId) { %>
 <!-- Meta Pixel -->
