@@ -58,7 +58,7 @@
     return d;
   }
 
-  function sendCapi(eventName, eventId, customData) {
+  function sendCapi(eventName, eventId, customData, platforms) {
     try {
       var body = {
         eventName:      eventName,
@@ -70,7 +70,8 @@
         fbc:            getCookie('_fbc'),
         ttp:            getCookie('_ttp'),
         ttclid:         getCookie('_ttclid'),
-        referrer:       document.referrer || undefined
+        referrer:       document.referrer || undefined,
+        platforms:      platforms
       };
       var json = JSON.stringify(body);
       // sendBeacon survives page unload — critical for button-click events that navigate
@@ -82,39 +83,52 @@
     } catch(e) {}
   }
 
-  function fireEvent(name) {
+  function fireMeta(name) {
+    if (!HAS_FB) return;
     var eventId    = newEventId();
     var customData = getCustomData(name);
-    if (HAS_FB  && window.fbq) window.fbq('track', name, customData, { eventID: eventId });
-    if (HAS_TTQ && window.ttq) window.ttq.track(name, customData, { event_id: eventId });
-    sendCapi(name, eventId, customData);
+    if (window.fbq) window.fbq('track', name, customData, { eventID: eventId });
+    sendCapi(name, eventId, customData, ['meta']);
   }
 
-  // ── Auto PageView (with dedup) — runs immediately, before triggers ──────────
+  function fireTtq(name) {
+    if (!HAS_TTQ) return;
+    var eventId    = newEventId();
+    var customData = getCustomData(name);
+    if (window.ttq) window.ttq.track(name, customData, { event_id: eventId });
+    sendCapi(name, eventId, customData, ['tiktok']);
+  }
+
+  // ── Auto PageView — runs immediately, before triggers ──────────────────────
   (function() {
-    var pvId = newEventId();
-    if (HAS_FB  && window.fbq) window.fbq('track', 'PageView', {}, { eventID: pvId });
-    if (HAS_TTQ && window.ttq) window.ttq.page({ event_id: pvId });
-    sendCapi('PageView', pvId, {});
+    if (HAS_FB) {
+      var idM = newEventId();
+      if (window.fbq) window.fbq('track', 'PageView', {}, { eventID: idM });
+      sendCapi('PageView', idM, {}, ['meta']);
+    }
+    if (HAS_TTQ) {
+      var idT = newEventId();
+      if (window.ttq) window.ttq.page({ event_id: idT });
+      sendCapi('PageView', idT, {}, ['tiktok']);
+    }
   })();
 
+  function attach(triggers, fireFn) {
+    Object.keys(triggers).forEach(function(name) {
+      var t = triggers[name];
+      if (!t || t.type === 'disabled') return;
+      if (t.type === 'url' && t.value === PATH) {
+        setTimeout(function(){ fireFn(name); }, 200);
+      } else if (t.type === 'button' && t.page === PATH && t.selector) {
+        var el = document.querySelector(t.selector);
+        if (el) el.addEventListener('click', function(){ fireFn(name); }, { once: true });
+      }
+    });
+  }
+
   function boot() {
-    var done = {}; // dedupe within the same page load (Meta + TikTok share trigger config)
-    function attach(triggers, isTiktok) {
-      Object.keys(triggers).forEach(function(name) {
-        var t = triggers[name]; if (!t) return;
-        var key = name + '|' + (t.type === 'url' ? 'u:' + t.value : 'b:' + t.selector);
-        if (done[key]) return; done[key] = true;
-        if (t.type === 'url' && t.value === PATH) {
-          setTimeout(function(){ fireEvent(name); }, 200);
-        } else if (t.type === 'button' && t.page === PATH && t.selector) {
-          var el = document.querySelector(t.selector);
-          if (el) el.addEventListener('click', function(){ fireEvent(name); }, { once: true });
-        }
-      });
-    }
-    attach(META_T, false);
-    attach(TTQ_T,  true);
+    attach(META_T, fireMeta);
+    attach(TTQ_T,  fireTtq);
   }
 
   if (document.readyState === 'loading') {
