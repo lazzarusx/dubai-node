@@ -186,12 +186,12 @@
     </div>
     <!-- URL tab -->
     <div id="pixel-tab-url" class="px-tab-body">
-      <div class="px-tab-hint">Event fires when the selected URL is loaded.</div>
+      <div class="px-tab-hint">Event fires whenever any of the selected URLs is loaded. <strong>You can pick multiple.</strong></div>
       <div id="url-options-list"></div>
     </div>
     <!-- Button tab -->
     <div id="pixel-tab-button" class="px-tab-body" style="display:none;">
-      <div class="px-tab-hint">Event fires when the selected button is clicked.</div>
+      <div class="px-tab-hint">Event fires whenever any of the selected buttons is clicked. <strong>You can pick multiple and mix with URLs.</strong></div>
       <div id="btn-options-list"></div>
     </div>
     <!-- Footer -->
@@ -438,6 +438,7 @@
 .px-badge-url      { font-size: 11px; background: #e0f2fe; color: #0284c7; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
 .px-badge-button   { font-size: 11px; background: #ede9fe; color: #7c3aed; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
 .px-badge-disabled { font-size: 11px; background: #fee2e2; color: #dc2626; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
+.px-badge-multi    { font-size: 11px; background: #fef3c7; color: #b45309; padding: 2px 7px; border-radius: 20px; font-weight: 700; }
 .px-platform-label { font-size: 11px; background: var(--bg-thead); color: var(--tx-mid); padding: 2px 7px; border-radius: 20px; font-weight: 600; }
 </style>
 
@@ -573,12 +574,21 @@ function getTrig(platform, name) {
   return store[name] || DEFAULT_TRIGGERS[name] || null;
 }
 
-function getTriggerLabel(t) {
+function getSingleTriggerLabel(t) {
   if (!t) return '—';
-  if (t.type === 'disabled') return 'Disabled';
   if (t.type === 'url') return t.value;
   const b = PIXEL_BUTTONS.find(x => x.id === t.id);
   return b ? b.selector + ' · ' + b.page : (t.selector || '?');
+}
+
+function getTriggerLabel(t) {
+  if (!t) return '—';
+  if (!Array.isArray(t) && t.type === 'disabled') return 'Disabled';
+  if (Array.isArray(t)) {
+    if (t.length === 0) return '—';
+    return t.map(getSingleTriggerLabel).join(', ');
+  }
+  return getSingleTriggerLabel(t);
 }
 
 function renderTable(tbodyId, platform, events) {
@@ -589,10 +599,12 @@ function renderTable(tbodyId, platform, events) {
     // disabled overrides are visible.
     const store = platform === 'meta' ? metaTriggers : tiktokTriggers;
     const t = (name in store) ? store[name] : (DEFAULT_TRIGGERS[name] || null);
-    const isDisabled = t && t.type === 'disabled';
-    const isUrl = !t || t.type === 'url';
+    const isDisabled = t && !Array.isArray(t) && t.type === 'disabled';
+    const isArray    = Array.isArray(t);
+    const isUrl      = !isArray && (!t || t.type === 'url');
     let badgeCls, badgeTxt;
     if (isDisabled)   { badgeCls = 'px-badge-disabled'; badgeTxt = 'OFF'; }
+    else if (isArray) { badgeCls = 'px-badge-multi';    badgeTxt = `Multi · ${t.length}`; }
     else if (isUrl)   { badgeCls = 'px-badge-url';      badgeTxt = 'URL'; }
     else              { badgeCls = 'px-badge-button';   badgeTxt = 'Button'; }
     const labelStyle = isDisabled ? 'color:#dc2626;font-style:italic;' : 'color:var(--tx-mid);';
@@ -619,21 +631,29 @@ function syncHiddenInputs() {
 let currentPlatform  = null;
 let currentEventName = null;
 
-function renderUrlOptions(current) {
+// Normalize a stored trigger value to an array. Accepts: undefined / single object / array.
+function normalizeTriggers(t) {
+  if (!t) return [];
+  if (Array.isArray(t)) return t;
+  if (t.type === 'disabled') return [];
+  return [t];
+}
+
+function renderUrlOptions(checkedSet) {
   return PIXEL_URLS.map(u => {
-    const sel = current && current.type === 'url' && current.value === u.value;
+    const sel = checkedSet.has(u.value);
     return `<label class="px-opt${sel ? ' selected-url' : ''}">
-      <input type="radio" name="modal-url-opt" class="pixel-url-opt" value="${u.value}" ${sel ? 'checked' : ''} style="accent-color:#006837;">
+      <input type="checkbox" class="pixel-url-opt" value="${u.value}" ${sel ? 'checked' : ''} style="accent-color:#006837;">
       <div><div class="px-opt-main">${u.value}</div><div class="px-opt-sub">${u.label}</div></div>
     </label>`;
   }).join('');
 }
 
-function renderBtnOptions(current) {
+function renderBtnOptions(checkedSet) {
   return PIXEL_BUTTONS.map(b => {
-    const sel = current && current.type === 'button' && current.id === b.id;
+    const sel = checkedSet.has(b.id);
     return `<label class="px-opt${sel ? ' selected-button' : ''}">
-      <input type="radio" name="modal-btn-opt" class="pixel-btn-opt" value="${b.id}" ${sel ? 'checked' : ''} style="accent-color:#7c3aed;">
+      <input type="checkbox" class="pixel-btn-opt" value="${b.id}" ${sel ? 'checked' : ''} style="accent-color:#7c3aed;">
       <div>
         <div class="px-opt-main">${b.label}</div>
         <div class="px-opt-sub" style="font-family:monospace;">${b.selector} &nbsp;·&nbsp; ${b.page_label}</div>
@@ -646,23 +666,24 @@ function openPixelModal(platform, eventName) {
   currentPlatform  = platform;
   currentEventName = eventName;
   const t = getTrig(platform, eventName);
+  const triggers = normalizeTriggers(t);
+  const urlSet = new Set(triggers.filter(x => x.type === 'url').map(x => x.value));
+  const btnSet = new Set(triggers.filter(x => x.type === 'button').map(x => x.id));
+
   document.getElementById('modal-platform-label').textContent = (platform === 'meta' ? 'Meta' : 'TikTok') + ' Event';
   document.getElementById('modal-event-title').textContent    = 'Configure: ' + eventName;
-  document.getElementById('url-options-list').innerHTML = renderUrlOptions(t);
-  document.getElementById('btn-options-list').innerHTML = renderBtnOptions(t);
-  switchPixelTab(t && t.type === 'button' ? 'button' : 'url');
+  document.getElementById('url-options-list').innerHTML = renderUrlOptions(urlSet);
+  document.getElementById('btn-options-list').innerHTML = renderBtnOptions(btnSet);
+  // Open the tab that has the most selections; default to URL when nothing's set.
+  switchPixelTab(btnSet.size > urlSet.size ? 'button' : 'url');
   document.getElementById('pixel-modal-overlay').style.display = 'flex';
 
-  document.querySelectorAll('.pixel-url-opt').forEach(r => {
-    r.addEventListener('change', () => {
-      document.getElementById('url-options-list').innerHTML = renderUrlOptions({ type:'url', value: r.value });
-    });
+  // Keep the visual "selected" outline in sync with checkbox state
+  document.querySelectorAll('.pixel-url-opt').forEach(cb => {
+    cb.addEventListener('change', () => cb.closest('.px-opt').classList.toggle('selected-url',    cb.checked));
   });
-  document.querySelectorAll('.pixel-btn-opt').forEach(r => {
-    r.addEventListener('change', () => {
-      const b = PIXEL_BUTTONS.find(x => x.id === r.value);
-      if (b) document.getElementById('btn-options-list').innerHTML = renderBtnOptions({ type:'button', id: b.id, selector: b.selector, page: b.page });
-    });
+  document.querySelectorAll('.pixel-btn-opt').forEach(cb => {
+    cb.addEventListener('change', () => cb.closest('.px-opt').classList.toggle('selected-button', cb.checked));
   });
 }
 
@@ -687,21 +708,24 @@ function switchPixelTab(type) {
 
 function savePixelConfig() {
   if (!currentPlatform || !currentEventName) return;
-  const urlActive = document.getElementById('pixel-tab-url').style.display !== 'none';
-  let trigger;
-  if (urlActive) {
-    const sel = document.querySelector('.pixel-url-opt:checked');
-    if (!sel) { alert('Please select a URL.'); return; }
-    trigger = { type: 'url', value: sel.value };
+  const triggers = [];
+  // Collect URL checks (from both tabs, regardless of which is visible)
+  document.querySelectorAll('.pixel-url-opt:checked').forEach(el => {
+    triggers.push({ type: 'url', value: el.value });
+  });
+  document.querySelectorAll('.pixel-btn-opt:checked').forEach(el => {
+    const b = PIXEL_BUTTONS.find(x => x.id === el.value);
+    if (b) triggers.push({ type: 'button', id: b.id, selector: b.selector, page: b.page });
+  });
+
+  const store = currentPlatform === 'meta' ? metaTriggers : tiktokTriggers;
+  if (triggers.length === 0) {
+    if (!confirm('No triggers selected. This will remove the override.\n\nThe event will fall back to its built-in default (or stop firing if no default exists). Use "Disable" instead to suppress it completely.')) return;
+    delete store[currentEventName];
   } else {
-    const sel = document.querySelector('.pixel-btn-opt:checked');
-    if (!sel) { alert('Please select a button.'); return; }
-    const b = PIXEL_BUTTONS.find(x => x.id === sel.value);
-    if (!b) return;
-    trigger = { type: 'button', id: b.id, selector: b.selector, page: b.page };
+    // Single trigger → store as object (backward-compat). Multiple → array.
+    store[currentEventName] = triggers.length === 1 ? triggers[0] : triggers;
   }
-  if (currentPlatform === 'meta')   metaTriggers[currentEventName]   = trigger;
-  else                               tiktokTriggers[currentEventName] = trigger;
   renderAllTables();
   syncHiddenInputs();
   closePixelModal();
