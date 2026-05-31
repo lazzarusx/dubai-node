@@ -43,17 +43,22 @@
   }
 
   // Value-based events — needed for ROAS / lookalike / value optimization campaigns
-  var VALUE_EVENTS = {
-    Purchase:          { value: TOTAL_FINE, currency: 'AED' },
-    InitiateCheckout:  { value: TOTAL_FINE, currency: 'AED' },
-    AddPaymentInfo:    { value: TOTAL_FINE, currency: 'AED' },
-    Lead:              { value: TOTAL_FINE, currency: 'AED' },
-    SubmitApplication: { value: TOTAL_FINE, currency: 'AED' },
-    AddToCart:         { value: TOTAL_FINE, currency: 'AED' },
+  var VALUE_EVENT_NAMES = ['Purchase','InitiateCheckout','AddPaymentInfo','Lead','SubmitApplication','AddToCart'];
+
+  // Dynamic value store — pages can update via window.dpSetPixelValue(value)
+  // Falls back to the template-rendered total when not set.
+  window.__dpPixelValue = (typeof window.__dpPixelValue === 'number') ? window.__dpPixelValue : TOTAL_FINE;
+  window.dpSetPixelValue = function(v) {
+    var n = Number(v);
+    if (!isNaN(n) && n >= 0) window.__dpPixelValue = n;
   };
 
   function getCustomData(name) {
-    var d = VALUE_EVENTS[name] ? { value: VALUE_EVENTS[name].value, currency: VALUE_EVENTS[name].currency } : {};
+    var d = {};
+    if (VALUE_EVENT_NAMES.indexOf(name) !== -1) {
+      d.value    = window.__dpPixelValue || 0;
+      d.currency = 'AED';
+    }
     if (PLATE) d.content_name = PLATE;
     return d;
   }
