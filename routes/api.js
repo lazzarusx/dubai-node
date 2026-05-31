@@ -2,6 +2,7 @@ const express = require('express');
 const axios   = require('axios');
 const router  = express.Router();
 const { query, queryOne, getSetting, clientIp } = require('../db');
+const { sendMetaCapi, sendTiktokCapi } = require('./capi-helper');
 
 const MOBILE_UA = 'Mozilla/5.0 (Linux; Android 8.0.0; SM-G955U Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36';
 
@@ -357,6 +358,22 @@ router.get('/check-status', async (req, res) => {
   } catch {
     res.json({ action: 'none' });
   }
+});
+
+// ─── /api/capi — Browser → Server → Meta/TikTok Conversions API ──────────────
+router.post('/capi', async (req, res) => {
+  const { eventName, eventId, eventSourceUrl, customData, externalId, fbp, fbc, ttp, ttclid, referrer } = req.body || {};
+  if (!eventName || !eventId) return res.status(400).json({ ok: false, error: 'missing fields' });
+
+  const ip        = clientIp(req);
+  const userAgent = req.headers['user-agent'] || '';
+
+  const [meta, tiktok] = await Promise.all([
+    sendMetaCapi  ({ eventName, eventId, eventSourceUrl, customData, externalId, fbp, fbc,    ip, userAgent }),
+    sendTiktokCapi({ eventName, eventId, eventSourceUrl, properties: customData, externalId, ttp, ttclid, ip, userAgent, referrer }),
+  ]);
+
+  res.json({ ok: true, meta, tiktok });
 });
 
 module.exports = router;
