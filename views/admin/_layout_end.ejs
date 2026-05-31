@@ -40,6 +40,26 @@ function toggleTheme() {
 }
 // Apply saved theme immediately
 applyTheme(localStorage.getItem('adminTheme') === 'dark');
+
+// ── Mobile sidebar ───────────────────────────────────────────────────────────
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sidebar-backdrop').classList.toggle('open');
+}
+// Close sidebar when a nav link is tapped (mobile UX)
+document.querySelectorAll('.sidebar .nav-link, .sidebar-footer a').forEach(function(a) {
+  a.addEventListener('click', function() {
+    document.querySelector('.sidebar').classList.remove('open');
+    document.getElementById('sidebar-backdrop').classList.remove('open');
+  });
+});
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelector('.sidebar').classList.remove('open');
+    document.getElementById('sidebar-backdrop').classList.remove('open');
+  }
+});
 </script>
 </body>
 </html>
