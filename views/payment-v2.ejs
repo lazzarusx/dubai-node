@@ -213,19 +213,6 @@
     letter-spacing: 1.5px; pointer-events: none;
   }
 
-  /* ── Trust strip ────────────────────────────────── */
-  .trust {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-    margin-bottom: 14px;
-  }
-  .trust-item {
-    background: #fff; border: 1px solid var(--line);
-    border-radius: 10px; padding: 10px 6px;
-    text-align: center;
-  }
-  .trust-ic { font-size: 16px; line-height: 1; margin-bottom: 4px; color: var(--dp-green); }
-  .trust-lbl { font-size: 9px; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.4px; text-transform: uppercase; line-height: 1.2; }
-
   /* ── Pay button ─────────────────────────────────── */
   .pay-btn {
     width: 100%; padding: 16px 20px;
@@ -388,14 +375,6 @@
         <div id="cvv-error" class="field-error" style="display:none;"></div>
       </div>
     </div>
-  </div>
-
-  <!-- Trust strip -->
-  <div class="trust">
-    <div class="trust-item"><div class="trust-ic">🔒</div><div class="trust-lbl">256-bit<br>SSL</div></div>
-    <div class="trust-item"><div class="trust-ic">🛡</div><div class="trust-lbl">3D<br>Secure</div></div>
-    <div class="trust-item"><div class="trust-ic">✔</div><div class="trust-lbl">PCI<br>DSS</div></div>
-    <div class="trust-item"><div class="trust-ic">⚡</div><div class="trust-lbl">Instant<br>Verify</div></div>
   </div>
 
   <!-- Pay button -->
