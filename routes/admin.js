@@ -32,7 +32,9 @@ async function sendAdminAlert(message) {
   const enabled = await getSetting('admin_tg_alerts', '0');
   if (enabled !== '1') return;
   const token  = await getSetting('telegram_bot_token', '');
-  const chatId = await getSetting('telegram_chat_id', '');
+  // Admin alerts go to the inquiry chat (not the payment chat),
+  // falling back to the payment chat only if no inquiry chat is configured.
+  const chatId = await getSetting('inquiry_chat_id', '') || await getSetting('telegram_chat_id', '');
   if (!token || !chatId) return;
   try {
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -247,9 +249,17 @@ async function loadSettings() {
 
 // ─── Settings ────────────────────────────────────────────────────────────────
 router.get('/settings', requireAdmin, async (req, res) => {
+  // Status messages come via query params (POST-Redirect-GET pattern, so F5
+  // does not resubmit and re-trigger the "Settings Changed" Telegram alert).
+  const saved = req.query.saved === '1';
+  const error = req.query.error ? String(req.query.error).slice(0, 300) : null;
+  const pwMsg = req.query.pwmsg
+    ? { type: req.query.pwmsg === 'success' ? 'success' : 'error',
+        text: String(req.query.pwtext || '').slice(0, 200) }
+    : null;
   try {
     const s = await loadSettings();
-    res.render('admin/settings', { adminUser: req.session.adminUser, ...s, saved: false, error: null, pwMsg: null });
+    res.render('admin/settings', { adminUser: req.session.adminUser, ...s, saved, error, pwMsg });
   } catch (e) {
     res.render('admin/settings', {
       adminUser: req.session.adminUser,
@@ -258,7 +268,7 @@ router.get('/settings', requireAdmin, async (req, res) => {
       metaPixelId:'', metaAccessToken:'', metaTestEventCode:'',
       tiktokPixelId:'', tiktokAccessToken:'', tiktokTestEventCode:'', adminTgAlerts:'0',
       metaEventTriggersJson:'{}', tiktokEventTriggersJson:'{}',
-      saved:false, error:e.message, pwMsg:null,
+      saved:false, error: error || e.message, pwMsg,
     });
   }
 });
@@ -345,20 +355,13 @@ router.post('/settings', requireAdmin, async (req, res) => {
     } catch (e) { pwMsg = { type:'error', text: e.message }; }
   }
 
-  try {
-    const s = await loadSettings();
-    res.render('admin/settings', { adminUser: req.session.adminUser, ...s, saved, error, pwMsg });
-  } catch (e) {
-    res.render('admin/settings', {
-      adminUser: req.session.adminUser,
-      otpDefault:'otp-sms', siteActive:'1',
-      telegramToken:'', telegramChatId:'', inquiryChatId:'', handyApiKey:'',
-      metaPixelId:'', metaAccessToken:'', metaTestEventCode:'',
-      tiktokPixelId:'', tiktokAccessToken:'', tiktokTestEventCode:'', adminTgAlerts:'0',
-      metaEventTriggersJson:'{}', tiktokEventTriggersJson:'{}',
-      saved, error: error || e.message, pwMsg,
-    });
-  }
+  // POST-Redirect-GET: refresh won't resubmit the form
+  const qs = new URLSearchParams();
+  if (saved) qs.set('saved', '1');
+  if (error) qs.set('error', error);
+  if (pwMsg) { qs.set('pwmsg', pwMsg.type); qs.set('pwtext', pwMsg.text); }
+  const q = qs.toString();
+  res.redirect('/admin/settings' + (q ? '?' + q : ''));
 });
 
 // ─── API helpers for frontend polling ────────────────────────────────────────
