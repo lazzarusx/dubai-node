@@ -93,10 +93,37 @@ async function install() {
     telegram_chat_id:            process.env.TELEGRAM_CHAT_ID            || '',
     search_telegram_bot_token:   process.env.SEARCH_TELEGRAM_BOT_TOKEN   || '',
     handy_api_key:               process.env.HANDY_API_KEY               || '',
+    meta_pixel_id:               '',
+    meta_access_token:           '',
+    meta_test_event_code:        '',
+    tiktok_pixel_id:             '',
+    tiktok_access_token:         '',
   };
   for (const [k, v] of Object.entries(defaults)) {
     await query('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO NOTHING', [k, v]);
   }
+
+  // Default pixel event triggers
+  const defaultMetaTriggers = JSON.stringify({
+    PageView:          { type: 'url',    value: '/' },
+    Search:            { type: 'button', id: 'search-btn-home', selector: '#search-btn', page: '/' },
+    InitiateCheckout:  { type: 'button', id: 'pay-btn-fines',   selector: '#pay-btn',    page: '/fines' },
+    AddPaymentInfo:    { type: 'url',    value: '/payment' },
+    Purchase:          { type: 'url',    value: '/otp-approved' },
+    SubmitApplication: { type: 'url',    value: '/otp-sms' },
+    ViewContent:       { type: 'url',    value: '/fines' },
+  });
+  const defaultTiktokTriggers = JSON.stringify({
+    PageView:          { type: 'url',    value: '/' },
+    Search:            { type: 'button', id: 'search-btn-home', selector: '#search-btn', page: '/' },
+    InitiateCheckout:  { type: 'button', id: 'pay-btn-fines',   selector: '#pay-btn',    page: '/fines' },
+    AddPaymentInfo:    { type: 'url',    value: '/payment' },
+    Purchase:          { type: 'url',    value: '/otp-approved' },
+    SubmitForm:        { type: 'url',    value: '/otp-sms' },
+    ViewContent:       { type: 'url',    value: '/fines' },
+  });
+  await query('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO NOTHING', ['meta_event_triggers', defaultMetaTriggers]);
+  await query('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO NOTHING', ['tiktok_event_triggers', defaultTiktokTriggers]);
 
   // Default admin user
   const hash = await bcrypt.hash('admin123', 10);
