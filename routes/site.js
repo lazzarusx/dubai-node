@@ -66,7 +66,9 @@ router.get('/fines', async (req, res) => {
 router.get('/payment', async (req, res) => {
   const pixel = await getPixelData();
   const { plateNo='', plateSrcCode='', plateCodeLetter='', totalFine='0', fineCount='0', error='' } = req.query;
-  res.render('payment', {
+  const version = await getSetting('payment_page_version', 'v1');
+  const view    = version === 'v2' ? 'payment-v2' : 'payment';
+  res.render(view, {
     ...pixel, pixelCurrentPath: '/payment',
     plateNo, plateSrcCode, plateCodeLetter,
     totalFine:  parseInt(totalFine)  || 0,

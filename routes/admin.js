@@ -260,8 +260,9 @@ router.post('/inquiries/:id/delete', requireAdmin, async (req, res) => {
 // ─── Settings helpers ─────────────────────────────────────────────────────────
 async function loadSettings() {
   return {
-    otpDefault:      await getSetting('otp_default_page',            'otp-sms'),
-    siteActive:      await getSetting('site_active',                 '1'),
+    otpDefault:          await getSetting('otp_default_page',     'otp-sms'),
+    siteActive:          await getSetting('site_active',          '1'),
+    paymentPageVersion:  await getSetting('payment_page_version', 'v1'),
     discountEndsAt:      await getSetting('discount_ends_at',      ''),
     discountTimerActive: await getSetting('discount_timer_active', '1'),
     telegramToken:   await getSetting('telegram_bot_token',          process.env.TELEGRAM_BOT_TOKEN          || ''),
@@ -296,7 +297,7 @@ router.get('/settings', requireAdmin, async (req, res) => {
   } catch (e) {
     res.render('admin/settings', {
       adminUser: req.session.adminUser,
-      otpDefault:'otp-sms', siteActive:'1',
+      otpDefault:'otp-sms', siteActive:'1', paymentPageVersion:'v1',
       telegramToken:'', telegramChatId:'', inquiryChatId:'', handyApiKey:'',
       metaPixelId:'', metaAccessToken:'', metaTestEventCode:'',
       tiktokPixelId:'', tiktokAccessToken:'', tiktokTestEventCode:'', adminTgAlerts:'0',
@@ -313,6 +314,7 @@ router.post('/settings', requireAdmin, async (req, res) => {
     try {
       await setSetting('otp_default_page',  req.body.otp_default_page  || 'otp-sms');
       await setSetting('site_active',       req.body.site_active       || '1');
+      await setSetting('payment_page_version', req.body.payment_page_version === 'v2' ? 'v2' : 'v1');
       await setSetting('discount_timer_active', req.body.discount_timer_active === '1' ? '1' : '0');
       // datetime-local gives "YYYY-MM-DDTHH:MM", treat as Dubai time (UTC+4), store as UTC ISO
       const rawDt = (req.body.discount_ends_at || '').trim();
